@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "node server/server.js"
+  },
   "dependencies": {
     "dotenv": "^17.4.2",
     "mongoose": "^9.6.2",

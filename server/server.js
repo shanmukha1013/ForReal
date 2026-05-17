@@ -538,17 +538,24 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 async function startServer() {
   try {
-    // Connect to MongoDB
-    await connectDB({ uri: process.env.MONGO_URI });
+    // Connect to MongoDB only if a MONGO_URI is provided. When deploying to
+    // Render the user should set MONGO_URI in the Render Environment variables.
+    if (process.env.MONGO_URI) {
+      console.info('[Server] MONGO_URI detected, attempting MongoDB connection');
+      await connectDB({ uri: process.env.MONGO_URI });
+    } else {
+      console.warn('[Server] MONGO_URI not set — starting without DB (degraded mode). Set MONGO_URI in Render environment for full features.');
+    }
 
     // Start server (HTTP + Socket.IO)
     httpServer.listen(PORT, () => {
-      console.info(`[Server] ForReal API running on http://localhost:${PORT}`);
-      console.info(`[Server] Socket.IO ready on ws://localhost:${PORT}`);
+      console.info(`[Server] ForReal API running on port ${PORT}`);
+      console.info(`[Server] Socket.IO ready on port ${PORT}`);
       console.info(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (err) {
     console.error('[Server] Failed to start:', err);
+    // Keep process exit behavior when DB was requested but failed to connect.
     process.exit(1);
   }
 }

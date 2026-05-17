@@ -1,38 +1,35 @@
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
-import authRoutes from './routes/authRoutes.js';
-import postRoutes from './routes/postRoutes.js';
-import roomRoutes from './routes/roomRoutes.js';
-import chatRoutes from './routes/chatRoutes.js';
+// CommonJS server for Render / Node without changing package.json
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 
-import http from 'http';
-import jwt from 'jsonwebtoken';
-import { Server as SocketIOServer } from 'socket.io';
-import { setIO } from './socket.js';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+const authRoutes = require('./routes/authRoutes.js');
+const postRoutes = require('./routes/postRoutes.js');
+const roomRoutes = require('./routes/roomRoutes.js');
+const chatRoutes = require('./routes/chatRoutes.js');
 
-// Load environment variables (Render / local)
+const http = require('http');
+const jwt = require('jsonwebtoken');
+const { Server: SocketIOServer } = require('socket.io');
+const { setIO } = require('./socket.js');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+// Load environment variables (required)
 dotenv.config();
 
-
-
-
 const app = express();
-// Respect proxies (when behind a load balancer / platform proxy)
 app.set('trust proxy', true);
 
-// Use Render-friendly port
+// Use Render-friendly port (required)
 const PORT = process.env.PORT || 10000;
 
 // ============================================================================
 // Middleware
 // ============================================================================
 
-// CORS configuration
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 if (process.env.NODE_ENV === 'production' && (!process.env.CLIENT_URL || CLIENT_URL.includes('localhost'))) {
   console.warn('[Config] CLIENT_URL is not set to a production URL. Please set CLIENT_URL in environment for production.');
@@ -45,33 +42,28 @@ app.use(
   })
 );
 
-// Security headers
 try {
   app.use(helmet());
 } catch (e) {
-  console.warn('[Security] helmet not available', e?.message || e);
+  console.warn('[Security] helmet not available', e && e.message ? e.message : e);
 }
 
-// Basic rate limiting to prevent abuse (adjust in production as needed)
 try {
   const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     max: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX, 10) : 200,
     standardHeaders: true,
     legacyHeaders: false,
   });
   app.use(limiter);
 } catch (e) {
-  console.warn('[Security] rateLimit not available', e?.message || e);
+  console.warn('[Security] rateLimit not available', e && e.message ? e.message : e);
 }
 
-// Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-// Cookie parser (for refresh tokens)
 app.use(cookieParser());
 
-// Request logging in development
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
@@ -93,7 +85,6 @@ app.use('/api/talks', postRoutes); // Alias for backward compatibility
 app.use('/api/rooms', roomRoutes);
 app.use('/chat', chatRoutes);
 
-// API health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -118,38 +109,25 @@ function verifySocketToken(token) {
     const decoded = jwt.verify(token, JWT_SECRET);
     return { ok: true, payload: decoded };
   } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return { ok: false, reason: 'token_expired' };
-    }
-    if (err.name === 'JsonWebTokenError') {
-      return { ok: false, reason: 'token_invalid' };
-    }
+    if (err && err.name === 'TokenExpiredError') return { ok: false, reason: 'token_expired' };
+    if (err && err.name === 'JsonWebTokenError') return { ok: false, reason: 'token_invalid' };
     return { ok: false, reason: 'token_error' };
   }
 }
 
-// In-memory fallback structures until we wire full DB-backed messages/events.
-// (This keeps realtime stable while still persisting room membership in MongoDB via existing routes.)
-const roomState = new Map(); // roomId -> { participants: Set<userId> }
-
+const roomState = new Map();
 function getRoomState(roomId) {
-  if (!roomState.has(roomId)) {
-    roomState.set(roomId, { participants: new Set() });
-  }
+  if (!roomState.has(roomId)) roomState.set(roomId, { participants: new Set() });
   return roomState.get(roomId);
 }
-
 function joinRoomInMemory(roomId, userId) {
   const state = getRoomState(roomId);
   state.participants.add(String(userId));
 }
-
 function leaveRoomInMemory(roomId, userId) {
   const state = getRoomState(roomId);
   state.participants.delete(String(userId));
-  if (state.participants.size === 0) {
-    roomState.delete(roomId);
-  }
+  if (state.participants.size === 0) roomState.delete(roomId);
 }
 
 const httpServer = http.createServer(app);
@@ -159,24 +137,20 @@ const io = new SocketIOServer(httpServer, {
     origin: CLIENT_URL,
     credentials: true,
   },
-  // Allow both websocket and polling transports for broader network compatibility
   transports: ['websocket', 'polling'],
   allowEIO3: false,
 });
 
-// expose io to other modules
 setIO(io);
 
-// Auth-aware socket handling
 io.use(async (socket, next) => {
-  // Support token in: auth.token, query.token, or Authorization header style
   const token =
-    socket.handshake.auth?.token ||
-    socket.handshake.query?.token ||
-    socket.handshake.headers?.authorization?.replace('Bearer ', '') ||
-    null;
+    (socket.handshake && socket.handshake.auth && socket.handshake.auth.token) ||
+    (socket.handshake && socket.handshake.query && socket.handshake.query.token) ||
+    (socket.handshake && socket.handshake.headers && socket.handshake.headers.authorization
+      ? socket.handshake.headers.authorization.replace('Bearer ', '')
+      : null);
 
-  // Basic logging for auth attempts (avoid logging tokens themselves)
   const meta = {
     ip: socket.handshake.address,
     time: new Date().toISOString(),
@@ -184,18 +158,15 @@ io.use(async (socket, next) => {
 
   const result = verifySocketToken(token);
 
-  // If token is valid attach and continue
   if (result && result.ok) {
     socket.data.user = { id: result.payload.id, role: result.payload.role };
     console.info('[socket-auth] accepted', { ...meta, userId: result.payload.id });
     return next();
   }
 
-  // If token is not valid (expired/invalid/missing), attempt server-side refresh using refreshToken from cookies
   if (!result || result.ok === false) {
     try {
-      // Parse cookies from handshake headers (simple parser)
-      const cookieHeader = socket.handshake.headers?.cookie || '';
+      const cookieHeader = (socket.handshake && socket.handshake.headers && socket.handshake.headers.cookie) || '';
       const cookies = {};
       cookieHeader.split(';').forEach((c) => {
         const [k, ...v] = c.split('=');
@@ -203,36 +174,39 @@ io.use(async (socket, next) => {
         cookies[k.trim()] = decodeURIComponent((v || []).join('=').trim());
       });
 
-      const refreshToken = socket.handshake.auth?.refreshToken || cookies.refreshToken || null;
+      const refreshToken =
+        (socket.handshake && socket.handshake.auth && socket.handshake.auth.refreshToken) || cookies.refreshToken || null;
+
       if (!refreshToken) {
         console.warn('[socket-auth] token invalid/expired with no refresh available', meta);
         return next(new Error(`UNAUTHORIZED:${(result && result.reason) || 'unauthorized'}`));
       }
 
-      // Verify refresh token
       let refreshPayload;
       try {
         refreshPayload = jwt.verify(refreshToken, JWT_SECRET);
       } catch (err) {
-        console.warn('[socket-auth] refresh token invalid/expired', { ...meta, err: err.message });
+        console.warn('[socket-auth] refresh token invalid/expired', { ...meta, err: err && err.message });
         return next(new Error('UNAUTHORIZED:refresh_invalid'));
       }
 
-      // Ensure user still exists and the refresh token was issued
+      // User model is currently ESM in the repo; require() may fail if the model file uses import.
+      // To keep startup working, fall back to dynamic import only when refresh flow is used.
       const User = (await import('./models/User.js')).default;
       const user = await User.findById(refreshPayload.id).exec();
+
       if (!user) return next(new Error('UNAUTHORIZED:user_not_found'));
       if (!user.refreshTokens || !user.refreshTokens.includes(refreshToken)) {
         console.warn('[socket-auth] refresh token revoked', { userId: user._id });
         return next(new Error('UNAUTHORIZED:refresh_revoked'));
       }
 
-      // Issue a new short-lived access token for the socket and attach it
       const newAccessToken = jwt.sign(
         { id: user._id, role: user.role },
         JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
       );
+
       socket.data.user = { id: String(user._id), role: user.role };
       socket.data.refreshedToken = newAccessToken;
       console.info('[socket-auth] refreshed access token for socket', { ...meta, userId: user._id });
@@ -243,24 +217,21 @@ io.use(async (socket, next) => {
     }
   }
 
-  // All other failures are rejected
   const reason = (result && result.reason) || 'unauthorized';
   console.warn('[socket-auth] denied', { ...meta, reason });
   return next(new Error(`UNAUTHORIZED:${reason}`));
 });
 
-// Mongo-backed realtime DM/notifications
-import { createOrSendMessage as createOrSendMessage } from './controllers/chatController.js';
+const { createOrSendMessage } = require('./controllers/chatController.js');
 
 io.on('connection', (socket) => {
   const user = socket.data.user;
   console.info('[socket] connection established', {
-    userId: user?.id,
+    userId: user && user.id,
     socketId: socket.id,
     time: new Date().toISOString(),
   });
 
-  // If middleware refreshed the access token, inform the client so it can update local state
   if (socket.data && socket.data.refreshedToken) {
     try {
       socket.emit('auth:refreshed', { token: socket.data.refreshedToken });
@@ -292,18 +263,12 @@ io.on('connection', (socket) => {
   socket.on('room:join', async ({ roomId } = {}, ack) => {
     try {
       if (!roomId) throw new Error('roomId required');
-
       socket.join(`room:${roomId}`);
       console.info('[socket] user joined room (socket)', { userId: user.id, roomId });
       joinRoomInMemory(roomId, user.id);
 
-      // Broadcast minimal membership update
       const participants = Array.from(getRoomState(roomId).participants);
-      io.to(`room:${roomId}`).emit('room:members:update', {
-        roomId,
-        participants,
-      });
-
+      io.to(`room:${roomId}`).emit('room:members:update', { roomId, participants });
       ack && ack({ ok: true });
     } catch (err) {
       ack && ack({ ok: false, error: err.message || 'Join failed' });
@@ -314,7 +279,7 @@ io.on('connection', (socket) => {
     try {
       const result = verifySocketToken(token);
       if (!result || result.ok === false) {
-        const reason = result?.reason || 'unauthorized';
+        const reason = result && result.reason ? result.reason : 'unauthorized';
         console.warn('[socket-auth] auth:update denied', { socketId: socket.id, reason });
         ack && ack({ ok: false, reason });
         return;
@@ -331,16 +296,12 @@ io.on('connection', (socket) => {
   socket.on('room:leave', ({ roomId } = {}, ack) => {
     try {
       if (!roomId) throw new Error('roomId required');
-
       socket.leave(`room:${roomId}`);
       leaveRoomInMemory(roomId, user.id);
 
       const state = roomState.get(roomId);
       const participants = state ? Array.from(state.participants) : [];
-      io.to(`room:${roomId}`).emit('room:members:update', {
-        roomId,
-        participants,
-      });
+      io.to(`room:${roomId}`).emit('room:members:update', { roomId, participants });
 
       ack && ack({ ok: true });
     } catch (err) {
@@ -348,7 +309,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Debate timeline / messaging (existing)
   socket.on('message:send', async ({ roomId, text } = {}, ack) => {
     try {
       if (!roomId) throw new Error('roomId required');
@@ -358,16 +318,11 @@ io.on('connection', (socket) => {
         id: `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
         roomId,
         text: String(text).trim(),
-        author: {
-          id: user.id,
-        },
+        author: { id: user.id },
         createdAt: new Date().toISOString(),
       };
 
-      // Broadcast to room
       io.to(`room:${roomId}`).emit('message:new', safeJson(payload));
-
-      // TODO: replace in-memory message with MongoDB persistence.
       ack && ack({ ok: true, message: payload });
     } catch (err) {
       ack && ack({ ok: false, error: err.message || 'Send failed' });
@@ -410,7 +365,7 @@ io.on('connection', (socket) => {
         const fakeReq = { user: { id: user.id }, body: payload };
         const fakeRes = { status: () => fakeRes, json: (body) => body };
         const body = await createOrSendMessage(fakeReq, fakeRes, () => {});
-        const message = body?.message;
+        const message = body && body.message;
         if (!message) throw new Error('message not created');
 
         io.to(`dm:conv:${message.conversationId}`).emit('dm:new', message);
@@ -479,12 +434,14 @@ httpServer.on('error', (err) => {
   console.error('[HTTP Server Error]', err);
 });
 
-// Centralized Express error handler (production-safe)
+// ============================================================================
+// Express error handler (production-safe)
+// ============================================================================
+
 app.use((err, req, res, _next) => {
   try {
-    const status = err?.status || 500;
-    const safeMessage =
-      process.env.NODE_ENV === 'production' ? 'Internal server error' : err?.message || String(err);
+    const status = err && err.status ? err.status : 500;
+    const safeMessage = process.env.NODE_ENV === 'production' ? 'Internal server error' : err && err.message ? err.message : String(err);
 
     console.error('[Express Error]', { path: req.path, error: err });
     res.status(status).json({ message: safeMessage });
@@ -494,14 +451,12 @@ app.use((err, req, res, _next) => {
   }
 });
 
-// Global process-level handlers (prevents silent exits)
 process.on('unhandledRejection', (reason, p) => {
   console.error('[Process] unhandledRejection', reason, p);
 });
 
 process.on('uncaughtException', (err) => {
   console.error('[Process] uncaughtException', err);
-  // In production, let supervisor/Render restart.
   try {
     httpServer.close(() => {
       console.error('[Process] Shutting down after uncaughtException');
@@ -512,14 +467,11 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-// Graceful shutdown on signals
 async function gracefulShutdown(signal) {
   console.info('[Server] Received signal', signal, 'shutting down gracefully');
   try {
     httpServer.close(() => console.info('[Server] HTTP server closed'));
-
-    // Ensure mongoose is closed as well if possible.
-    if (mongoose?.connection?.readyState === 1) {
+    if (mongoose && mongoose.connection && mongoose.connection.readyState === 1) {
       await mongoose.connection.close(false);
     }
   } catch (err) {
@@ -542,40 +494,28 @@ if (!mongoUri) {
   process.exit(1);
 }
 
-mongoose.connection.on('connected', () => {
-  // Required log
-  console.info('MongoDB Connected');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('[MongoDB] connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.warn('[MongoDB] disconnected');
-});
-
 (async () => {
   try {
-    // Connect using process.env.MONGO_URI and only start server after success
+    mongoose.connection.on('error', (err) => {
+      console.error('[MongoDB] connection error:', err);
+    });
+
     await mongoose.connect(mongoUri);
 
     // Required log
     console.info('MongoDB Connected');
 
     httpServer.listen(PORT, () => {
-      // Required logs
+      // Required log
       console.info('Server running on port ' + PORT);
     });
 
-    // Also log environment
     console.info(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
   } catch (err) {
-    // Full error logs if connection fails
     console.error('[MongoDB] Error during connection:', err);
     process.exit(1);
   }
 })();
 
-export default app;
+module.exports = app;
 

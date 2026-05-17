@@ -14,7 +14,7 @@ import { storageCache } from '../lib/storageCache';
 // -----------------------------------------------------------------------------
 // Configuration
 // -----------------------------------------------------------------------------
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://forreal-uotb.onrender.com';
 const SOCKET_OPTIONS = {
   withCredentials: true,
   transports: ['websocket', 'polling'], // fallback for restrictive networks

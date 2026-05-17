@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // ─── Constants & Env ─────────────────────────────────────────────────────────
 // Fallback to localhost if the env variable isn't set, ensuring it works anywhere
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://forreal-uotb.onrender.com/api';
 
 // ─── Axios Instance Setup ───────────────────────────────────────────────────
 const apiClient = axios.create({

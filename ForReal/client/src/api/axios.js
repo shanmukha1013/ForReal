@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // ─── Environment & Configuration ─────────────────────────────────────────────
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://forreal-uotb.onrender.com/api";
 const TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 400;

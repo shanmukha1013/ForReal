@@ -28,7 +28,8 @@ const rateLimit = require('express-rate-limit');
 dotenv.config();
 
 const app = express();
-app.set('trust proxy', true);
+// Explicitly trust Render's / platform proxy headers
+app.set('trust proxy', 1);
 
 // Use Render-friendly port (required)
 const PORT = process.env.PORT || 10000;
@@ -37,15 +38,17 @@ const PORT = process.env.PORT || 10000;
 // Middleware
 // ============================================================================
 
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
-if (process.env.NODE_ENV === 'production' && (!process.env.CLIENT_URL || CLIENT_URL.includes('localhost'))) {
-  console.warn('[Config] CLIENT_URL is not set to a production URL. Please set CLIENT_URL in environment for production.');
-}
+// Production CORS: lock down to the deployed Vercel frontend origin.
+// Keep env override for flexibility, but default to the correct production URL.
+const PROD_CLIENT_ORIGIN = 'https://for-real-seven.vercel.app';
+const CLIENT_URL = process.env.CLIENT_URL || PROD_CLIENT_ORIGIN;
 
 app.use(
   cors({
     origin: CLIENT_URL,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   })
 );
 

@@ -6,7 +6,24 @@
 // Designed for scale, performance, and a premium realtime feel.
 // -----------------------------------------------------------------------------
 
-import React, { Suspense, lazy } from 'react';
+import React, { lazy } from 'react';
+
+// -----------------------------------------------------------------------------
+// Lazy-load safety wrapper
+// If an import resolves without a `default` export (React.lazy expects a component),
+// we throw a targeted error naming the broken page. This prevents a vague
+// “undefined lazy-loaded component” crash and identifies the exact culprit.
+// -----------------------------------------------------------------------------
+function lazyWithDefaultCheck(importFn, name) {
+  return lazy(async () => {
+    const mod = await importFn();
+    if (!mod || !mod.default) {
+      const keys = mod && typeof mod === 'object' ? Object.keys(mod) : 'null';
+      throw new Error(`[LazyLoad] ${name} loaded by React.lazy, but module.default is missing. Export keys: ${keys}`);
+    }
+    return mod;
+  });
+}
 import {
   BrowserRouter,
   Routes,
@@ -25,17 +42,17 @@ import { ErrorBoundary, RouteErrorFallback } from './components/ErrorBoundary';
 // -----------------------------------------------------------------------------
 // Lazy‑loaded pages for code‑splitting (optional but production‑grade)
 // -----------------------------------------------------------------------------
-const Login = lazy(() => import('./pages/Login'));
-const Home = lazy(() => import('./pages/Home'));
-const Explore = lazy(() => import('./pages/Explore'));
-const Profile = lazy(() => import('./pages/Profile'));
-const Rooms = lazy(() => import('./pages/Rooms'));
-const Room = lazy(() => import('./pages/Room'));
-const Messages = lazy(() => import('./pages/Messages'));
-const Notifications = lazy(() => import('./pages/Notifications'));
-const Settings = lazy(() => import('./pages/Settings'));
-const Admin = lazy(() => import('./pages/Admin')); 
-const Signup = lazy(() => import('./pages/Signup'));
+const Login = lazyWithDefaultCheck(() => import('./pages/Login'), 'Login');
+const Home = lazyWithDefaultCheck(() => import('./pages/Home'), 'Home');
+const Explore = lazyWithDefaultCheck(() => import('./pages/Explore'), 'Explore');
+const Profile = lazyWithDefaultCheck(() => import('./pages/Profile'), 'Profile');
+const Rooms = lazyWithDefaultCheck(() => import('./pages/Rooms'), 'Rooms');
+const Room = lazyWithDefaultCheck(() => import('./pages/Room'), 'Room');
+const Messages = lazyWithDefaultCheck(() => import('./pages/Messages'), 'Messages');
+const Notifications = lazyWithDefaultCheck(() => import('./pages/Notifications'), 'Notifications');
+const Settings = lazyWithDefaultCheck(() => import('./pages/Settings'), 'Settings');
+const Admin = lazyWithDefaultCheck(() => import('./pages/Admin'), 'Admin');
+const Signup = lazyWithDefaultCheck(() => import('./pages/Signup'), 'Signup');
 
 // -----------------------------------------------------------------------------
 // Shared animation variants (page transitions)

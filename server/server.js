@@ -15,13 +15,18 @@ import { setIO } from './socket.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
-// Load environment variables
+// Load environment variables (Render / local)
 dotenv.config();
+
+
+
 
 const app = express();
 // Respect proxies (when behind a load balancer / platform proxy)
 app.set('trust proxy', true);
-const PORT = process.env.PORT || 5000;
+
+// Use Render-friendly port
+const PORT = process.env.PORT || 10000;
 
 // ============================================================================
 // Middleware
@@ -32,10 +37,13 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 if (process.env.NODE_ENV === 'production' && (!process.env.CLIENT_URL || CLIENT_URL.includes('localhost'))) {
   console.warn('[Config] CLIENT_URL is not set to a production URL. Please set CLIENT_URL in environment for production.');
 }
-app.use(cors({
-  origin: CLIENT_URL,
-  credentials: true,
-}));
+
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true,
+  })
+);
 
 // Security headers
 try {
@@ -131,6 +139,19 @@ function getRoomState(roomId) {
   return roomState.get(roomId);
 }
 
+function joinRoomInMemory(roomId, userId) {
+  const state = getRoomState(roomId);
+  state.participants.add(String(userId));
+}
+
+function leaveRoomInMemory(roomId, userId) {
+  const state = getRoomState(roomId);
+  state.participants.delete(String(userId));
+  if (state.participants.size === 0) {
+    roomState.delete(roomId);
+  }
+}
+
 const httpServer = http.createServer(app);
 
 const io = new SocketIOServer(httpServer, {
@@ -154,6 +175,7 @@ io.use(async (socket, next) => {
     socket.handshake.query?.token ||
     socket.handshake.headers?.authorization?.replace('Bearer ', '') ||
     null;
+
   // Basic logging for auth attempts (avoid logging tokens themselves)
   const meta = {
     ip: socket.handshake.address,
@@ -206,7 +228,11 @@ io.use(async (socket, next) => {
       }
 
       // Issue a new short-lived access token for the socket and attach it
-      const newAccessToken = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '15m' });
+      const newAccessToken = jwt.sign(
+        { id: user._id, role: user.role },
+        JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+      );
       socket.data.user = { id: String(user._id), role: user.role };
       socket.data.refreshedToken = newAccessToken;
       console.info('[socket-auth] refreshed access token for socket', { ...meta, userId: user._id });
@@ -223,26 +249,16 @@ io.use(async (socket, next) => {
   return next(new Error(`UNAUTHORIZED:${reason}`));
 });
 
-function joinRoomInMemory(roomId, userId) {
-  const state = getRoomState(roomId);
-  state.participants.add(String(userId));
-}
-
-function leaveRoomInMemory(roomId, userId) {
-  const state = getRoomState(roomId);
-  state.participants.delete(String(userId));
-  if (state.participants.size === 0) {
-    roomState.delete(roomId);
-  }
-}
-
 // Mongo-backed realtime DM/notifications
 import { createOrSendMessage as createOrSendMessage } from './controllers/chatController.js';
 
-
 io.on('connection', (socket) => {
   const user = socket.data.user;
-  console.info('[socket] connection established', { userId: user?.id, socketId: socket.id, time: new Date().toISOString() });
+  console.info('[socket] connection established', {
+    userId: user?.id,
+    socketId: socket.id,
+    time: new Date().toISOString(),
+  });
 
   // If middleware refreshed the access token, inform the client so it can update local state
   if (socket.data && socket.data.refreshedToken) {
@@ -253,12 +269,10 @@ io.on('connection', (socket) => {
     }
   }
 
-  // Ensure stable reconnect: clean up rooms on reconnect/disconnect
   socket.on('dm:joinConversation', async ({ conversationId } = {}, ack) => {
     try {
       if (!conversationId) throw new Error('conversationId required');
       socket.join(`dm:conv:${conversationId}`);
-      // optional ack for client sync
       ack && ack({ ok: true, conversationId });
     } catch (err) {
       ack && ack({ ok: false, error: err.message || 'join failed' });
@@ -296,7 +310,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Allow client to update auth token post-connect (re-auth without reconnect)
   socket.on('auth:update', ({ token } = {}, ack) => {
     try {
       const result = verifySocketToken(token);
@@ -361,11 +374,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Direct messaging
   socket.on('dm:typing', ({ conversationId } = {}, ack) => {
     try {
       if (!conversationId) throw new Error('conversationId required');
-      // broadcast to everyone else in that conversation room
       socket.to(`dm:conv:${conversationId}`).emit('dm:typing', { conversationId, userId: user.id });
       ack && ack({ ok: true });
     } catch (err) {
@@ -373,12 +384,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Client sends via REST in Messages.jsx. We DO NOT persist here to avoid double-writes.
-  /*
-   * dm:send is intentionally not implemented.
-   * Messages.jsx persists via REST POST /chat to avoid double-writes.
-   */
-  socket.on('dm:send', async (_data = {}, ack) => { 
+  socket.on('dm:send', async (_data = {}, ack) => {
     try {
       ack && ack({ ok: false, error: 'Use POST /chat for persistence.' });
     } catch {
@@ -386,14 +392,11 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Reactions (existing)
-  // Unified reaction handler: supports both DM reactions (conversationId) and room reactions
   socket.on('reaction:send', async (data = {}, ack) => {
     try {
       const { roomId, messageId, reaction, conversationId } = data || {};
 
       if (conversationId) {
-        // DM reaction flow: persist via controller and broadcast to conversation
         if (!messageId || !reaction) throw new Error('invalid reaction payload');
         const payload = {
           id: `rx_${Date.now()}_${Math.random().toString(16).slice(2)}`,
@@ -415,7 +418,6 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // Room reaction flow
       if (!roomId || !messageId || !reaction) {
         ack && ack({ ok: false, error: 'invalid reaction payload' });
         return;
@@ -431,18 +433,14 @@ io.on('connection', (socket) => {
       };
 
       io.to(`room:${roomId}`).emit('reaction:new', safeJson(payload));
-      // TODO: persist reaction + implement toggle semantics
       ack && ack({ ok: true });
     } catch (err) {
       ack && ack({ ok: false, error: err.message || 'Reaction failed' });
     }
   });
 
-  // Notifications: client subscribes to room-scoped + global-scoped events
   socket.on('notifications:subscribe', ({ scope } = {}, ack) => {
     try {
-      // Minimal scalable approach: use rooms as notification channels
-      // scope can be { type: 'user', userId } or { type: 'global' }
       if (!scope) throw new Error('scope required');
 
       if (scope.type === 'user' && scope.userId) {
@@ -459,8 +457,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', (reason) => {
-    // Clean in-memory participant state for any rooms the socket is in.
-    // socket.rooms is a Set including socket.id itself.
     for (const joined of socket.rooms) {
       if (joined.startsWith('room:')) {
         const roomId = joined.slice('room:'.length);
@@ -484,10 +480,12 @@ httpServer.on('error', (err) => {
 });
 
 // Centralized Express error handler (production-safe)
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   try {
     const status = err?.status || 500;
-    const safeMessage = process.env.NODE_ENV === 'production' ? 'Internal server error' : (err.message || String(err));
+    const safeMessage =
+      process.env.NODE_ENV === 'production' ? 'Internal server error' : err?.message || String(err);
+
     console.error('[Express Error]', { path: req.path, error: err });
     res.status(status).json({ message: safeMessage });
   } catch (e) {
@@ -496,23 +494,21 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Global process-level handlers
+// Global process-level handlers (prevents silent exits)
 process.on('unhandledRejection', (reason, p) => {
   console.error('[Process] unhandledRejection', reason, p);
 });
 
 process.on('uncaughtException', (err) => {
   console.error('[Process] uncaughtException', err);
-  // In production we may want to exit to allow supervisor to restart
-  if (process.env.NODE_ENV === 'production') {
-    try {
-      httpServer.close(() => {
-        console.error('[Process] Shutting down after uncaughtException');
-        process.exit(1);
-      });
-    } catch (e) {
+  // In production, let supervisor/Render restart.
+  try {
+    httpServer.close(() => {
+      console.error('[Process] Shutting down after uncaughtException');
       process.exit(1);
-    }
+    });
+  } catch {
+    process.exit(1);
   }
 });
 
@@ -521,11 +517,15 @@ async function gracefulShutdown(signal) {
   console.info('[Server] Received signal', signal, 'shutting down gracefully');
   try {
     httpServer.close(() => console.info('[Server] HTTP server closed'));
-    // allow DB shutdown handlers in connectDB to run
-    setTimeout(() => process.exit(0), 2000);
+
+    // Ensure mongoose is closed as well if possible.
+    if (mongoose?.connection?.readyState === 1) {
+      await mongoose.connection.close(false);
+    }
   } catch (err) {
     console.error('[Server] Error during graceful shutdown', err);
-    process.exit(1);
+  } finally {
+    setTimeout(() => process.exit(0), 2000);
   }
 }
 
@@ -533,28 +533,49 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 // ============================================================================
-// Server Initialization
+// Server Initialization (Render-safe)
 // ============================================================================
 
-// Start server only after MongoDB connection succeeds. This mirrors the
-// requested pattern while preserving the existing Socket.IO `httpServer`.
-if (!process.env.MONGO_URI) {
-  console.error('[Server] MONGO_URI is not set. Set MONGO_URI environment variable and restart.');
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+  console.error('[Server] MONGO_URI is not set. Set MONGO_URI environment variable and redeploy to Render.');
   process.exit(1);
 }
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
+mongoose.connection.on('connected', () => {
+  // Required log
+  console.info('MongoDB Connected');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('[MongoDB] connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('[MongoDB] disconnected');
+});
+
+(async () => {
+  try {
+    // Connect using process.env.MONGO_URI and only start server after success
+    await mongoose.connect(mongoUri);
+
+    // Required log
     console.info('MongoDB Connected');
-    httpServer.listen(process.env.PORT || 10000, () => {
-      console.info('Server running');
-      console.info(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
+
+    httpServer.listen(PORT, () => {
+      // Required logs
+      console.info('Server running on port ' + PORT);
     });
-  })
-  .catch((err) => {
-    console.error('MongoDB Error:', err);
+
+    // Also log environment
+    console.info(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
+  } catch (err) {
+    // Full error logs if connection fails
+    console.error('[MongoDB] Error during connection:', err);
     process.exit(1);
-  });
+  }
+})();
 
 export default app;
 

@@ -10,6 +10,13 @@ const postRoutes = require('./routes/postRoutes.js');
 const roomRoutes = require('./routes/roomRoutes.js');
 const chatRoutes = require('./routes/chatRoutes.js');
 
+function unwrapESModuleRouter(m) {
+  // ESM interop: require() returns { default: router } when file is ESM.
+  return m && (m.router || m.default || m);
+}
+
+
+
 const http = require('http');
 const jwt = require('jsonwebtoken');
 const { Server: SocketIOServer } = require('socket.io');
@@ -79,11 +86,12 @@ app.get('/', (req, res) => {
   res.json({ message: 'ForReal API is running', version: '1.0.0' });
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/talks', postRoutes); // Alias for backward compatibility
-app.use('/api/rooms', roomRoutes);
-app.use('/chat', chatRoutes);
+app.use('/api/auth', unwrapESModuleRouter(authRoutes));
+app.use('/api/posts', unwrapESModuleRouter(postRoutes));
+app.use('/api/talks', unwrapESModuleRouter(postRoutes)); // Alias for backward compatibility
+app.use('/api/rooms', unwrapESModuleRouter(roomRoutes));
+app.use('/chat', unwrapESModuleRouter(chatRoutes));
+
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

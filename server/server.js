@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from './config/db.js';
+import mongoose from 'mongoose';
 import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
@@ -536,31 +536,25 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 // Server Initialization
 // ============================================================================
 
-async function startServer() {
-  try {
-    // Connect to MongoDB only if a MONGO_URI is provided. When deploying to
-    // Render the user should set MONGO_URI in the Render Environment variables.
-    if (process.env.MONGO_URI) {
-      console.info('[Server] MONGO_URI detected, attempting MongoDB connection');
-      await connectDB({ uri: process.env.MONGO_URI });
-    } else {
-      console.warn('[Server] MONGO_URI not set — starting without DB (degraded mode). Set MONGO_URI in Render environment for full features.');
-    }
-
-    // Start server (HTTP + Socket.IO)
-    httpServer.listen(PORT, () => {
-      console.info(`[Server] ForReal API running on port ${PORT}`);
-      console.info(`[Server] Socket.IO ready on port ${PORT}`);
-      console.info(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
-  } catch (err) {
-    console.error('[Server] Failed to start:', err);
-    // Keep process exit behavior when DB was requested but failed to connect.
-    process.exit(1);
-  }
+// Start server only after MongoDB connection succeeds. This mirrors the
+// requested pattern while preserving the existing Socket.IO `httpServer`.
+if (!process.env.MONGO_URI) {
+  console.error('[Server] MONGO_URI is not set. Set MONGO_URI environment variable and restart.');
+  process.exit(1);
 }
 
-startServer();
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.info('MongoDB Connected');
+    httpServer.listen(process.env.PORT || 10000, () => {
+      console.info('Server running');
+      console.info(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB Error:', err);
+    process.exit(1);
+  });
 
 export default app;
 

@@ -34,14 +34,9 @@ import {
 import { authenticateSocket } from '../realtime/socket';
 import { storageCache } from '../lib/storageCache';
 
-// Optional: real register endpoint (if present in your API layer)
-// import api from '../api/api'; // not used yet
-
-// If your backend has a real /auth/register endpoint and api.auth.register exists,
-// wire it here. For this repo snapshot, the mock auth API layer currently exports
-// only login/verify/refresh, so we keep signup compatible with that layer.
-// If socket.io is used, import socket instance from a central module
-// import { socket } from '../socket';
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 
 // ─── State shape ─────────────────────────────────────────────
 const initialState = {
@@ -51,13 +46,12 @@ const initialState = {
   error: null,
 };
 
-
 // ─── Action types ────────────────────────────────────────────
-const AUTH_LOADING   = 'AUTH_LOADING';
-const AUTH_SUCCESS   = 'AUTH_SUCCESS';
-const AUTH_FAILURE   = 'AUTH_FAILURE';
-const AUTH_LOGOUT    = 'AUTH_LOGOUT';
-const AUTH_UPDATE    = 'AUTH_UPDATE';   // e.g. after profile edit
+const AUTH_LOADING = 'AUTH_LOADING';
+const AUTH_SUCCESS = 'AUTH_SUCCESS';
+const AUTH_FAILURE = 'AUTH_FAILURE';
+const AUTH_LOGOUT = 'AUTH_LOGOUT';
+const AUTH_UPDATE = 'AUTH_UPDATE'; // e.g. after profile edit
 const AUTH_REFRESH_TOKEN = 'AUTH_REFRESH_TOKEN';
 
 // ─── Reducer ─────────────────────────────────────────────────
@@ -66,10 +60,13 @@ function authReducer(state, action) {
   switch (action.type) {
     case AUTH_LOADING:
       return { ...state, loading: true, error: null };
-    case AUTH_SUCCESS:
+    case AUTH_SUCCESS: {
+      const normalizedUser = isPlainObject(action?.payload?.user) ? action.payload.user : null;
+      const normalizedToken = action?.payload?.token ?? null;
+
       const newState_success = {
-        user: action.payload.user,
-        token: action.payload.token,
+        user: normalizedUser,
+        token: normalizedToken,
         loading: false,
         error: null,
       };
@@ -79,8 +76,9 @@ function authReducer(state, action) {
       if (action.payload.token) {
         storageCache.setAccessToken(action.payload.token);
       }
-      console.debug('[AuthContext Reducer] AUTH_SUCCESS - new isAuthenticated:', !!newState_success.user && !!newState_success.token);
+      console.debug('[AuthContext Reducer] AUTH_SUCCESS - user present:', !!newState_success.user);
       return newState_success;
+    }
     case AUTH_FAILURE:
       console.debug('[AuthContext Reducer] AUTH_FAILURE - error:', action.payload);
       return {
@@ -92,10 +90,13 @@ function authReducer(state, action) {
     case AUTH_LOGOUT:
       storageCache.clear();
       return { user: null, token: null, loading: false, error: null };
-    case AUTH_UPDATE:
-      const updatedUser = { ...state.user, ...action.payload };
+    case AUTH_UPDATE: {
+      const base = state.user && typeof state.user === 'object' ? state.user : {};
+      const patch = action?.payload && typeof action.payload === 'object' ? action.payload : {};
+      const updatedUser = { ...base, ...patch };
       storageCache.setUser(updatedUser);
       return { ...state, user: updatedUser };
+    }
     case AUTH_REFRESH_TOKEN:
       return { ...state, token: action.payload };
     default:
@@ -132,11 +133,9 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('forreal:auth:expired', onExpired);
   }, []);
 
-
   // Optional refresh loop (cookie-based). We only attempt if backend supports it.
   // Axios interceptor also handles refresh on 401.
   useEffect(() => {
-    // Keep interval only while authenticated user exists.
     if (!state.user) return;
     refreshIntervalRef.current = setInterval(async () => {
       try {
@@ -151,19 +150,20 @@ export function AuthProvider({ children }) {
     };
   }, [state.user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
   // ─── Actions ────────────────────────────────────────────
   const login = useCallback(async (username, password) => {
     dispatch({ type: AUTH_LOADING });
     console.debug('[AuthContext] login() called for:', username);
     try {
       const { token, user, refreshToken } = await loginApi(username, password);
-      console.debug('[AuthContext] loginApi succeeded, user:', user.username);
-      // Optionally connect to socket with token
-      // socket.auth = { token }; socket.connect();
+      console.debug('[AuthContext] loginApi succeeded, user:', user?.username ?? user);
       dispatch({ type: AUTH_SUCCESS, payload: { token, user } });
-      // update socket auth immediately
-      try { authenticateSocket(token); } catch (e) { /* best-effort */ }
+
+      try {
+        authenticateSocket(token);
+      } catch (e) {
+        /* best-effort */
+      }
       console.debug('[AuthContext] AUTH_SUCCESS dispatched');
       return { token, user };
     } catch (err) {
@@ -178,10 +178,24 @@ export function AuthProvider({ children }) {
     dispatch({ type: AUTH_LOADING });
     console.debug('[AuthContext] signup() called for:', username);
     try {
-      const { token, user, refreshToken } = await signupApi(username, email, password, displayName);
-      console.debug('[AuthContext] signupApi succeeded, user:', user.username);
+      // Backend requires email registration.
+      const { token, user, refreshToken } = await signupApi(
+        username,
+        email,
+        password,
+        displayName
+      );
+      console.debug(
+        '[AuthContext] signupApi succeeded, user:',
+        user?.username ?? user
+      );
       dispatch({ type: AUTH_SUCCESS, payload: { token, user } });
-      try { authenticateSocket(token); } catch (e) { /* best-effort */ }
+
+      try {
+        authenticateSocket(token);
+      } catch (e) {
+        /* best-effort */
+      }
       console.debug('[AuthContext] AUTH_SUCCESS dispatched (signup)');
       return { token, user };
     } catch (err) {
@@ -194,19 +208,15 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     clearAuthStorage();
-    // Disconnect socket if present
-    // socket?.disconnect();
     dispatch({ type: AUTH_LOGOUT });
-    // Any additional cleanup
   }, []);
 
   const updateUser = useCallback((updates) => {
     dispatch({ type: AUTH_UPDATE, payload: updates });
   }, []);
 
-  // Memoised context value
   const value = useMemo(() => {
-    const isAuth = !!state.user && !!state.token;
+    const isAuth = !!state.user && typeof state.user === 'object';
     console.debug('[AuthContext] Context value updated:', {
       isAuthenticated: isAuth,
       user: state.user?.username,
@@ -227,11 +237,7 @@ export function AuthProvider({ children }) {
     };
   }, [state, login, signup, logout, updateUser]);
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // ─── Custom Hook: useAuth ────────────────────────────────────
@@ -259,9 +265,7 @@ export function useRequireAuth(redirectTo = '/login') {
   const location = useLocation();
 
   useEffect(() => {
-    // Only redirect once loading is complete and user is missing
     if (!loading && !isAuthenticated) {
-      // Preserve intended destination for post‑login redirect
       navigate(redirectTo, {
         state: { from: location.pathname },
         replace: true,
@@ -269,7 +273,8 @@ export function useRequireAuth(redirectTo = '/login') {
     }
   }, [loading, isAuthenticated, navigate, redirectTo, location.pathname]);
 
-  return loading ? null : user; // null while loading => show skeleton/spinner
+  return loading ? null : user;
 }
 
 export default AuthContext;
+

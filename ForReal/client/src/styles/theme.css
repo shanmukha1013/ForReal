@@ -1,0 +1,515 @@
+/* ==========================================================================
+   ForReal – Premium Design System & Theme
+   We Don’t Talk Shit.  Spread truth. Debate honestly.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Google Fonts – modern premium typography
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+
+/* --------------------------------------------------------------------------
+   2. CSS Custom Properties (Design Tokens)
+   -------------------------------------------------------------------------- */
+:root {
+  /* ---- Brand / Accent ---- */
+  --neon:            #22c55e;
+  --neon-soft:       #4ade80;
+  --neon-dim:        rgba(34,197,94,0.25);
+  --neon-bright:     #00ff88; /* older alias kept for compatibility */
+
+  /* ---- Neutral Palette ---- */
+  --white:           #ffffff;
+  --gray-50:         #f9fafb;
+  --gray-100:        #f3f4f6;
+  --gray-200:        #e5e7eb;
+  --gray-300:        #d1d5db;
+  --gray-400:        #9ca3af;
+  --gray-500:        #6b7280;
+  --gray-600:        #4b5563;
+  --gray-700:        #374151;
+  --gray-800:        #1f2937;
+  --gray-900:        #111827;
+  --gray-950:        #0a0a0a;
+  --black:           #000000;
+
+  /* ---- Backgrounds ---- */
+  --bg-root:         #000000;
+  --bg-base:         #0a0a0a;
+  --bg-glass:        rgba(10, 10, 10, 0.75);
+  --bg-card:         rgba(0, 0, 0, 0.6);
+  --bg-input:        rgba(0, 0, 0, 0.5);
+
+  /* ---- Borders ---- */
+  --border-subtle:   rgba(255, 255, 255, 0.06);
+  --border-default:  rgba(255, 255, 255, 0.1);
+  --border-active:   rgba(34, 197, 94, 0.4);
+  --border-error:    rgba(239, 68, 68, 0.3);
+
+  /* ---- Shadows & Glows ---- */
+  --shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg:       0 8px 30px rgba(0, 0, 0, 0.5);
+  --shadow-xl:       0 12px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow-sm:  0 0 8px rgba(34, 197, 94, 0.25);
+  --shadow-glow:     0 0 16px rgba(34, 197, 94, 0.3);
+  --shadow-glow-md:  0 0 24px rgba(34, 197, 94, 0.35);
+  --shadow-glow-lg:  0 0 40px rgba(34, 197, 94, 0.4);
+
+  /* ---- Typography ---- */
+  --font-sans:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:       'Space Mono', 'SF Mono', 'Fira Code', monospace;
+  --font-size-xs:    0.75rem;   /* 12px */
+  --font-size-sm:    0.875rem;  /* 14px */
+  --font-size-base:  1rem;      /* 16px */
+  --font-size-lg:    1.125rem;  /* 18px */
+  --font-size-xl:    1.25rem;   /* 20px */
+  --font-size-2xl:   1.5rem;    /* 24px */
+  --font-size-3xl:   1.875rem;  /* 30px */
+  --font-size-4xl:   2.25rem;   /* 36px */
+  --font-size-5xl:   3rem;      /* 48px */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+
+  /* ---- Spacing (used in custom utilities only) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  /* ---- Radius ---- */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* ---- Transitions / Easing ---- */
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1); /* spring-like */
+  --duration-fast:    150ms;
+  --duration-normal:  300ms;
+  --duration-slow:    500ms;
+  --duration-slower:  700ms;
+
+  /* ---- Backdrop filters ---- */
+  --blur-sm:   4px;
+  --blur-md:   12px;
+  --blur-lg:   20px;
+  --blur-xl:   28px;
+}
+
+/* --------------------------------------------------------------------------
+   3. Global Reset & Base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--bg-root);
+  color: var(--white);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Subtle global neon ambient glow */
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(34,197,94,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(34,197,94,0.04) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+
+img, video, svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. Typography System
+   -------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: var(--line-height-tight);
+}
+
+.heading-1  { font-size: var(--font-size-4xl); font-weight: 800; }
+.heading-2  { font-size: var(--font-size-3xl); font-weight: 700; }
+.heading-3  { font-size: var(--font-size-2xl); font-weight: 700; }
+.heading-4  { font-size: var(--font-size-xl);  font-weight: 600; }
+
+.text-neon   { color: var(--neon); }
+.text-muted  { color: var(--gray-400); }
+.text-subtle { color: var(--gray-500); }
+
+/* Selection color */
+::selection {
+  background: var(--neon);
+  color: var(--black);
+}
+
+/* --------------------------------------------------------------------------
+   5. Custom Scrollbars (Webkit-only, optional)
+   -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.03);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(34,197,94,0.25);
+  border-radius: 9999px;
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon);
+  box-shadow: 0 0 6px var(--neon);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   6. Reusable Utility Classes (glass, buttons, inputs)
+   -------------------------------------------------------------------------- */
+
+/* Glassmorphism */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--blur-md));
+  -webkit-backdrop-filter: blur(var(--blur-md));
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-md);
+}
+
+.glass-strong {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--border-default);
+}
+
+/* Buttons (base style, extended by framework classes) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-in-out);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--neon);
+  color: var(--black);
+  border-color: var(--neon);
+  box-shadow: var(--shadow-glow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--neon-soft);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.05);
+  color: var(--gray-300);
+  border-color: var(--border-default);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(34,197,94,0.1);
+  border-color: var(--border-active);
+  color: var(--neon);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--gray-400);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--white);
+  background: rgba(255,255,255,0.05);
+}
+
+/* Inputs & Textareas */
+.input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  color: var(--white);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              box-shadow var(--duration-fast) var(--ease-in-out);
+}
+
+.input:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.15);
+}
+
+.input::placeholder {
+  color: var(--gray-500);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+}
+
+.badge-neon {
+  background: rgba(34,197,94,0.1);
+  border-color: var(--border-active);
+  color: var(--neon);
+}
+
+.badge-red {
+  background: rgba(239,68,68,0.1);
+  border-color: var(--border-error);
+  color: #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   7. Keyframe Animations
+   -------------------------------------------------------------------------- */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes livePulse {
+  0%   { transform: scale(1);   opacity: 1; }
+  50%  { transform: scale(1.3); opacity: 0.6; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Utility animation classes */
+.animate-pulse      { animation: pulse 2s infinite; }
+.animate-shimmer    { animation: shimmer 1.5s infinite linear; }
+.animate-fade-in-up { animation: fadeInUp 0.4s var(--ease-out) forwards; }
+.animate-fade-in    { animation: fadeIn 0.3s var(--ease-out) forwards; }
+.animate-live-dot   { animation: livePulse 1.5s infinite; }
+.animate-spin       { animation: spin 1s linear infinite; }
+
+/* Skeleton shimmer pattern */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: var(--radius-sm);
+}
+
+/* --------------------------------------------------------------------------
+   8. Component Base Styles (light scaffolding)
+   -------------------------------------------------------------------------- */
+
+/* Card (generic post/panel) */
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--blur-md));
+  -webkit-backdrop-filter: blur(var(--blur-md));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  transition: border-color var(--duration-normal) var(--ease-in-out),
+              box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+.card:hover {
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-glow-sm);
+}
+
+/* Avatar */
+.avatar {
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(34,197,94,0.3);
+  background: var(--black);
+  object-fit: cover;
+}
+
+.avatar-lg {
+  width: 96px;
+  height: 96px;
+  border-width: 3px;
+}
+
+.avatar-md {
+  width: 48px;
+  height: 48px;
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+/* Live indicator dot */
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon);
+  box-shadow: 0 0 8px var(--neon);
+}
+
+/* --------------------------------------------------------------------------
+   9. Layout Helpers
+   -------------------------------------------------------------------------- */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   10. Responsive Utilities (optional)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  :root {
+    --font-size-4xl: 1.875rem; /* smaller on mobile */
+    --font-size-3xl: 1.5rem;
+    --font-size-2xl: 1.25rem;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   11. Print / Accessibility (optional)
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,253 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------------------
+  FORREAL – ENTERPRISE DESIGN SYSTEM
+  Architecture: CSS Variables, Semantic Tokens, Accessibility, Advanced Resets.
+------------------------------------------------------------------------------- */
+
+@layer base {
+  :root {
+    /* Brand Colors - Truth Emerald */
+    --brand-primary: #10b981; 
+    --brand-hover: #34d399;
+    --brand-active: #059669;
+    --brand-glow: rgba(16, 185, 129, 0.15);
+    
+    /* Semantic UI Colors (For Social Actions: Reports, Bans, Warnings) */
+    --color-danger: #ef4444; /* Red 500 */
+    --color-danger-glow: rgba(239, 68, 68, 0.15);
+    --color-warning: #f59e0b; /* Amber 500 */
+    
+    /* Deep Backgrounds - Zinc Scale */
+    --bg-deep: #09090b; /* Zinc 950 - App Base */
+    --bg-elevated: #18181b; /* Zinc 900 - Cards/Modals */
+    --bg-overlay: rgba(9, 9, 11, 0.85); /* For modal backdrops */
+    
+    /* Typography */
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    
+    /* Borders & Structural */
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-light: rgba(255, 255, 255, 0.08);
+    --border-focus: rgba(16, 185, 129, 0.5);
+    
+    /* Z-Index Architecture (Strict Enterprise Layering) */
+    --z-negative: -1;
+    --z-base: 0;
+    --z-elevated: 10;
+    --z-dropdown: 40;
+    --z-sticky: 50;
+    --z-overlay: 90;
+    --z-modal: 100;
+    --z-toast: 150;
+  }
+
+  /* Smooth scrolling & strict box-sizing */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none; /* iOS Native App Feel */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    
+    /* Subtle Atmospheric Lighting */
+    background-image: 
+      radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.015) 0%, transparent 40%),
+      radial-gradient(circle at 85% 100%, var(--brand-glow) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* ── Enterprise Resets & A11y ── */
+  
+  /* Fix Webkit Autofill ruining dark themes */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active{
+      -webkit-box-shadow: 0 0 0 30px var(--bg-elevated) inset !important;
+      -webkit-text-fill-color: var(--text-primary) !important;
+      transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Accessible Focus Rings - Only show on keyboard nav, not mouse clicks */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+  }
+
+  /* Native-app feel */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Elegant Text Selection */
+  ::selection {
+    background: var(--brand-primary);
+    color: #ffffff;
+  }
+  ::-moz-selection {
+    background: var(--brand-primary);
+    color: #ffffff;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Premium Custom Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { 
+    background: rgba(255, 255, 255, 0.1); 
+    border-radius: 9999px; 
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+}
+
+/* ------------------------------------------------------------------------------
+  COMPONENT ARCHITECTURE (Scalable UI blocks)
+------------------------------------------------------------------------------- */
+@layer components {
+  /* Layouts */
+  .layout-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Glassmorphism System */
+  .glass-panel {
+    @apply bg-zinc-900/60 backdrop-blur-xl border border-white/[0.04] rounded-2xl shadow-xl;
+  }
+  .glass-dropdown {
+    @apply bg-zinc-900/90 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-2xl;
+  }
+  
+  /* Button System */
+  .btn-base {
+    @apply inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none;
+    padding: 0.625rem 1.25rem;
+  }
+  .btn-primary {
+    @apply btn-base bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:bg-emerald-400;
+  }
+  .btn-ghost {
+    @apply btn-base bg-transparent border border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white;
+  }
+  .btn-danger {
+    @apply btn-base bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white hover:shadow-[0_0_20px_rgba(239,68,68,0.3)];
+  }
+  
+  /* Input System */
+  .input-base {
+    @apply w-full bg-zinc-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 focus:bg-zinc-900 transition-all duration-200;
+  }
+  
+  /* Discussion / Feed Cards */
+  .feed-card {
+    @apply bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-white/5 p-4 sm:p-5 transition-all duration-300 hover:bg-zinc-900/60 hover:border-white/10;
+  }
+  
+  /* Avatars */
+  .avatar {
+    @apply rounded-full object-cover bg-zinc-800 ring-2 ring-transparent transition-all;
+  }
+  
+  /* Realtime Status Indicators */
+  .status-dot-wrapper {
+    @apply relative flex h-2.5 w-2.5;
+  }
+  .status-dot-ping {
+    @apply animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75;
+  }
+  .status-dot-core {
+    @apply relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+  UTILITIES & ANIMATIONS
+------------------------------------------------------------------------------- */
+@layer utilities {
+  .text-gradient-white {
+    background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Modern typography balancing (prevents orphans on titles) */
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+  CSS KEYFRAMES (High Performance UI states)
+------------------------------------------------------------------------------- */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Enterprise Skeleton Loader - Smoother than a basic pulse */
+.skeleton-loader {
+  @apply relative overflow-hidden bg-zinc-800/50 rounded-md isolate;
+}
+.skeleton-loader::after {
+  content: '';
+  @apply absolute inset-0 -translate-x-full z-10;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 20%,
+    rgba(255, 255, 255, 0.08) 60%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ------------------------------------------------------------------------------
+  PREFERS REDUCED MOTION (Enterprise Requirement)
+------------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

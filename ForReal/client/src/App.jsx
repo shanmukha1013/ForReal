@@ -105,7 +105,7 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  console.debug('[ProtectedRoute] checking access to', location.pathname, '| authenticated:', isAuthenticated, '| loading:', loading);
+
 
   // While authentication state is being resolved, show a loader
   if (loading) {

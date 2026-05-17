@@ -1,12 +1,16 @@
-# ForReal Integration Progress
+# TODO — Signup + Favicon Fix
 
-## Completed
-- (none yet)
+## Signup form
+- [ ] Update `ForReal/client/src/pages/Signup.jsx` to send `username`, `email`, `password` (and preserve `displayName` if required elsewhere).
+- [ ] Ensure email input is present and wired to form state.
+- [ ] Ensure request JSON body matches backend expectation.
 
-## Next (planned)
-1. Refactor auth to remove localStorage token dependency (cookie-based session)
-2. Refactor AuthContext to initialize via backend `/auth/me` and handle auth-expired
-3. Refactor posts/rooms hooks to remove localStorage fallback + local mock creation
-4. Keep optimistic UI but reconcile from server responses
-5. Smoke test: register/login/refresh/create post/join room
+## Favicon
+- [ ] Add `client/public/favicon.png` (if missing) and ensure it exists.
+- [ ] Update `ForReal/client/index.html` to use `<link rel="icon" type="image/png" href="/favicon.png" />`.
+
+## Verification
+- [ ] Run build / lint checks (if available).
+- [ ] Verify signup flow works end-to-end.
+- [ ] Confirm favicon loads after Vercel deployment.
 

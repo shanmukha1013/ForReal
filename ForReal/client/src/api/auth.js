@@ -38,8 +38,8 @@ export async function loginApi(username, password) {
 // -------------------------------------------------------------------------
 // Signup � Create new user account via backend
 // -------------------------------------------------------------------------
-export async function signupApi(username, password, displayName) {
-  if (!username?.trim() || !password?.trim() || !displayName?.trim()) {
+export async function signupApi(username, email, password, displayName) {
+  if (!username?.trim() || !email?.trim() || !password?.trim() || !displayName?.trim()) {
     throw new Error('All fields required');
   }
 
@@ -54,6 +54,7 @@ export async function signupApi(username, password, displayName) {
   try {
     const response = await api.post('/auth/register', {
       username: username.trim(),
+      email: email.trim(),
       password,
       displayName: displayName.trim(),
     });

@@ -161,7 +161,7 @@ export default function Signup() {
   const notify = useNotification();
 
   const [showIntro, setShowIntro] = useState(true);
-  const [formData, setFormData] = useState({ username: '', displayName: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', displayName: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -187,7 +187,7 @@ export default function Signup() {
     console.debug('[Signup] handleSubmit started');
     setError('');
 
-    if (!formData.username.trim() || !formData.password.trim() || !formData.displayName.trim()) {
+    if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim() || !formData.displayName.trim()) {
       const msg = 'Please fill in all fields.';
       setError(msg);
       console.warn('[Signup]', msg);
@@ -198,7 +198,7 @@ export default function Signup() {
     try {
       console.debug('[Signup] Calling signup() for user:', formData.username);
       // AuthContext.signup should auto-authenticate on success
-      await signup(formData.username, formData.password, formData.displayName);
+      await signup(formData.username, formData.email, formData.password, formData.displayName);
       console.debug('[Signup] signup() returned successfully');
       notify.success('Account created — welcome!');
       // Note: isAuthenticated will update via AuthContext, and the useEffect above will handle redirect
@@ -277,6 +277,26 @@ export default function Signup() {
                       onChange={handleChange}
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon/70 focus:ring-1 focus:ring-neon/50 transition-all duration-300"
                       placeholder="Pick a username"
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-neon/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                  </div>
+                </motion.div>
+
+                <motion.div variants={fieldVariant}>
+                  <label htmlFor="email" className="block text-xs font-semibold text-gray-400 mb-1.5 ml-1">
+                    Email
+                  </label>
+                  <div className="relative group">
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon/70 focus:ring-1 focus:ring-neon/50 transition-all duration-300"
+                      placeholder="Enter your email"
                     />
                     <div className="absolute inset-0 rounded-xl bg-neon/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                   </div>
@@ -372,4 +392,3 @@ export default function Signup() {
     </div>
   );
 }
-

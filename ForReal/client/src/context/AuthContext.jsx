@@ -174,11 +174,11 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const signup = useCallback(async (username, password, displayName) => {
+  const signup = useCallback(async (username, email, password, displayName) => {
     dispatch({ type: AUTH_LOADING });
     console.debug('[AuthContext] signup() called for:', username);
     try {
-      const { token, user, refreshToken } = await signupApi(username, password, displayName);
+      const { token, user, refreshToken } = await signupApi(username, email, password, displayName);
       console.debug('[AuthContext] signupApi succeeded, user:', user.username);
       dispatch({ type: AUTH_SUCCESS, payload: { token, user } });
       try { authenticateSocket(token); } catch (e) { /* best-effort */ }

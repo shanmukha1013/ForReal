@@ -1,4 +1,4 @@
-# Auth/UI stabilization plan
+echo server/node_modules/ >> .gitignore# Auth/UI stabilization plan
 
 ## Step 1 — Diagnose login visibility (targeted)
 - [ ] Adjust Sign In button styling/disabled state in `ForReal/client/src/pages/Login.jsx` to ensure strong contrast in dark theme.

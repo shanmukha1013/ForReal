@@ -145,9 +145,28 @@ export const joinRoom = async (req, res, next) => {
   }
 };
 
+/**
+ * Leave a room
+ * POST /api/rooms/:id/leave
+ */
+export const leaveRoom = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    await Room.findByIdAndUpdate(id, { $pull: { participants: userId } });
+
+    res.json({ message: 'Left room successfully' });
+  } catch (err) {
+    console.error('[roomController.leaveRoom] error:', err);
+    next(err);
+  }
+};
+
 export default {
   getRooms,
   getRoom,
   createRoom,
   joinRoom,
+  leaveRoom,
 };

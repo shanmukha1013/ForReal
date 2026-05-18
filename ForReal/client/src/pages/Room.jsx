@@ -71,7 +71,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
 import axios from '../api/axios';
 import { getSocket } from '../realtime/socket'; // adjust path
-import { updateCredibility } from '../hooks/useCredibility';
+import { useCredibility, updateCredibility } from '../hooks/useCredibility';
 import { useDebateEnergy } from '../hooks/useDebateEnergy';
 import { useDebateTimeline } from '../hooks/useDebateTimeline';
 import { useDebateSummary } from '../hooks/useDebateSummary';

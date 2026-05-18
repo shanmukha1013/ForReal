@@ -55,6 +55,7 @@ const UserPlus = UserPlusIcon;
 
 import axios from '../api/axios';
 import { storageCache } from '../lib/storageCache';
+import { useCredibility } from '../hooks/useCredibility';
 
 // -----------------------------------------------------------------------------
 // Animation Variants
@@ -301,7 +302,7 @@ const CreatorCard = React.memo(({ creator }) => {
     const localFollows = storageCache.getFollows();
     return !!localFollows[creator._id || creator.username];
   });
-  const { score, rank } = useCredibility(creator._id || creator.username);
+  const { score, rank } = useCredibility(creator?._id || creator?.username);
 
   const toggleFollow = (e) => {
     e.preventDefault();

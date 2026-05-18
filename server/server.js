@@ -114,6 +114,32 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Fallback Explore Route to prevent 404s on the frontend search bar
+app.get('/api/explore/search', async (req, res) => {
+  try {
+    const q = String(req.query.q || '');
+    if (!q) return res.json({ users: [], posts: [], rooms: [] });
+    
+    let users = [], posts = [], rooms = [];
+    try {
+      const User = (await import('./models/User.js')).default;
+      users = await User.find({ $or: [{ username: new RegExp(q, 'i') }, { displayName: new RegExp(q, 'i') }] }).limit(10).select('-password').lean();
+    } catch(e) {}
+    try {
+      const Post = (await import('./models/Post.js')).default;
+      posts = await Post.find({ content: new RegExp(q, 'i') }).limit(10).populate('author', 'username displayName avatar').lean();
+    } catch(e) {}
+    try {
+      const Room = (await import('./models/Room.js')).default;
+      rooms = await Room.find({ $or: [{ topic: new RegExp(q, 'i') }, { title: new RegExp(q, 'i') }] }).limit(10).lean();
+    } catch(e) {}
+    
+    res.json({ users, posts, rooms });
+  } catch (err) {
+    res.json({ users: [], posts: [], rooms: [] });
+  }
+});
+
 // ============================================================================
 // Socket.IO + Realtime Infrastructure
 // ============================================================================
@@ -339,15 +365,28 @@ io.on('connection', (socket) => {
       if (!roomId) throw new Error('roomId required');
       if (!text || !String(text).trim()) throw new Error('text required');
 
+      let authorData = { id: user.id };
+      try {
+        const User = (await import('./models/User.js')).default;
+        const sender = await User.findById(user.id).select('username displayName avatar').lean();
+        if (sender) authorData = { id: String(sender._id), username: sender.username, displayName: sender.displayName, avatar: sender.avatar };
+      } catch(e) {}
+
       const payload = {
         id: `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
         roomId,
         text: String(text).trim(),
-        author: { id: user.id },
-        createdAt: new Date().toISOString(),
+        author: create Date().toISOString(),
       };
 
       io.to(`room:${roomId}`).emit('message:new', safeJson(payload));
+      try {
+        const Room = (await import('./models/Room.js')).default;
+        await Room.findByIdAndUpdate(roomId, { $push: { messages: payload } });
+      } catch (e) {
+        console.warn('[Socket] Failed to persist room message', e);
+      }
+
       ack && ack({ ok: true, message: payload });
     } catch (err) {
       ack && ack({ ok: false, error: err.message || 'Send failed' });
@@ -402,17 +441,15 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (!roomId || !messageId || !reaction) {
-        ack && ack({ ok: false, error: 'invalid reaction payload' });
-        return;
-      }
+      if (!roomId || !reaction) {
+        ack &&ke, error: 'invalid reaction payload' });
+      r
 
       const payload = {
         id: `rx_${Date.now()}_${Math.random().toString(16).slice(2)}`,
         roomId,
-        messageId,
-        reaction,
-        actorId: user.id,
+        messageId: messageId || null,
+        reac: user.id,
         createdAt: new Date().toISOString(),
       };
 

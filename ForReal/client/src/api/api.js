@@ -37,7 +37,17 @@ const api = {
   
   rooms: { // Realtime Debate/Discussion Rooms
     getAll: (params) => apiClient.get('/rooms', { params }), // Active, popular, etc.
-    create: (roomData) => apiClient.post('/rooms', roomData),
+    create: (roomData) => {
+      const finalTitle = roomData?.topic || roomData?.title || 'Untitled Debate';
+      const finalDesc = roomData?.description || roomData?.content || '';
+      const payload = {
+        ...roomData,
+        title: finalTitle,
+        topic: finalTitle,
+        description: finalDesc
+      };
+      return apiClient.post('/rooms', payload);
+    },
     getById: (roomId) => apiClient.get(`/rooms/${roomId}`),
     join: (roomId) => apiClient.post(`/rooms/${roomId}/join`),
     leave: (roomId) => apiClient.post(`/rooms/${roomId}/leave`),

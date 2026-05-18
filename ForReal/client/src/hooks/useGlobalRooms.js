@@ -8,12 +8,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { storageCache } from '../lib/storageCache';
 import api from '../api/axios.js';
+import { getSocket } from '../realtime/socket';
 
 export function useGlobalRooms() {
   const [rooms, setRooms] = useState(storageCache.getRooms());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleMembersUpdate = (data) => {
+      if (!data || !data.roomId) return;
+      storageCache.updateRoom(data.roomId, { participants: data.participants });
+    };
+
+    const handleNewMessage = (msg) => {
+      if (!msg || !msg.roomId) return;
+      const currentRooms = storageCache.getRooms();
+      const room = currentRooms.find(r => r._id === msg.roomId);
+      if (room) {
+        const updatedMessages = [...(room.messages || []), msg];
+        storageCache.updateRoom(msg.roomId, { messages: updatedMessages });
+      }
+    };
+
+    socket.on('room:members:update', handleMembersUpdate);
+    socket.on('message:new', handleNewMessage);
+
+    return () => {
+      socket.off('room:members:update', handleMembersUpdate);
+      socket.off('message:new', handleNewMessage);
+    };
+  }, []);
 
   useEffect(() => {
     // Subscribe to rooms changes in storage cache
@@ -31,11 +59,30 @@ export function useGlobalRooms() {
     try {
       const response = await api.rooms.getAll(params);
       // Determine if response is an array or object wrapping an array
-      const roomList = Array.isArray(response) ? response : (response.rooms || []);
+      const roomList = Array.isArray(response) ? response : (response?.rooms || response?.data || []);
       storageCache.setRooms(roomList);
     } catch (err) {
       console.error('[useGlobalRooms] Failed to fetch rooms:', err);
       setError(err?.message || 'Failed to load rooms');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch single room by ID
+  const fetchRoomById = useCallback(async (roomId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.rooms.getById(roomId);
+      const roomData = response?.room || response?.data || response;
+      if (roomData) {
+        storageCache.updateRoom(roomId, roomData);
+      }
+      return roomData;
+    } catch (err) {
+      console.error('[useGlobalRooms] Failed to fetch room:', err);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -129,6 +176,7 @@ export function useGlobalRooms() {
     loading,
     error,
     fetchRooms,
+    fetchRoomById,
     createRoom,
     updateRoom,
     deleteRoom,

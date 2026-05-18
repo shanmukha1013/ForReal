@@ -394,7 +394,13 @@ io.on('connection', (socket) => {
       // Broadcast to room
       io.to(`room:${roomId}`).emit('message:new', safeJson(payload));
 
-      // TODO: replace in-memory message with MongoDB persistence.
+      try {
+        const Room = (await import('./models/Room.js')).default;
+        await Room.findByIdAndUpdate(roomId, { $push: { messages: payload } });
+      } catch (e) {
+        console.warn('[Socket] Failed to persist room message', e);
+      }
+
       ack && ack({ ok: true, message: payload });
     } catch (err) {
       ack && ack({ ok: false, error: err.message || 'Send failed' });

@@ -34,6 +34,7 @@ let socket = null;
 let reconnectTimer = null;
 let _initialized = false;
 let _lastRefreshAttempt = 0;
+let _activeRooms = new Set();
 
 // -----------------------------------------------------------------------------
 // Internal helpers
@@ -120,6 +121,10 @@ export function getSocket() {
           socket.emit('notifications:subscribe', { scope: { type: 'global' } });
           socket.emit('notifications:subscribe', { scope: { type: 'user', userId } });
         }
+        // Auto-rejoin active debate rooms on reconnect
+        _activeRooms.forEach(roomId => {
+          socket.emit('room:join', { roomId });
+        });
       });
 
       // Server may refresh token during handshake and emit 'auth:refreshed'
@@ -184,6 +189,7 @@ export function disconnectSocket(clearToken = false) {
     }
     socket = null;
     _initialized = false;
+    _activeRooms.clear();
   }
   if (clearToken) {
     persistToken(null);
@@ -195,6 +201,7 @@ export function disconnectSocket(clearToken = false) {
  * @param {string} roomId
  */
 export function joinRoom(roomId) {
+  _activeRooms.add(roomId);
   getSocket().emit('room:join', { roomId });
 }
 
@@ -203,6 +210,7 @@ export function joinRoom(roomId) {
  * @param {string} roomId
  */
 export function leaveRoom(roomId) {
+  _activeRooms.delete(roomId);
   getSocket().emit('room:leave', { roomId });
 }
 
@@ -222,10 +230,9 @@ export function emitTyping(roomId, isTyping) {
  * @param {object} metadata (optional)
  */
 export function sendChatMessage(roomId, text, metadata = {}) {
-  getSocket().emit('room:chat', {
+  getSocket().emit('message:send', {
     roomId,
     text,
-    clientId: `c_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
     ...metadata,
   });
 }
@@ -236,7 +243,7 @@ export function sendChatMessage(roomId, text, metadata = {}) {
  * @param {'pro'|'against'|'neutral'} side
  */
 export function castVote(roomId, side) {
-  getSocket().emit('debate:vote', { roomId, side });
+  getSocket().emit('reaction:send', { roomId, reaction: side });
 }
 
 /**

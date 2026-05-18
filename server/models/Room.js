@@ -12,6 +12,10 @@ const RoomSchema = new Schema(
       trim: true,
       maxlength: 200,
     },
+    topic: {
+      type: String,
+      trim: true,
+    },
     description: {
       type: String,
       maxlength: 500,
@@ -29,6 +33,10 @@ const RoomSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    status: {
+      type: String,
+      default: 'active',
+    },
     isPrivate: {
       type: Boolean,
       default: false,
@@ -37,6 +45,18 @@ const RoomSchema = new Schema(
       type: String,
       trim: true,
       maxlength: 100,
+    },
+    messages: {
+      type: Array,
+      default: []
+    },
+    pro: {
+      type: Object,
+      default: { position: 'Pro', participants: [] }
+    },
+    against: {
+      type: Object,
+      default: { position: 'Against', participants: [] }
     },
     maxParticipants: {
       type: Number,

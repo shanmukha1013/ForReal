@@ -5,6 +5,7 @@ import {
   getPost,
   deletePost,
   reactToPost,
+  getTrendingPosts,
 } from '../controllers/postController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
@@ -17,6 +18,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getFeed);
+router.get('/trending', getTrendingPosts);
 router.get('/:id', getPost);
 
 // Protected routes (require authentication)

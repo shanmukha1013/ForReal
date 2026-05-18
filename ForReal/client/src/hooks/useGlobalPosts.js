@@ -27,7 +27,7 @@ export function useGlobalPosts() {
 
   // Fetch posts from API on mount
   useEffect(() => {
-    if (hasFetched.current) return;
+    if (hasFetched.current) {return;}
 
     const loadPosts = async () => {
       setLoading(true);

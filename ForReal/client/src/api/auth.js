@@ -6,6 +6,8 @@
 // =============================================================================
 
 import api from './axios.js';
+import { storageCache } from '../lib/storageCache';
+import { disconnectSocket } from '../realtime/socket.js';
 
 // Cookie-based auth: no token persistence in localStorage.
 // Backend should manage HttpOnly cookies for access/refresh lifecycles.
@@ -27,8 +29,12 @@ export async function loginApi(username, password) {
     
     const { token, user, refreshToken } = response;
     
-    // Backend should set/update HttpOnly session cookies.
-    // If it also returns a token/user payload, we still keep it in memory only.
+    if (token) {
+      storageCache.setAccessToken(token);
+    }
+    if (user) {
+      storageCache.setUser(user);
+    }
     return { token, user, refreshToken };
   } catch (error) {
     throw normalizeAuthError(error);
@@ -61,6 +67,13 @@ export async function signupApi(username, email, password, displayName) {
     
     const { token, user, refreshToken } = response;
     
+    if (token) {
+      storageCache.setAccessToken(token);
+    }
+    if (user) {
+      storageCache.setUser(user);
+    }
+    
     return { token, user, refreshToken };
   } catch (error) {
     throw normalizeAuthError(error);
@@ -70,17 +83,20 @@ export async function signupApi(username, email, password, displayName) {
 // -------------------------------------------------------------------------
 // Token Verification � Validate and retrieve user from backend
 // -------------------------------------------------------------------------
-export async function verifyToken(token) {
-  if (!token) {
-    throw new Error('No token provided');
-  }
-
+export async function verifyToken(/* token - optional for cookie based sessions */) {
   try {
     // Cookie-based: backend should infer session from HttpOnly cookies.
     const response = await api.get('/auth/me');
+    // Keep a local copy for fast UI hydration
+    if (response?.user) {
+      try { storageCache.setUser(response.user); } catch (e) { console.warn('storageCache.setUser failed', e); }
+    }
     return response.user;
   } catch (error) {
-    clearAuthStorage();
+    // Do not throw a raw error that crashes mount logic - normalize and bubble
+    if (error?.status === 401 || error?.type === "UNAUTHORIZED") {
+      clearAuthStorage();
+    }
     throw normalizeAuthError(error);
   }
 }
@@ -88,17 +104,18 @@ export async function verifyToken(token) {
 // -------------------------------------------------------------------------
 // Token Refresh � Get new token from backend
 // -------------------------------------------------------------------------
-export async function refreshToken(oldToken) {
-  if (!oldToken) {
-    throw new Error('No token to refresh');
-  }
-
+export async function refreshToken(/* oldToken - optional */) {
   try {
     const response = await api.post('/auth/refresh');
-    // Some backends return { token } but session is cookie-managed.
-    return response.token ?? null;
+    const newToken = response?.token ?? null;
+    if (newToken) {
+      try { storageCache.setAccessToken(newToken); } catch (e) { console.warn('storageCache.setAccessToken failed', e); }
+    }
+    return newToken;
   } catch (error) {
-    clearAuthStorage();
+    if (error?.status === 401 || error?.type === "UNAUTHORIZED" || error?.type === "BAD_REQUEST") {
+      clearAuthStorage();
+    }
     throw normalizeAuthError(error);
   }
 }
@@ -107,12 +124,14 @@ export async function refreshToken(oldToken) {
 // Logout � Clear session and redirect
 // -------------------------------------------------------------------------
 export async function logoutApi() {
+  // Clear local caches first to ensure UI responds instantly
   clearAuthStorage();
-  // Optionally notify backend to invalidate token
+  disconnectSocket(true);
   try {
     await api.post('/auth/logout');
-  } catch {
-    // Ignore logout errors
+  } catch (e) {
+    // Ignore logout errors but log for diagnostics
+    console.warn('logoutApi error', e);
   }
 }
 
@@ -121,20 +140,24 @@ export async function logoutApi() {
 // -------------------------------------------------------------------------
 
 export function clearAuthStorage() {
-  // No local persistence for auth.
+  try {
+    storageCache.setAccessToken(null);
+    storageCache.setUser(null);
+  } catch (e) {
+    console.warn('clearAuthStorage failed', e);
+  }
 }
 
 export function getStoredToken() {
-  return null;
+  try { return storageCache.getAccessToken(); } catch (e) { console.warn('getStoredToken failed', e); return null; }
 }
 
 export function getCachedUser() {
-  return null;
+  try { return storageCache.getUser(); } catch (e) { console.warn('getCachedUser failed', e); return null; }
 }
 
 export function isAuthenticated() {
-  // Prefer real backend check.
-  return false;
+  return !!getCachedUser();
 }
 
 

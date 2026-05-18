@@ -63,7 +63,7 @@ import { storageCache } from '../lib/storageCache.js';
 import { authenticateSocket } from '../realtime/socket.js';
 
 async function attemptTokenRefresh() {
-  if (isRefreshing) return enqueueRefreshWaiter();
+  if (isRefreshing) {return enqueueRefreshWaiter();}
 
   isRefreshing = true;
   try {
@@ -90,11 +90,11 @@ async function attemptTokenRefresh() {
 
 // ─── Retry & Utility Logic ─────────────────────────────────────────────────
 function shouldRetry(error, retryCount) {
-  if (retryCount >= MAX_RETRIES) return false;
+  if (retryCount >= MAX_RETRIES) {return false;}
   // Always retry on network errors (user drove through a tunnel) or timeouts
-  if (!error.response || error.code === 'ECONNABORTED') return true; 
-  if (NO_RETRY_STATUSES.has(error.response.status)) return false;
-  if (error.response.status >= 500) return true; // Retry Server Errors (502 Bad Gateway, etc)
+  if (!error.response || error.code === 'ECONNABORTED') {return true;} 
+  if (NO_RETRY_STATUSES.has(error.response.status)) {return false;}
+  if (error.response.status >= 500) {return true;} // Retry Server Errors (502 Bad Gateway, etc)
   return false;
 }
 
@@ -112,6 +112,12 @@ api.interceptors.request.use(
         `%c[API Request] ↑ ${config.method?.toUpperCase()} ${config.url}`,
         "color: #34d399; font-weight: bold;" // Emerald color
       );
+    }
+
+    // Attach short-lived access token dynamically for protected routes
+    const token = localStorage.getItem('forreal_access_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
 
     return config;
@@ -146,10 +152,14 @@ api.interceptors.response.use(
       try {
         await attemptTokenRefresh();
         // The cookie is updated by the browser. Just replay the original request.
+        const newToken = localStorage.getItem('forreal_access_token');
+        if (newToken) {
+          config.headers['Authorization'] = `Bearer ${newToken}`;
+        }
         return api(config);
       } catch (refreshError) {
         // Refresh completely failed (session truly expired)
-        if (import.meta.env.DEV) console.error("[API] Session expired. Forcing logout.");
+        if (import.meta.env.DEV) {console.error("[API] Session expired. Forcing logout.");}
         
         // Dispatch event so Zustand/Context can clear user state and redirect
         window.dispatchEvent(new CustomEvent("forreal:auth:expired"));

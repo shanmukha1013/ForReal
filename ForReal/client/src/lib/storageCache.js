@@ -91,33 +91,6 @@ class StorageCache {
     }
   }
 
-  // Attach cross-tab storage listener to keep auth and user state synchronized
-  _attachStorageListener() {
-    if (typeof window === 'undefined' || !window.addEventListener) return;
-    try {
-      window.addEventListener('storage', (ev) => {
-        try {
-          if (!ev.key) return;
-          if (ev.key === 'forreal_access_token') {
-            this.cache.accessToken = ev.newValue || null;
-          }
-          if (ev.key === 'forreal_user') {
-            this.cache.user = ev.newValue ? JSON.parse(ev.newValue) : null;
-            this._notify('user', this.cache.user);
-          }
-          if (ev.key === 'forreal_rooms') {
-            this.cache.rooms = ev.newValue ? JSON.parse(ev.newValue) : [];
-            this._notify('rooms', this.cache.rooms);
-          }
-        } catch (e) {
-          console.error('[StorageCache] storage event handler error', e);
-        }
-      });
-    } catch (e) {
-      // ignore in non-browser environments
-    }
-  }
-
   // ─────────────────────────────────────────────────────────────────────────
   // Subscribe to key changes
   // ─────────────────────────────────────────────────────────────────────────
@@ -140,10 +113,10 @@ class StorageCache {
 
   // Keep multiple tabs/windows synchronized via the storage event
   _attachStorageListener() {
-    if (typeof window === 'undefined' || !window.addEventListener) return;
+    if (typeof window === 'undefined' || !window.addEventListener) {return;}
     window.addEventListener('storage', (e) => {
       try {
-        if (!e) return;
+        if (!e) {return;}
         if (e.key === 'forreal_access_token') {
           this.cache.accessToken = e.newValue || null;
         }

@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useEffect,
   useRef,
+  useContext,
 } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,23 +29,23 @@ import { storageCache } from '../lib/storageCache';
 // -----------------------------------------------------------------------------
 
 export const timeAgo = (date) => {
-  if (!date) return 'unknown';
+  if (!date) {return 'unknown';}
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-  if (seconds < 10) return 'just now';
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 10) {return 'just now';}
+  if (seconds < 60) {return `${seconds}s ago`;}
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) {return `${minutes}m ago`;}
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {return `${hours}h ago`;}
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) {return `${days}d ago`;}
   return new Date(date).toLocaleDateString();
 };
 
 export const formatCount = (num) => {
-  if (!num && num !== 0) return '0';
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+  if (!num && num !== 0) {return '0';}
+  if (num >= 1000000) {return (num / 1000000).toFixed(1) + 'M';}
+  if (num >= 1000) {return (num / 1000).toFixed(1) + 'k';}
   return num.toString();
 };
 
@@ -108,7 +109,7 @@ const useReactionOptimistic = (initialReaction, initialLikes, initialDislikes, o
     const finalReaction = oldReaction === newReactionType ? null : newReactionType;
 
     // Optimistically update counts
-    let newCounts = { ...counts };
+    const newCounts = { ...counts };
     if (oldReaction === newReactionType) { // Toggling off
       newCounts[newReactionType + 's']--;
     } else if (oldReaction && oldReaction !== newReactionType) { // Switching reaction
@@ -177,7 +178,7 @@ const useCommentsExpander = (initialComments, totalComments, fetchMore) => {
 const useRealtimePostUpdates = (postId, setPost) => {
   const socket = useSocket(); // hypothetical socket context
   useEffect(() => {
-    if (!socket || !postId) return;
+    if (!socket || !postId) {return;}
 
     const handleLikeUpdate = (data) => {
       if (data.postId === postId) {
@@ -272,7 +273,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => {
-            if (window.confirm('Delete this talk permanently?')) onDelete();
+            if (window.confirm('Delete this talk permanently?')) {onDelete();}
           }}
           className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           aria-label="Delete talk"
@@ -309,7 +310,7 @@ const MediaGallery = ({ media = [] }) => {
   const [loaded, setLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  if (!media.length) return null;
+  if (!media.length) {return null;}
 
   return (
     <div className="relative mt-3 rounded-xl overflow-hidden bg-black/40 border border-white/5">
@@ -341,7 +342,7 @@ const MediaGallery = ({ media = [] }) => {
 };
 
 const EngagementStats = ({ likesCount, dislikesCount, commentsCount }) => {
-  if (!likesCount && !commentsCount && !dislikesCount) return null;
+  if (!likesCount && !commentsCount && !dislikesCount) {return null;}
   return (
     <div className="flex items-center gap-6 text-xs text-gray-400 border-t border-white/5 pt-3 mt-1">
       {likesCount > 0 && (
@@ -453,7 +454,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
   const { comments: displayComments, expanded, loading, handleViewAll } =
     useCommentsExpander(comments, comments.length, null); // null means no fetch more
 
-  if (!comments?.length && !showInput) return null;
+  if (!comments?.length && !showInput) {return null;}
 
   const previewCount = 2;
   const visibleComments = expanded ? displayComments : displayComments.slice(0, previewCount);
@@ -489,7 +490,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
               </div>
             </div>
           </motion.div>
-            )})}
+        ))}
       </AnimatePresence>
 
       {hasMore && (
@@ -570,8 +571,8 @@ const PostCard = ({
   const myId = currentUserId || authUser?._id || authUser?.id;
 
   const initialReaction = useMemo(() => {
-    if (safePost.likes.some((l) => String(l) === String(myId))) return 'like';
-    if (safePost.dislikes.some((d) => String(d) === String(myId))) return 'dislike';
+    if (safePost.likes.some((l) => String(l) === String(myId))) {return 'like';}
+    if (safePost.dislikes.some((d) => String(d) === String(myId))) {return 'dislike';}
     return null;
   }, [safePost.likes, safePost.dislikes, myId]);
 
@@ -584,7 +585,7 @@ const PostCard = ({
     initialLikeCount,
     initialDislikeCount,
     () => {
-      if (onLike && safePost._id) onLike(safePost._id);
+      if (onLike && safePost._id) {onLike(safePost._id);}
     }
   );
 
@@ -608,7 +609,7 @@ const PostCard = ({
 
     const localTalks = storageCache.getPosts();
     const idx = localTalks.findIndex(p => p._id === safePost._id);
-    let updatedPost = idx !== -1 ? localTalks[idx] : { ...safePost };
+    const updatedPost = idx !== -1 ? localTalks[idx] : { ...safePost };
     
     updatedPost.likes = updatedPost.likes || [];
     updatedPost.dislikes = updatedPost.dislikes || [];
@@ -645,7 +646,7 @@ const PostCard = ({
   };
 
   const submitComment = () => {
-    if (!commentText.trim()) return;
+    if (!commentText.trim()) {return;}
     const newComment = {
       _id: `comment_${Date.now()}`,
       content: commentText.trim(),
@@ -664,7 +665,7 @@ const PostCard = ({
 
     setCommentText('');
     setShowCommentInput(false);
-    if (onComment) onComment(safePost._id);
+    if (onComment) {onComment(safePost._id);}
   };
 
   const handleSave = () => {
@@ -675,7 +676,7 @@ const PostCard = ({
     } else {
       storageCache.removeSaved(safePost._id);
     }
-    if (newSaved) notify.success('Saved to bookmarks');
+    if (newSaved) {notify.success('Saved to bookmarks');}
   };
 
   const handleShare = () => {
@@ -684,7 +685,7 @@ const PostCard = ({
   };
 
   const handleDelete = useCallback(() => {
-    if (onDelete && safePost._id) onDelete(safePost._id);
+    if (onDelete && safePost._id) {onDelete(safePost._id);}
   }, [onDelete, safePost._id]);
 
   const showDelete = !!onDelete && !!myId && String(safePost.author?._id) === String(myId);

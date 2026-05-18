@@ -141,7 +141,7 @@ const useUserProfile = (username, currentUser) => {
   const notify = useNotification();
 
   const fetchProfile = useCallback(async () => {
-    if (!username) return;
+    if (!username) {return;}
     setLoading(true);
     const isMe = currentUser && (String(username) === String(currentUser.username) || String(username) === String(currentUser._id) || String(username) === String(currentUser.id));
 
@@ -173,7 +173,7 @@ const useUserProfile = (username, currentUser) => {
         }
       }
     } finally {
-      if (!isMe) setLoading(false);
+      if (!isMe) {setLoading(false);}
     }
   }, [username, notify, currentUser]);
 
@@ -197,7 +197,7 @@ const useUserPosts = (userId, limit = 12) => {
 
   const fetchPosts = useCallback(
     async (page = 1, append = false) => {
-      if (abortRef.current) abortRef.current.abort();
+      if (abortRef.current) {abortRef.current.abort();}
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -218,7 +218,7 @@ const useUserPosts = (userId, limit = 12) => {
         userPosts.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         setPosts(prev => append ? [...prev, ...userPosts] : userPosts);
         setHasMore(false);
-        if (axios.isCancel(err)) return;
+        if (axios.isCancel(err)) {return;}
       } finally {
         setLoading(false);
       }
@@ -229,12 +229,12 @@ const useUserPosts = (userId, limit = 12) => {
   useEffect(() => {
     fetchPosts(1);
     return () => {
-      if (abortRef.current) abortRef.current.abort();
+      if (abortRef.current) {abortRef.current.abort();}
     };
   }, [fetchPosts]);
 
   const loadMore = useCallback(() => {
-    if (!hasMore) return;
+    if (!hasMore) {return;}
     fetchPosts(pageRef.current + 1, true);
   }, [fetchPosts, hasMore]);
 
@@ -261,13 +261,13 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
   }, [initialFollowing, targetUserId]);
 
   const toggle = useCallback(async () => {
-    if (!user) return notify.error('Sign in to follow');
+    if (!user) {return notify.error('Sign in to follow');}
     setLoading(true);
     const prev = following;
     setFollowing(!prev);
 
-    if (!prev) storageCache.addFollow(targetUserId);
-    else storageCache.removeFollow(targetUserId);
+    if (!prev) {storageCache.addFollow(targetUserId);}
+    else {storageCache.removeFollow(targetUserId);}
 
     try {
       if (!prev) {
@@ -275,7 +275,7 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
       } else {
         await axios.delete(`/users/${targetUserId}/follow`);
       }
-      if (onUpdate) onUpdate(!prev);
+      if (onUpdate) {onUpdate(!prev);}
     } catch (err) {
       // Fallback local persistence
       
@@ -292,7 +292,7 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
         window.dispatchEvent(new Event('local_notify'));
       }
 
-      if (onUpdate) onUpdate(!prev);
+      if (onUpdate) {onUpdate(!prev);}
     } finally {
       setLoading(false);
     }
@@ -424,7 +424,7 @@ const FollowButton = React.memo(({ profile, isOwnProfile }) => {
     (newState) => setFollowingCount((prev) => prev + (newState ? 1 : -1))
   );
 
-  if (isOwnProfile) return null;
+  if (isOwnProfile) {return null;}
 
   return (
     <motion.button
@@ -487,7 +487,7 @@ const UserFeed = React.memo(({ userId, activeTab }) => {
   const isInView = useInView(bottomRef, { once: false, margin: '0px 0px 200px 0px' });
 
   useEffect(() => {
-    if (isInView && !loading && hasMore) loadMore();
+    if (isInView && !loading && hasMore) {loadMore();}
   }, [isInView, loading, hasMore, loadMore]);
 
   // For now, we only show posts; other tabs can be implemented similarly
@@ -573,7 +573,7 @@ export default function Profile() {
   }, [targetUsername, currentUser, navigate]);
 
   // Show skeleton while loading
-  if (profileLoading) return <ProfileSkeleton />;
+  if (profileLoading) {return <ProfileSkeleton />;}
 
   // Error state
   if (error) {

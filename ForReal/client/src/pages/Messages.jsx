@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeftIcon,
@@ -108,7 +108,7 @@ const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, 
 
 // Typing indicator
 const TypingIndicator = React.memo(({ isTyping }) => {
-  if (!isTyping) return null;
+  if (!isTyping) {return null;}
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -232,7 +232,7 @@ export default function Messages() {
   // Send message
   const sendMessage = useCallback(async () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) {return;}
 
     const tempId = `temp-${Date.now()}`;
     let convId = activeConversationId;
@@ -316,9 +316,9 @@ export default function Messages() {
     window.dispatchEvent(new Event('local_notify'));
 
     try {
-      let requestPayload = { text: trimmed, media: [] };
-      if (isNewConv) requestPayload.recipientId = recipientId.trim();
-      else requestPayload.conversationId = convId;
+      const requestPayload = { text: trimmed, media: [] };
+      if (isNewConv) {requestPayload.recipientId = recipientId.trim();}
+      else {requestPayload.conversationId = convId;}
       await axios.post('/chat', requestPayload);
     } catch (err) {
       console.warn('API chat send failed, falling back to local');
@@ -331,7 +331,7 @@ export default function Messages() {
       if (activeConversationId) {
         socket.emit('dm:typing', { conversationId: activeConversationId });
       }
-    } catch(err) {}
+    } catch(err) { console.warn('emit typing failed', err); }
   };
 
   const handleReact = useCallback((msgId) => {
@@ -355,8 +355,8 @@ export default function Messages() {
   // Socket listener for new messages
   useEffect(() => {
     const handleNewMessage = (message) => {
-      if (!activeConversationId) return;
-      if (message.conversationId !== activeConversationId) return;
+      if (!activeConversationId) {return;}
+      if (message.conversationId !== activeConversationId) {return;}
       setMessages(prev => [...prev, message]);
       setTimeout(scrollToBottom, 20);
     };
@@ -406,17 +406,17 @@ export default function Messages() {
   }
 
   const formatTime = (date) => {
-    if (!date) return '';
+    if (!date) {return '';}
     const d = new Date(date);
     const now = new Date();
     const diff = now - d;
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (diff < 3600000) {return `${Math.floor(diff / 60000)}m ago`;}
+    if (diff < 86400000) {return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });}
     return d.toLocaleDateString();
   };
 
   const filteredConversations = conversations.filter(c => {
-    if (!searchQuery) return true;
+    if (!searchQuery) {return true;}
     const otherParticipant = c.participants?.find(p => String(p._id || p) !== String(myId)) || c.otherUser || {};
     const name = (otherParticipant.displayName || otherParticipant.username || '').toLowerCase();
     return name.includes(searchQuery.toLowerCase());

@@ -232,10 +232,10 @@ const Toast = ({ id, notification, type = "success", duration = 4500, onDismiss 
 
   // Animated countdown progress bar
   useEffect(() => {
-    if (duration <= 0) return;
+    if (duration <= 0) {return;}
 
     function tick(now) {
-      if (!startRef.current) startRef.current = now;
+      if (!startRef.current) {startRef.current = now;}
       if (paused) {
         startRef.current = now - elapsedRef.current;
         rafRef.current = requestAnimationFrame(tick);
@@ -252,7 +252,7 @@ const Toast = ({ id, notification, type = "success", duration = 4500, onDismiss 
     }
 
     rafRef.current = requestAnimationFrame(tick);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    return () => { if (rafRef.current) {cancelAnimationFrame(rafRef.current);} };
   }, [duration, paused, dismiss]);
 
   const isLive = type === "live";

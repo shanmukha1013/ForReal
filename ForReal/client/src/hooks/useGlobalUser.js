@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { storageCache } from '../lib/storageCache';
+import api from '../api/api.js';
 
 export function useGlobalUser() {
   const [user, setUser] = useState(storageCache.getUser());
@@ -27,9 +28,27 @@ export function useGlobalUser() {
     return updatedUser;
   }, []);
 
+  // Save profile to backend, then update global cache
+  const saveProfile = useCallback(async (updates) => {
+    try {
+      const currentUser = storageCache.getUser();
+      const userId = currentUser?._id || currentUser?.id;
+      if (!userId) throw new Error('User ID not found');
+      const response = await api.users.updateProfile(userId, updates);
+      const updatedUser = response.user || response;
+      storageCache.setUser(updatedUser);
+      setUser(updatedUser);
+      return updatedUser;
+    } catch (err) {
+      console.error('[useGlobalUser] saveProfile error:', err);
+      throw err;
+    }
+  }, []);
+
   return {
     user,
     updateGlobalUser,
+    saveProfile,
     isAuthenticated: !!user && !!user.username,
   };
 }

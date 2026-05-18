@@ -4,6 +4,7 @@ import {
   getRoom,
   createRoom,
   joinRoom,
+  leaveRoom,
 } from '../controllers/roomController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
@@ -20,5 +21,6 @@ router.get('/:id', getRoom);
 // Protected routes
 router.post('/', requireAuth, createRoom);
 router.post('/:id/join', requireAuth, joinRoom);
+router.post('/:id/leave', requireAuth, leaveRoom);
 
 export default router;

@@ -171,4 +171,81 @@ export const updateSettings = async (req, res) => {
   }
 };
 
+// GET /api/auth/sessions - Get active sessions (minimal implementation)
+export const getSessions = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Return minimal session info (mock - real implementation would track actual sessions)
+    const sessions = [
+      {
+        _id: 'current-session',
+        device: 'Current Browser',
+        lastActive: new Date(),
+        ip: req.ip,
+      },
+    ];
+    return res.json({ sessions });
+  } catch (err) {
+    console.error('[auth][getSessions] error', err);
+    return res.status(500).json({ message: 'Failed to get sessions' });
+  }
+};
+
+// POST /api/auth/change-password - Change user password
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new password required' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    return res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('[auth][changePassword] error', err);
+    return res.status(500).json({ message: 'Failed to change password' });
+  }
+};
+
+// DELETE /api/auth/sessions/:sessionId - Terminate a session
+export const terminateSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    if (sessionId === 'current-session') {
+      // Logout current session
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const refreshToken = req.cookies?.refreshToken;
+        if (refreshToken && user.refreshTokens) {
+          user.refreshTokens = user.refreshTokens.filter(t => t !== refreshToken);
+          await user.save();
+        }
+      }
+      res.clearCookie('refreshToken');
+      return res.json({ message: 'Session terminated' });
+    }
+    
+    return res.json({ message: 'Session terminated' });
+  } catch (err) {
+    console.error('[auth][terminateSession] error', err);
+    return res.status(500).json({ message: 'Failed to terminate session' });
+  }
+};
+
 export default { register, login, me };

@@ -56,7 +56,7 @@ function getStoredToken() {
  * @returns {import('socket.io-client').Socket}
  */
 export function getSocket() {
-  if (socket?.connected) return socket;
+  if (socket?.connected) {return socket;}
 
   if (!socket) {
     const token = getStoredToken();
@@ -82,7 +82,7 @@ export function getSocket() {
           if (msg.includes('unauthorized:token_expired') || msg.includes('unauthorized:refresh_invalid') || msg.includes('unauthorized:refresh_revoked') || msg.includes('unauthorized:refresh_failed')) {
             // Avoid hammering refresh endpoint during rapid reconnect attempts
             const now = Date.now();
-            if (now - _lastRefreshAttempt < 5000) return;
+            if (now - _lastRefreshAttempt < 5000) {return;}
             _lastRefreshAttempt = now;
             // Try to refresh access token via API endpoint using HttpOnly cookie
             (async () => {
@@ -112,7 +112,14 @@ export function getSocket() {
       });
 
       socket.on('connect', () => {
-        // No-op; auth is provided at handshake. Clients can call `authenticateSocket` to update token.
+        // Auto-resubscribe to notifications if user is logged in
+        // This is critical because socket.io drops all room memberships upon network reconnect
+        const user = storageCache.getUser();
+        if (user) {
+          const userId = user._id || user.id;
+          socket.emit('notifications:subscribe', { scope: { type: 'global' } });
+          socket.emit('notifications:subscribe', { scope: { type: 'user', userId } });
+        }
       });
 
       // Server may refresh token during handshake and emit 'auth:refreshed'
@@ -133,7 +140,7 @@ export function getSocket() {
     }
   }
 
-  if (!socket.connected) socket.connect();
+  if (!socket.connected) {socket.connect();}
   return socket;
 }
 

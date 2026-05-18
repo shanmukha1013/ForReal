@@ -91,7 +91,7 @@ function useRooms(filters = {}) {
   const abortRef = useRef(null);
 
   const fetchRooms = useCallback(async () => {
-    if (abortRef.current) abortRef.current.abort();
+    if (abortRef.current) {abortRef.current.abort();}
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -141,7 +141,7 @@ function useRooms(filters = {}) {
   useEffect(() => {
     fetchRooms();
     return () => {
-      if (abortRef.current) abortRef.current.abort();
+      if (abortRef.current) {abortRef.current.abort();}
     };
   }, [fetchRooms]);
 
@@ -379,14 +379,17 @@ const CreateRoomPanel = React.memo(({ onCreate, optimisticCreateRoom, confirmRoo
   const canCreate = topic.trim().length >= 6;
 
   const handleCreate = async () => {
-    if (!canCreate || creating) return;
+    if (!canCreate || creating) {return;}
     setCreating(true);
     setError('');
-    
+    // Capture trimmed values before clearing UI state
+    const trimmedTopic = topic.trim();
+    const trimmedDescription = description.trim();
+
     const newRoom = {
       _id: `room_${Date.now()}`,
-      topic: topic.trim(),
-      description: description.trim(),
+      topic: trimmedTopic,
+      description: trimmedDescription,
       category: category || 'Uncategorized',
       visibility,
       anonymityMode,
@@ -406,18 +409,13 @@ const CreateRoomPanel = React.memo(({ onCreate, optimisticCreateRoom, confirmRoo
     let optimisticRoom = null;
     try {
       optimisticRoom = optimisticCreateRoom(newRoom);
-      if (onCreate) onCreate(optimisticRoom);
+      if (onCreate) {onCreate(optimisticRoom);}
       notify.success('Debate room created!');
-      setTopic('');
-      setDescription('');
-      setCategory('');
-      setVisibility('public');
-      setCreating(false);
 
-      // Send authoritative create request to backend and confirm
+      // Send authoritative create request to backend and confirm using captured values
       const payload = {
-        title: topic.trim(),
-        description: description.trim(),
+        title: trimmedTopic,
+        description: trimmedDescription,
         category: category || undefined,
         visibility,
         isPrivate: visibility === 'private',
@@ -435,9 +433,15 @@ const CreateRoomPanel = React.memo(({ onCreate, optimisticCreateRoom, confirmRoo
     } catch (err) {
       // network or server error — revert optimistic and show message
       if (optimisticRoom) {
-        try { deleteRoom(optimisticRoom._id); } catch {}
+        try { deleteRoom(optimisticRoom._id); } catch (e) { console.warn('revert deleteRoom failed', e); }
       }
       notify.error(err?.response?.data?.message || 'Unable to create room');
+    } finally {
+      // Reset UI inputs and creation state after attempt
+      setTopic('');
+      setDescription('');
+      setCategory('');
+      setVisibility('public');
       setCreating(false);
     }
   };
@@ -590,7 +594,7 @@ export default function Rooms() {
   // Subscribe to realtime new-room events
   useEffect(() => {
     const sock = getSocket();
-    if (!sock) return;
+    if (!sock) {return;}
 
     const onRoomsNew = (room) => {
       try {

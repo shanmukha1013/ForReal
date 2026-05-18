@@ -92,12 +92,12 @@ const useNotifications = (filter = 'all') => {
   const abortRef = useRef(null);
 
   const fetchNotifications = useCallback(async (page = 1, append = false) => {
-    if (abortRef.current) abortRef.current.abort();
+    if (abortRef.current) {abortRef.current.abort();}
     const controller = new AbortController();
     abortRef.current = controller;
 
     const isInitial = !append;
-    if (isInitial) setLoading(true);
+    if (isInitial) {setLoading(true);}
 
     let fetched = [];
     try {
@@ -126,26 +126,26 @@ const useNotifications = (filter = 'all') => {
       setNotifications(prev => append ? [...prev, ...newNotifs] : newNotifs);
       setHasMore(page * 20 < filtered.length);
       pageRef.current = page;
-      if (isInitial) setLoading(false);
+      if (isInitial) {setLoading(false);}
     }
   }, [filter]);
 
   useEffect(() => {
     fetchNotifications(1);
     return () => {
-      if (abortRef.current) abortRef.current.abort();
+      if (abortRef.current) {abortRef.current.abort();}
     };
   }, [fetchNotifications]);
 
   const loadMore = useCallback(() => {
-    if (!hasMore) return;
+    if (!hasMore) {return;}
     fetchNotifications(pageRef.current + 1, true);
   }, [fetchNotifications, hasMore]);
 
   // Realtime: listen for new notifications via socket
   useEffect(() => {
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket) {return;}
 
     const onNewNotification = (newNotif) => {
       // Only append if filter matches (or if filter is 'all')
@@ -260,34 +260,34 @@ const skeletonPulse = {
 // Notification icon resolver (reusable)
 const IconResolver = ({ type, text }) => {
   const getIcon = () => {
-    if (type === 'like') return Heart;
-    if (type === 'dislike') return Dislike;
-    if (type === 'agree') return ThumbsUp;
-    if (type === 'disagree') return Dislike;
-    if (type === 'facts') return CheckBadge;
-    if (type === 'cap') return Ban;
-    if (type === 'misleading' || type === 'fact-check') return ShieldAlert;
-    if (type === 'validPoint' || type === 'credibility') return Award;
-    if (type === 'heat' || type === 'trending') return Flame;
-    if (type === 'comment' || type === 'reply') return MessageCircle;
-    if (type === 'follow') return Users;
-    if (type === 'mention') return AtSign;
-    if (type === 'debate' || type === 'room_invite') return Mic;
-    if (type === 'system') return Shield;
+    if (type === 'like') {return Heart;}
+    if (type === 'dislike') {return Dislike;}
+    if (type === 'agree') {return ThumbsUp;}
+    if (type === 'disagree') {return Dislike;}
+    if (type === 'facts') {return CheckBadge;}
+    if (type === 'cap') {return Ban;}
+    if (type === 'misleading' || type === 'fact-check') {return ShieldAlert;}
+    if (type === 'validPoint' || type === 'credibility') {return Award;}
+    if (type === 'heat' || type === 'trending') {return Flame;}
+    if (type === 'comment' || type === 'reply') {return MessageCircle;}
+    if (type === 'follow') {return Users;}
+    if (type === 'mention') {return AtSign;}
+    if (type === 'debate' || type === 'room_invite') {return Mic;}
+    if (type === 'system') {return Shield;}
     // fallback based on text
     const lower = text?.toLowerCase() || '';
-    if (lower.includes('dislike')) return Dislike;
-    if (lower.includes('agree')) return ThumbsUp;
-    if (lower.includes('facts')) return CheckBadge;
-    if (lower.includes('cap')) return Ban;
-    if (lower.includes('misleading')) return ShieldAlert;
-    if (lower.includes('valid point')) return Award;
-    if (lower.includes('heat') || lower.includes('explosive')) return Flame;
-    if (lower.includes('like')) return Heart;
-    if (lower.includes('comment') || lower.includes('reply')) return MessageCircle;
-    if (lower.includes('follow')) return Users;
-    if (lower.includes('mention')) return AtSign;
-    if (lower.includes('debate')) return Mic;
+    if (lower.includes('dislike')) {return Dislike;}
+    if (lower.includes('agree')) {return ThumbsUp;}
+    if (lower.includes('facts')) {return CheckBadge;}
+    if (lower.includes('cap')) {return Ban;}
+    if (lower.includes('misleading')) {return ShieldAlert;}
+    if (lower.includes('valid point')) {return Award;}
+    if (lower.includes('heat') || lower.includes('explosive')) {return Flame;}
+    if (lower.includes('like')) {return Heart;}
+    if (lower.includes('comment') || lower.includes('reply')) {return MessageCircle;}
+    if (lower.includes('follow')) {return Users;}
+    if (lower.includes('mention')) {return AtSign;}
+    if (lower.includes('debate')) {return Mic;}
     return Sparkles;
   };
   const Icon = getIcon();
@@ -304,13 +304,13 @@ const NotificationGroup = React.memo(({ group, index, onMarkOneRead, onDelete })
   const handleClick = useCallback(() => {
     // Mark the whole group as read
     groupItems.forEach(n => {
-      if (!n.read) onMarkOneRead(n._id);
+      if (!n.read) {onMarkOneRead(n._id);}
     });
     const first = groupItems[0];
-    if (first.type === 'follow' && actor?._id) navigate(`/profile/${actor._id}`);
-    else if (first.type === 'debate' || first.type === 'room_invite') navigate(`/rooms/${first.targetId}`);
-    else if (first.type === 'mention') navigate(`/messages`);
-    else if (first.targetId) navigate(`/home`);
+    if (first.type === 'follow' && actor?._id) {navigate(`/profile/${actor._id}`);}
+    else if (first.type === 'debate' || first.type === 'room_invite') {navigate(`/rooms/${first.targetId}`);}
+    else if (first.type === 'mention') {navigate(`/messages`);}
+    else if (first.targetId) {navigate(`/home`);}
   }, [groupItems, onMarkOneRead]);
 
   const handleDelete = (e) => {
@@ -393,12 +393,12 @@ const NotificationItem = React.memo(({ notification, index, onMarkOneRead, onDel
   const navigate = useNavigate();
 
   const handleClick = () => {
-    if (!notification.read) onMarkOneRead(notification._id);
+    if (!notification.read) {onMarkOneRead(notification._id);}
     
-    if (notification.type === 'follow' && notification.actor?._id) navigate(`/profile/${notification.actor._id}`);
-    else if (notification.type === 'debate' || notification.type === 'room_invite') navigate(`/rooms/${notification.targetId}`);
-    else if (notification.type === 'mention') navigate(`/messages`);
-    else if (notification.targetId) navigate(`/home`);
+    if (notification.type === 'follow' && notification.actor?._id) {navigate(`/profile/${notification.actor._id}`);}
+    else if (notification.type === 'debate' || notification.type === 'room_invite') {navigate(`/rooms/${notification.targetId}`);}
+    else if (notification.type === 'mention') {navigate(`/messages`);}
+    else if (notification.targetId) {navigate(`/home`);}
   };
 
   const handleDelete = (e) => {
@@ -583,8 +583,7 @@ export default function Notifications() {
           key,
           count: 1,
           actor: notif.actor,
-          action: notif.action || notif.text?.split(' ').slice(1).join(' ') || notif.text,
-          action: notif.action || (notif.text ? notif.text.split(' ').slice(1).join(' ') : 'interacted'),
+          action: notif.action || (notif.text ? notif.text.split(' ').slice(1).join(' ') : notif.text || 'interacted'),
           target: notif.targetId ? (notif.targetText || 'item') : undefined,
           notifications: [notif],
           read: notif.read,

@@ -1,4 +1,4 @@
-import React, {
+import {
   useState,
   useEffect,
   useCallback,
@@ -46,13 +46,13 @@ const useFeed = (limit = 10) => {
 
   const fetchTalks = useCallback(
     async (page = 1, append = false) => {
-      if (abortRef.current) abortRef.current.abort();
+      if (abortRef.current) {abortRef.current.abort();}
       const controller = new AbortController();
       abortRef.current = controller;
 
       const isInitial = page === 1 && !append;
-      if (isInitial) setLoading(true);
-      else setLoadingMore(true);
+      if (isInitial) {setLoading(true);}
+      else {setLoadingMore(true);}
 
       let fetchedTalks = [];
       try {
@@ -68,7 +68,7 @@ const useFeed = (limit = 10) => {
         }
         setError(null);
       } catch (err) {
-        if (axios.isCancel?.(err)) return;
+        if (axios.isCancel?.(err)) {return;}
         setError(err?.message || 'Failed to fetch feed');
         return;
       } finally {
@@ -79,8 +79,8 @@ const useFeed = (limit = 10) => {
         const paginated = unique.slice((page - 1) * limit, page * limit);
         setTalks((prev) => (append ? [...prev, ...paginated] : paginated));
         pageRef.current = page;
-        if (isInitial) setLoading(false);
-        else setLoadingMore(false);
+        if (isInitial) {setLoading(false);}
+        else {setLoadingMore(false);}
       }
     },
     [limit]
@@ -89,7 +89,7 @@ const useFeed = (limit = 10) => {
   useEffect(() => {
     fetchTalks(1);
     return () => {
-      if (abortRef.current) abortRef.current.abort();
+      if (abortRef.current) {abortRef.current.abort();}
     };
   }, [fetchTalks]);
 
@@ -98,7 +98,7 @@ const useFeed = (limit = 10) => {
   }, [fetchTalks]);
 
   const loadMore = useCallback(() => {
-    if (loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore) {return;}
     fetchTalks(pageRef.current + 1, true);
   }, [fetchTalks, loadingMore, hasMore]);
 
@@ -139,7 +139,7 @@ export default function Home() {
   } = useFeed(10);
 
   const emptyState = useMemo(() => {
-    if (error) return { title: 'Failed to load feed', detail: error };
+    if (error) {return { title: 'Failed to load feed', detail: error };}
     return { title: 'No talks yet', detail: 'Be the first to start a debate.' };
   }, [error]);
 
@@ -172,7 +172,7 @@ export default function Home() {
               whileTap={{ scale: 0.98 }}
               onClick={() => {
                 refresh();
-                if (notify?.info) notify.info('Refreshing feed...');
+                if (notify?.info) {notify.info('Refreshing feed...');}
               }}
               className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
               title="Refresh feed"

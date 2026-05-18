@@ -201,14 +201,14 @@ const useSettings = () => {
           const cUpdate = { ...c };
           if (cUpdate.participants) {
             cUpdate.participants = cUpdate.participants.map(p => {
-              if (String(p._id || p.id || p.username || p) === String(myId)) return { ...p, ...updates };
+              if (String(p._id || p.id || p.username || p) === String(myId)) {return { ...p, ...updates };}
               return p;
             });
           }
           return cUpdate;
           });
           localStorage.setItem('forreal_conversations', JSON.stringify(updatedConvs));
-        } catch(e) {}
+        } catch(e) { console.warn('Settings: failed to update conversations', e); }
         
         window.dispatchEvent(new Event('storage'));
       }
@@ -524,7 +524,7 @@ export default function Settings() {
                           onChange={(e) => {
                             const file = e.target.files[0];
                             if (file) {
-                              if (file.size > 2 * 1024 * 1024) return window.alert("Image must be smaller than 2MB");
+                              if (file.size > 2 * 1024 * 1024) {return window.alert("Image must be smaller than 2MB");}
                               const reader = new FileReader();
                               reader.onloadend = () => setAvatar(reader.result);
                               reader.readAsDataURL(file);

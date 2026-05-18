@@ -155,7 +155,7 @@ const useReports = () => {
   const abortRef = useRef(null);
 
   const fetchReports = useCallback(async (pageNum = 1, append = false) => {
-    if (abortRef.current) abortRef.current.abort();
+    if (abortRef.current) {abortRef.current.abort();}
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -173,7 +173,7 @@ const useReports = () => {
       setHasMore(pageNum * 10 < (data.total || 0));
       setPage(pageNum);
     } catch (err) {
-      if (!axios.isCancel(err)) console.error(err);
+      if (!axios.isCancel(err)) {console.error(err);}
     } finally {
       setLoading(false);
     }
@@ -185,7 +185,7 @@ const useReports = () => {
   }, [fetchReports]);
 
   const loadMore = () => {
-    if (hasMore) fetchReports(page + 1, true);
+    if (hasMore) {fetchReports(page + 1, true);}
   };
 
   return { reports, loading, hasMore, loadMore, refetch: () => fetchReports(1) };
@@ -200,7 +200,7 @@ const useUsers = (search = '') => {
   const abortRef = useRef(null);
 
   useEffect(() => {
-    if (abortRef.current) abortRef.current.abort();
+    if (abortRef.current) {abortRef.current.abort();}
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -213,7 +213,7 @@ const useUsers = (search = '') => {
         });
         setUsers(data.users || []);
       } catch (err) {
-        if (!axios.isCancel(err)) console.error(err);
+        if (!axios.isCancel(err)) {console.error(err);}
       } finally {
         setLoading(false);
       }
@@ -493,7 +493,7 @@ export default function Admin() {
 
   // Realtime socket for report updates
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin) {return;}
     const socket = getSocket();
     socket.on('admin:newReport', () => refetchReports());
     socket.on('admin:statsUpdate', () => refetchStats());
@@ -525,7 +525,7 @@ export default function Admin() {
   }, [notify, refetchReports]);
 
   const handleDeleteUser = useCallback(async (userId) => {
-    if (!window.confirm('Permanently delete this user? This action cannot be undone.')) return;
+    if (!window.confirm('Permanently delete this user? This action cannot be undone.')) {return;}
     try {
       await axios.delete(`/admin/users/${userId}`);
       notify.success('User deleted');

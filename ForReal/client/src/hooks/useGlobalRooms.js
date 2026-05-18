@@ -7,9 +7,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { storageCache } from '../lib/storageCache';
+import api from '../api/axios.js';
 
 export function useGlobalRooms() {
   const [rooms, setRooms] = useState(storageCache.getRooms());
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
 
   useEffect(() => {
@@ -21,20 +24,43 @@ export function useGlobalRooms() {
     return unsubscribe;
   }, []);
 
-  // Create a new room
-  const createRoom = useCallback((roomData) => {
-    const newRoom = {
-      _id: `room_${Date.now()}`,
-      ...roomData,
-      createdAt: new Date().toISOString(),
-      participants: roomData.participants || [],
-      messages: [],
-      status: 'active',
-    };
+  // Fetch all rooms from API
+  const fetchRooms = useCallback(async (params = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.rooms.getAll(params);
+      // Determine if response is an array or object wrapping an array
+      const roomList = Array.isArray(response) ? response : (response.rooms || []);
+      storageCache.setRooms(roomList);
+    } catch (err) {
+      console.error('[useGlobalRooms] Failed to fetch rooms:', err);
+      setError(err?.message || 'Failed to load rooms');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    const updated = storageCache.addRoom(newRoom);
-    setRooms(updated);
-    return newRoom;
+  // Create a new room
+  const createRoom = useCallback(async (roomData) => {
+    setError(null);
+    try {
+      const response = await api.rooms.create(roomData);
+      const newRoom = response.room || response;
+      
+      // Ensure required fallback fields for UI assumptions
+      if (!newRoom.participants) newRoom.participants = roomData.participants || [];
+      if (!newRoom.messages) newRoom.messages = [];
+      if (!newRoom.status) newRoom.status = 'active';
+
+      const updated = storageCache.addRoom(newRoom);
+      setRooms(updated);
+      return newRoom;
+    } catch (err) {
+      console.error('[useGlobalRooms] Failed to create room:', err);
+      setError(err?.message || 'Failed to create room');
+      throw err;
+    }
   }, []);
 
   // Update an existing room
@@ -79,13 +105,37 @@ export function useGlobalRooms() {
     setRooms(updated);
   }, []);
 
+  // Join an existing room via API
+  const joinRoom = useCallback(async (roomId) => {
+    try {
+      await api.rooms.join(roomId);
+    } catch (err) {
+      console.warn(`[useGlobalRooms] Failed to join room API:`, err);
+      // Socket handles real-time fallbacks, no throw required
+    }
+  }, []);
+
+  // Leave a room via API
+  const leaveRoom = useCallback(async (roomId) => {
+    try {
+      await api.rooms.leave(roomId);
+    } catch (err) {
+      console.warn(`[useGlobalRooms] Failed to leave room API:`, err);
+    }
+  }, []);
+
   return {
     rooms,
+    loading,
+    error,
+    fetchRooms,
     createRoom,
     updateRoom,
     deleteRoom,
     optimisticCreateRoom,
     confirmRoom,
+    joinRoom,
+    leaveRoom,
   };
 }
 

@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes.js');
 const postRoutes = require('./routes/postRoutes.js');
 const roomRoutes = require('./routes/roomRoutes.js');
 const chatRoutes = require('./routes/chatRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
 
 function unwrapESModuleRouter(m) {
   // ESM interop: require() returns { default: router } when file is ESM.
@@ -28,6 +29,17 @@ const rateLimit = require('express-rate-limit');
 dotenv.config();
 
 const app = express();
+
+// Diagnostic headers to identify which backend instance handled a request
+// (Used only for smoke-test tracing; does not alter route behavior.)
+app.use((req, res, next) => {
+  res.set('X-Mock-API', 'false');
+  res.set('X-Server-Name', process.env.SERVER_NAME || 'real-backend-cjs');
+  res.set('X-Route-Version', process.env.ROUTE_VERSION || 'v1');
+  // Ensure headers are readable by browser clients
+  res.set('Access-Control-Expose-Headers', 'X-Mock-API,X-Server-Name,X-Route-Version');
+  next();
+});
 // Explicitly trust Render's / platform proxy headers
 app.set('trust proxy', 1);
 
@@ -93,7 +105,9 @@ app.use('/api/auth', unwrapESModuleRouter(authRoutes));
 app.use('/api/posts', unwrapESModuleRouter(postRoutes));
 app.use('/api/talks', unwrapESModuleRouter(postRoutes)); // Alias for backward compatibility
 app.use('/api/rooms', unwrapESModuleRouter(roomRoutes));
+app.use('/api/users', unwrapESModuleRouter(userRoutes));
 app.use('/chat', unwrapESModuleRouter(chatRoutes));
+app.use('/api/chat', unwrapESModuleRouter(chatRoutes)); // Standardized API prefix mapping
 
 
 app.get('/api/health', (req, res) => {
@@ -373,10 +387,14 @@ io.on('connection', (socket) => {
           createdAt: new Date().toISOString(),
         };
 
+        let capturedBody = null;
         const fakeReq = { user: { id: user.id }, body: payload };
-        const fakeRes = { status: () => fakeRes, json: (body) => body };
-        const body = await createOrSendMessage(fakeReq, fakeRes, () => {});
-        const message = body && body.message;
+        const fakeRes = { 
+          status: () => fakeRes, 
+          json: (b) => { capturedBody = b; return fakeRes; } 
+        };
+        await createOrSendMessage(fakeReq, fakeRes, () => {});
+        const message = capturedBody && capturedBody.message;
         if (!message) throw new Error('message not created');
 
         io.to(`dm:conv:${message.conversationId}`).emit('dm:new', message);
@@ -422,22 +440,22 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', (reason) => {
+  socket.on('disconnecting', (reason) => {
     for (const joined of socket.rooms) {
       if (joined.startsWith('room:')) {
         const roomId = joined.slice('room:'.length);
         try {
-          leaveRoomInMemory(roomId, user.id);
-          const state = roomState.get(roomId);
-          const participants = state ? Array.from(state.participants) : [];
+          leaveRoomInMemory(roomId, userrray.from(state.participants) : [];
           io.to(joined).emit('room:members:update', { roomId, participants });
         } catch {
           // no-op
         }
       }
     }
+  });
 
-    console.info('[Socket] disconnected', { userId: user.id, reason });
+  socket.on('disconnect', (reason) => {
+    console.info('[Socket] disconnected', { userId: user?.id, reason });
   });
 });
 
@@ -529,4 +547,3 @@ if (!mongoUri) {
 })();
 
 module.exports = app;
-

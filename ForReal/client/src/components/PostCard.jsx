@@ -34,23 +34,23 @@ import { storageCache } from '../lib/storageCache';
 // -----------------------------------------------------------------------------
 
 export const timeAgo = (date) => {
-  if (!date) return 'unknown';
+  if (!date) {return 'unknown';}
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-  if (seconds < 10) return 'just now';
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 10) {return 'just now';}
+  if (seconds < 60) {return `${seconds}s ago`;}
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) {return `${minutes}m ago`;}
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {return `${hours}h ago`;}
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) {return `${days}d ago`;}
   return new Date(date).toLocaleDateString();
 };
 
 export const formatCount = (num) => {
-  if (!num && num !== 0) return '0';
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+  if (!num && num !== 0) {return '0';}
+  if (num >= 1000000) {return (num / 1000000).toFixed(1) + 'M';}
+  if (num >= 1000) {return (num / 1000).toFixed(1) + 'k';}
   return num.toString();
 };
 
@@ -134,14 +134,14 @@ const useReactionOptimistic = (initialReaction, initialCounts, onReactCallback) 
       
       setCounts(oldCounts => {
         const newCounts = { ...oldCounts };
-        if (prev) newCounts[prev] = Math.max(0, newCounts[prev] - 1);
-        if (finalReaction) newCounts[finalReaction] = (newCounts[finalReaction] || 0) + 1;
+        if (prev) {newCounts[prev] = Math.max(0, newCounts[prev] - 1);}
+        if (finalReaction) {newCounts[finalReaction] = (newCounts[finalReaction] || 0) + 1;}
         return newCounts;
       });
 
       try {
-        if (onReactCallback) onReactCallback(finalReaction);
-      } catch (e) {}
+        if (onReactCallback) {onReactCallback(finalReaction);}
+      } catch (e) { console.warn('useReactionOptimistic onReactCallback failed', e); }
 
       return finalReaction;
     });
@@ -175,7 +175,7 @@ const useCommentsExpander = (initialComments, totalComments, fetchMore) => {
         const more = await fetchMore();
         setComments((prev) => [...prev, ...more]);
       } catch (e) {
-        // keep existing
+        console.warn('useCommentsExpander fetchMore failed', e);
       } finally {
         setLoading(false);
       }
@@ -192,7 +192,7 @@ const useCommentsExpander = (initialComments, totalComments, fetchMore) => {
 const useRealtimePostUpdates = (postId, setPost) => {
   const socket = useSocket(); // hypothetical socket context
   useEffect(() => {
-    if (!socket || !postId) return;
+    if (!socket || !postId) {return;}
 
     const handleLikeUpdate = (data) => {
       if (data.postId === postId) {
@@ -236,13 +236,13 @@ const useFactCheck = (postId, initialVerifications, initialDisputes, myId, myCre
   }, [initialVerifications, initialDisputes]);
 
   const handleFactCheck = useCallback((action) => {
-    if (!myId) return;
+    if (!myId) {return;}
     
     const weight = getVoteWeight(myCredScore);
     const newVote = { userId: myId, weight };
 
-    let newV = verifications.filter(v => v.userId !== myId);
-    let newD = disputes.filter(d => d.userId !== myId);
+    const newV = verifications.filter(v => v.userId !== myId);
+    const newD = disputes.filter(d => d.userId !== myId);
 
     if (action === 'verify' && !verifications.some(v => v.userId === myId)) {
       newV.push(newVote);
@@ -336,7 +336,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete, isAnonymous }) =>
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => {
-            if (window.confirm('Delete this talk permanently?')) onDelete();
+            if (window.confirm('Delete this talk permanently?')) {onDelete();}
           }}
           className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           aria-label="Delete talk"
@@ -373,7 +373,7 @@ const MediaGallery = ({ media = [] }) => {
   const [loaded, setLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  if (!media.length) return null;
+  if (!media.length) {return null;}
 
   return (
     <div className="relative mt-3 rounded-xl overflow-hidden bg-black/40 border border-white/5">
@@ -438,7 +438,7 @@ const FactCheckBar = ({ sourceUrl, verifications, disputes, onVerify, onDispute,
   
   // Extract domain for source link
   let domain = 'Source Link';
-  try { if (sourceUrl) domain = new URL(sourceUrl).hostname.replace('www.', ''); } catch(e){}
+  try { if (sourceUrl) {domain = new URL(sourceUrl).hostname.replace('www.', '');} } catch(e){ console.warn('FactCheckBar: invalid sourceUrl', e); }
 
   return (
     <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-3">
@@ -476,7 +476,7 @@ const EngagementStats = ({ counts, commentsCount }) => {
   const activeReactions = REACTION_TYPES.filter(rt => counts[rt.id] > 0);
   const hasReactions = activeReactions.length > 0;
   
-  if (!hasReactions && !commentsCount) return null;
+  if (!hasReactions && !commentsCount) {return null;}
 
   return (
     <div className="flex items-center gap-4 text-xs text-gray-400 border-t border-white/5 pt-3 mt-1 flex-wrap">
@@ -590,14 +590,14 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
   const { comments: displayComments, expanded, loading, handleViewAll } =
     useCommentsExpander(comments, comments.length, null); // null means no fetch more
 
-  if (!comments?.length && !showInput) return null;
+  if (!comments?.length && !showInput) {return null;}
 
   const previewCount = 2;
   const visibleComments = expanded ? displayComments : displayComments.slice(0, previewCount);
   const hasMore = comments.length > previewCount && !expanded;
 
   const submitCommentWrapper = () => {
-    if (!commentText.trim()) return;
+    if (!commentText.trim()) {return;}
     onSubmitComment(commentAnon);
   };
 
@@ -759,7 +759,7 @@ const PostCard = ({
     initialReaction,
     initialCounts,
     () => {
-      if (onLike && safePost._id) onLike(safePost._id);
+      if (onLike && safePost._id) {onLike(safePost._id);}
     }
   );
 
@@ -792,7 +792,7 @@ const PostCard = ({
 
     const localTalks = storageCache.getPosts();
     const idx = localTalks.findIndex(p => p._id === safePost._id);
-    let updatedPost = idx !== -1 ? localTalks[idx] : { ...safePost };
+    const updatedPost = idx !== -1 ? localTalks[idx] : { ...safePost };
     
     Object.values(arrayKeyMap).forEach(arr => {
       updatedPost[arr] = updatedPost[arr] || [];
@@ -844,7 +844,7 @@ const PostCard = ({
   };
 
   const submitComment = (isAnon) => {
-    if (!commentText.trim()) return;
+    if (!commentText.trim()) {return;}
     const newComment = {
       _id: `comment_${Date.now()}`,
       content: commentText.trim(),
@@ -864,7 +864,7 @@ const PostCard = ({
 
     setCommentText('');
     setShowCommentInput(false);
-    if (onComment) onComment(safePost._id);
+    if (onComment) {onComment(safePost._id);}
   };
 
   const handleSave = () => {
@@ -875,7 +875,7 @@ const PostCard = ({
     } else {
       storageCache.removeSaved(safePost._id);
     }
-    if (newSaved) notify.success('Saved to bookmarks');
+    if (newSaved) {notify.success('Saved to bookmarks');}
   };
 
   const handleShare = () => {
@@ -884,7 +884,7 @@ const PostCard = ({
   };
 
   const handleDelete = useCallback(() => {
-    if (onDelete && safePost._id) onDelete(safePost._id);
+    if (onDelete && safePost._id) {onDelete(safePost._id);}
   }, [onDelete, safePost._id]);
 
   const showDelete = !!onDelete && !!myId && String(safePost.author?._id) === String(myId);

@@ -27,6 +27,7 @@ import {
   signupApi,
   verifyToken,
   refreshToken,
+  logoutApi,
   clearAuthStorage,
   getStoredToken,
   getCachedUser,
@@ -136,7 +137,7 @@ export function AuthProvider({ children }) {
   // Optional refresh loop (cookie-based). We only attempt if backend supports it.
   // Axios interceptor also handles refresh on 401.
   useEffect(() => {
-    if (!state.user) return;
+    if (!state.user) {return;}
     refreshIntervalRef.current = setInterval(async () => {
       try {
         await refreshToken(null);
@@ -146,7 +147,7 @@ export function AuthProvider({ children }) {
     }, 14 * 60 * 1000);
 
     return () => {
-      if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
+      if (refreshIntervalRef.current) {clearInterval(refreshIntervalRef.current);}
     };
   }, [state.user]); // eslint-disable-line react-hooks/exhaustive-deps
 

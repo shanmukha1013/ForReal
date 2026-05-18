@@ -34,7 +34,7 @@ export const useDebateEnergy = (room, liveChatMessages = null) => {
       const msgTime = new Date(msg.createdAt).getTime();
       const isRecent = msgTime > fiveMinsAgo;
       
-      let msgScore = 1;
+      const msgScore = 1;
       let reactionScore = 0;
       
       const reactionCount = (msg.likes?.length || 0) + (msg.dislikes?.length || 0) + (msg.agrees?.length || 0) + (msg.disagrees?.length || 0) + (msg.facts?.length || 0) + (msg.caps?.length || 0) + (msg.misleadings?.length || 0) + (msg.validPoints?.length || 0);

@@ -36,7 +36,8 @@ export function useGlobalNotifications() {
       try {
         const res = await axios.get('/chat/notifications');
         if (cancelled) return;
-        const list = (res.data || []).map((n) => ({
+        const payload = res?.data || res?.notifications || res;
+        const list = (Array.isArray(payload) ? payload : []).map((n) => ({
           ...n,
           read: Boolean(n.read),
         }));

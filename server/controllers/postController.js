@@ -262,10 +262,78 @@ export const reactToPost = async (req, res, next) => {
   }
 };
 
+/**
+ * Get trending posts
+ * GET /api/posts/trending
+ */
+export const getTrendingPosts = async (req, res, next) => {
+  try {
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+
+    // Calculate trending score (likes + dislikes + comments, weighted by recency)
+    const posts = await Post.find({ isDeleted: { $ne: true } })
+      .populate('author', '-password -__v')
+      .select('-__v -isDeleted')
+      .lean()
+      .then((posts) => {
+        return posts
+          .map((post) => ({
+            ...post,
+            score: (post.likesCount || 0) + (post.dislikesCount || 0) * 0.5 + (post.commentsCount || 0),
+            ageMs: Date.now() - new Date(post.createdAt).getTime(),
+          }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, limit)
+          .map(({ ageMs, ...post }) => ({
+            ...post,
+            trending: true,
+          }));
+      });
+
+    res.json({
+      posts,
+      trending: true,
+    });
+  } catch (err) {
+    console.error('[postController.getTrendingPosts] error:', err);
+    next(err);
+  }
+};
+
+/**
+ * Delete a post
+ * DELETE /api/posts/:id
+ */
+export const deletePost = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const post = await Post.findById(id);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Only creator can delete
+    if (String(post.author) !== String(userId)) {
+      return res.status(403).json({ message: 'Cannot delete other users posts' });
+    }
+
+    await Post.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
+
+    res.json({ message: 'Post deleted' });
+  } catch (err) {
+    console.error('[postController.deletePost] error:', err);
+    next(err);
+  }
+};
+
 export default {
   createPost,
   getFeed,
   getPost,
   deletePost,
+  getTrendingPosts,
   reactToPost,
 };

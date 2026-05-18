@@ -10,7 +10,7 @@
  */
 export const safeGet = (obj, path, defaultValue = null) => {
   try {
-    if (!obj || typeof obj !== 'object') return defaultValue;
+    if (!obj || typeof obj !== 'object') {return defaultValue;}
     
     const keys = path.split('.');
     let current = obj;
@@ -41,7 +41,7 @@ export const safeArray = (arr, defaultValue = []) => {
  * Defensive map/object iteration
  */
 export const safeEntries = (obj) => {
-  if (!obj || typeof obj !== 'object') return [];
+  if (!obj || typeof obj !== 'object') {return [];}
   try {
     return Object.entries(obj);
   } catch {
@@ -53,7 +53,7 @@ export const safeEntries = (obj) => {
  * Defensive string formatting
  */
 export const safeString = (value, defaultValue = '') => {
-  if (value === null || value === undefined) return defaultValue;
+  if (value === null || value === undefined) {return defaultValue;}
   return String(value);
 };
 
@@ -61,7 +61,7 @@ export const safeString = (value, defaultValue = '') => {
  * Safe user identity extraction
  */
 export const getUserId = (user) => {
-  if (!user) return null;
+  if (!user) {return null;}
   return user._id || user.id || user.username || null;
 };
 
@@ -69,7 +69,7 @@ export const getUserId = (user) => {
  * Safe user display name
  */
 export const getUserDisplayName = (user, fallback = 'Unknown User') => {
-  if (!user) return fallback;
+  if (!user) {return fallback;}
   return user.displayName || user.display_name || user.name || user.username || fallback;
 };
 
@@ -77,8 +77,8 @@ export const getUserDisplayName = (user, fallback = 'Unknown User') => {
  * Safe user avatar URL
  */
 export const getUserAvatar = (user, seed = 'default') => {
-  if (!user) return `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}`;
-  if (user.avatar) return user.avatar;
+  if (!user) {return `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}`;}
+  if (user.avatar) {return user.avatar;}
   const username = user.username || user._id || seed;
   return `https://api.dicebear.com/7.x/shapes/svg?seed=${username}`;
 };
@@ -87,7 +87,7 @@ export const getUserAvatar = (user, seed = 'default') => {
  * Safe post data normalization
  */
 export const normalizePost = (post) => {
-  if (!post) return null;
+  if (!post) {return null;}
   
   return {
     _id: post._id || post.id || `post_${Date.now()}`,
@@ -116,7 +116,7 @@ export const normalizePost = (post) => {
  * Safe room data normalization
  */
 export const normalizeRoom = (room) => {
-  if (!room) return null;
+  if (!room) {return null;}
   
   return {
     _id: room._id || room.id || `room_${Date.now()}`,
@@ -137,7 +137,7 @@ export const normalizeRoom = (room) => {
  * Safe notification normalization
  */
 export const normalizeNotification = (notif) => {
-  if (!notif) return null;
+  if (!notif) {return null;}
   
   return {
     _id: notif._id || notif.id || `notif_${Date.now()}`,

@@ -20,6 +20,7 @@ import {
   ShieldCheckIcon,
   UserGroupIcon,
   EyeIcon,
+  ClockIcon,
   MicrophoneIcon,
   PaperAirplaneIcon,
   MinusIcon,
@@ -29,6 +30,7 @@ import {
   SparklesIcon,
   XMarkIcon,
   LinkIcon,
+  ExclamationTriangleIcon,
   ClipboardIcon,
   HandThumbUpIcon,
   HandThumbDownIcon,
@@ -59,6 +61,8 @@ const Zap = SparklesIcon;
 const X = XMarkIcon;
 const MoreHorizontal = LinkIcon;
 const Smile = ClipboardIcon;
+const LinkIconAlias = LinkIcon;
+const AlertTriangle = ExclamationTriangleIcon;
 // Paperclip icon removed from imports for production compatibility
 const EyeSlash = EyeSlashIcon;
 const Flag = FlagIcon;
@@ -176,11 +180,11 @@ const useDebateRoom = (roomId) => {
 
   // Fetch initial room data
   const fetchRoom = useCallback(async () => {
-    if (!roomId) return;
+    if (!roomId) {return;}
     setLoading(true);
     let fetchedRoom = null;
     try {
-      const result = await axios.get(`/rooms/${roomId}`);
+      const result = await axios.get(`/api/rooms/${roomId}`);
       fetchedRoom = result.room || result;
     } catch (err) {
       // Fallback to local storage 
@@ -228,7 +232,7 @@ const useDebateRoom = (roomId) => {
   // Socket event listeners
   useEffect(() => {
     const socket = socketRef.current;
-    if (!socket || !roomId) return;
+    if (!socket || !roomId) {return;}
 
     socket.emit('room:join', { roomId });
 
@@ -277,7 +281,7 @@ const useDebateRoom = (roomId) => {
 
     const onTyping = ({ userId, username }) => {
       setTypingUsers((prev) => {
-        if (prev.find((u) => String(u._id) === String(userId))) return prev;
+        if (prev.find((u) => String(u._id) === String(userId))) {return prev;}
         return [...prev, { _id: userId, username }];
       });
     };
@@ -319,12 +323,12 @@ const useDebateRoom = (roomId) => {
   // Expose actions that mutate via socket
   const joinSide = useCallback(
     async (nextSide) => {
-      if (!user) return;
+      if (!user) {return;}
       try {
         const socket = socketRef.current;
-        if (socket) socket.emit('debate:joinSide', { roomId, side: nextSide });
-        await axios.post(`/rooms/${roomId}/join`, { side: nextSide });
-      } catch(e) {}
+        if (socket) {socket.emit('debate:joinSide', { roomId, side: nextSide });}
+        await axios.post(`/api/rooms/${roomId}/join`, { side: nextSide });
+      } catch(e) { console.warn('joinSide failed', e); }
       
       if (room && String(room.creator?._id || room.creator?.id || room.creator) !== String(user._id || user.id)) {
         storageCache.addNotification({
@@ -340,23 +344,23 @@ const useDebateRoom = (roomId) => {
       }
 
       setRoom((prev) => {
-        if (!prev) return prev;
+        if (!prev) {return prev;}
         const updated = { ...prev };
         
-        if (updated.pro?.participants) updated.pro.participants = updated.pro.participants.filter(p => p._id !== user._id && p.username !== user.username);
-        if (updated.against?.participants) updated.against.participants = updated.against.participants.filter(p => p._id !== user._id && p.username !== user.username);
-        if (updated.observers) updated.observers = updated.observers.filter(p => p._id !== user._id && p.username !== user.username);
+        if (updated.pro?.participants) {updated.pro.participants = updated.pro.participants.filter(p => p._id !== user._id && p.username !== user.username);}
+        if (updated.against?.participants) {updated.against.participants = updated.against.participants.filter(p => p._id !== user._id && p.username !== user.username);}
+        if (updated.observers) {updated.observers = updated.observers.filter(p => p._id !== user._id && p.username !== user.username);}
         
         if (nextSide === 'pro') {
-          if (!updated.pro) updated.pro = { participants: [] };
-          if (!updated.pro.participants) updated.pro.participants = [];
+          if (!updated.pro) {updated.pro = { participants: [] };}
+          if (!updated.pro.participants) {updated.pro.participants = [];}
           updated.pro.participants.push(user);
         } else if (nextSide === 'against') {
-          if (!updated.against) updated.against = { participants: [] };
-          if (!updated.against.participants) updated.against.participants = [];
+          if (!updated.against) {updated.against = { participants: [] };}
+          if (!updated.against.participants) {updated.against.participants = [];}
           updated.against.participants.push(user);
         } else {
-          if (!updated.observers) updated.observers = [];
+          if (!updated.observers) {updated.observers = [];}
           updated.observers.push(user);
         }
         
@@ -370,7 +374,7 @@ const useDebateRoom = (roomId) => {
 
   const vote = useCallback(
     (voteSide) => {
-      try { socketRef.current?.emit('debate:vote', { roomId, side: voteSide }); } catch(e) {}
+      try { socketRef.current?.emit('debate:vote', { roomId, side: voteSide }); } catch(e) { console.warn('emit vote failed', e); }
       setVotes(prev => {
         const updated = { ...prev, [voteSide]: (prev[voteSide] || 0) + 1 };
         updateLocalRoom({ votes: updated });
@@ -383,7 +387,7 @@ const useDebateRoom = (roomId) => {
 
   const startDebate = useCallback(
     (durationSec = 3600) => {
-      try { socketRef.current?.emit('debate:start', { roomId, durationSec }); } catch(e) {}
+      try { socketRef.current?.emit('debate:start', { roomId, durationSec }); } catch(e) { console.warn('emit startDebate failed', e); }
       setRoom(prev => {
         const updated = { ...prev, status: 'active', debateTimer: { startedAt: new Date().toISOString(), duration: durationSec } };
         updateLocalRoom(updated);
@@ -397,7 +401,7 @@ const useDebateRoom = (roomId) => {
 
   const adjustScore = useCallback(
     (team, delta) => {
-      try { socketRef.current?.emit('debate:score', { roomId, side: team, delta }); } catch(e) {}
+      try { socketRef.current?.emit('debate:score', { roomId, side: team, delta }); } catch(e) { console.warn('emit adjustScore failed', e); }
       setScore(prev => {
         const updated = { ...prev, [team]: (prev[team] || 0) + delta };
         updateLocalRoom({ score: updated });
@@ -432,23 +436,23 @@ const useDebateRoom = (roomId) => {
       });
       try {
         const socket = socketRef.current;
-        if (socket) socket.emit('room:chat', {
+        if (socket) {socket.emit('room:chat', {
           roomId,
           text,
           clientId: `c_${Date.now()}`,
-        });
-      } catch(e) {}
+        });}
+      } catch(e) { console.warn('sendChatMessage emit failed', e); }
     },
     [roomId, user, updateLocalRoom]
   );
 
   const reactToChatMessage = useCallback((messageId, reactionType) => {
     const myId = userRef.current?._id || userRef.current?.id;
-    if (!myId) return;
+    if (!myId) {return;}
 
     setChatMessages(prev => {
         const newMessages = prev.map(msg => {
-            if (msg._id !== messageId) return msg;
+            if (msg._id !== messageId) {return msg;}
 
             const updatedMsg = { ...msg };
             
@@ -461,7 +465,7 @@ const useDebateRoom = (roomId) => {
             
             let oldReaction = null;
             Object.keys(arrayKeyMap).forEach(key => {
-                if (updatedMsg[arrayKeyMap[key]]?.includes(myId)) oldReaction = key;
+                if (updatedMsg[arrayKeyMap[key]]?.includes(myId)) {oldReaction = key;}
             });
 
             // Remove user from all reaction lists (exclusive reactions)
@@ -494,7 +498,7 @@ const useDebateRoom = (roomId) => {
         socketRef.current?.emit(isTyping ? 'debate:typing' : 'debate:stopTyping', {
           roomId,
         });
-      } catch(e) {}
+      } catch(e) { console.warn('emitTyping failed', e); }
     },
     [roomId]
   );
@@ -582,8 +586,8 @@ const ChatMessageReactions = ({ message, onReact }) => {
   const myId = user?._id || user?.id;
 
   const [reaction, setReaction] = useState(() => {
-    if (message.likes?.includes(myId)) return 'like';
-    if (message.dislikes?.includes(myId)) return 'dislike';
+    if (message.likes?.includes(myId)) {return 'like';}
+    if (message.dislikes?.includes(myId)) {return 'dislike';}
     return null;
   });
 
@@ -732,7 +736,7 @@ ChatMessage.displayName = 'ChatMessage';
 
 // Typing indicator
 const TypingIndicator = React.memo(({ typingUsers, anonymityMode }) => {
-  if (!typingUsers.length) return null;
+  if (!typingUsers.length) {return null;}
   
   let names = typingUsers.map((u) => u.username).join(', ');
   if (anonymityMode === 'anonymous') {
@@ -763,8 +767,8 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode }) => {
   const typingTimeout = useRef(null);
 
   useEffect(() => {
-    if (anonymityMode === 'public') setPostAnon(false);
-    if (anonymityMode === 'anonymous') setPostAnon(true);
+    if (anonymityMode === 'public') {setPostAnon(false);}
+    if (anonymityMode === 'anonymous') {setPostAnon(true);}
   }, [anonymityMode]);
 
   const handleChange = (e) => {
@@ -778,10 +782,10 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode }) => {
 
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) {return;}
     onSend(trimmed, postAnon);
     setText('');
-    if (onTyping) onTyping(false);
+    if (onTyping) {onTyping(false);}
   };
 
   return (
@@ -1053,13 +1057,14 @@ export default function Room() {
     emitTyping,
     reactToChatMessage,
     refetch,
+    chatContainerRef,
   } = useDebateRoom(roomId);
 
   const [mySide, setMySide] = useState('observe'); // 'pro', 'against', 'observe'
   const [joining, setJoining] = useState(false);
 
   const isHost = useMemo(() => {
-    if (!user || !room) return false;
+    if (!user || !room) {return false;}
     return (
       String(room.creator?._id || room.creator?.id || room.creator) === String(user._id || user.id) ||
       user.role === 'admin'
@@ -1080,7 +1085,7 @@ export default function Room() {
   const { verdictData, castEvaluationVote, generateVerdict } = useDebateVerdict(roomId, myId, myCredScore, room, summary);
 
   const handleJoin = async (nextSide) => {
-    if (joining) return;
+    if (joining) {return;}
     setJoining(true);
     try {
       await joinSide(nextSide);

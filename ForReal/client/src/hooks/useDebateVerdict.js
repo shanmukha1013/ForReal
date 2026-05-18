@@ -15,15 +15,15 @@ export const useDebateVerdict = (roomId, myId, myCredScore, room, summary) => {
 
   // Load persisted verdict state
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId) {return;}
     const stored = localStorage.getItem(`forreal_verdict_${roomId}`);
     if (stored) {
-      try { setVerdictData(JSON.parse(stored)); } catch (e) {}
+      try { setVerdictData(JSON.parse(stored)); } catch (e) { console.warn('useDebateVerdict: failed to parse stored verdict', e); }
     }
   }, [roomId]);
 
   const castEvaluationVote = useCallback((category, side) => {
-    if (!myId || verdictData.status === 'resolved') return;
+    if (!myId || verdictData.status === 'resolved') {return;}
 
     setVerdictData(prev => {
       const newVotes = { ...prev.votes };
@@ -43,7 +43,7 @@ export const useDebateVerdict = (roomId, myId, myCredScore, room, summary) => {
   }, [roomId, myId, myCredScore, verdictData.status]);
 
   const generateVerdict = useCallback(() => {
-    if (verdictData.status === 'resolved') return;
+    if (verdictData.status === 'resolved') {return;}
 
     let proPoints = 0;
     let againstPoints = 0;
@@ -56,8 +56,8 @@ export const useDebateVerdict = (roomId, myId, myCredScore, room, summary) => {
 
     // Factor in AI Consensus
     if (summary && summary.consensusLevel === 'High') {
-       if (proPoints > againstPoints) proPoints += 10;
-       else if (againstPoints > proPoints) againstPoints += 10;
+       if (proPoints > againstPoints) {proPoints += 10;}
+       else if (againstPoints > proPoints) {againstPoints += 10;}
     }
 
     let outcomeTitle = "No Clear Winner";

@@ -32,6 +32,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api/api";
+import axios from "../api/axios";
 import { getSocket } from "../realtime/socket";
 
 // ─────────────────────────────────────────────────────────────────
@@ -228,7 +229,7 @@ const mainContentVariants = {
  */
 function useSocketPresence(user, setBadges) {
   useEffect(() => {
-    if (!user) return;
+    if (!user) {return;}
     const socket  = getSocket();
     const userId  = user._id || user.id;
 
@@ -236,7 +237,7 @@ function useSocketPresence(user, setBadges) {
 
     const handleBadgeUpdate = ({ key, count }) => {
       setBadges((prev) => {
-        if (prev[key] === count) return prev;
+        if (prev[key] === count) {return prev;}
         return { ...prev, [key]: count };
       });
     };
@@ -285,12 +286,13 @@ function useSidebarData() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [tRes, sRes] = await Promise.all([
-        api.get("/explore/trending"),
-        api.get("/explore/suggestions"),
+      // Fetch trending rooms and suggested users from available endpoints
+      const [roomsRes, usersRes] = await Promise.all([
+        axios.get("/rooms").catch(() => ({ data: { rooms: [] } })),
+        axios.get("/users/search", { params: { q: '', limit: 5 } }).catch(() => ({ data: { users: [] } })),
       ]);
-      setTrending(tRes.data.rooms    || []);
-      setSuggestions(sRes.data.users || []);
+      setTrending((roomsRes.data?.rooms || []).slice(0, 5));
+      setSuggestions((usersRes.data?.users || []).slice(0, 5));
       setLastFetched(Date.now());
     } catch {
       // sidebar data is non-critical; silently fail
@@ -321,7 +323,7 @@ function useScrollDirection(threshold = 8) {
     const onScroll = () => {
       const y     = window.scrollY;
       const delta = y - lastY.current;
-      if (Math.abs(delta) < threshold) return;
+      if (Math.abs(delta) < threshold) {return;}
       setDirection(delta > 0 ? "down" : "up");
       lastY.current = y;
     };
@@ -451,7 +453,7 @@ const ForRealLogo = memo(function ForRealLogo() {
 
 // ── Notification Badge ─────────────────────────────────────────────
 const NavBadge = memo(function NavBadge({ count }) {
-  if (!count || count < 1) return null;
+  if (!count || count < 1) {return null;}
   const display = count > 99 ? "99+" : String(count);
 
   return (

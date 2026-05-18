@@ -6,15 +6,15 @@ export const useDebateSummary = (roomId, chatMessages, timelineEvents, energy) =
 
   // Load persisted summary
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId) {return;}
     const local = localStorage.getItem(`forreal_summary_${roomId}`);
     if (local) {
-      try { setSummary(JSON.parse(local)); } catch (e) {}
+      try { setSummary(JSON.parse(local)); } catch (e) { console.warn('useDebateSummary: failed to parse stored summary', e); }
     }
   }, [roomId]);
 
   const generateAnalysis = useCallback(async () => {
-    if (!chatMessages || chatMessages.length === 0) return;
+    if (!chatMessages || chatMessages.length === 0) {return;}
     setIsAnalyzing(true);
 
     // Simulate Semantic AI / LLM Processing delay
@@ -53,8 +53,8 @@ export const useDebateSummary = (roomId, chatMessages, timelineEvents, energy) =
        totalAgrees += (msg.agrees?.length || 0) + (msg.likes?.length || 0) + (msg.facts?.length || 0);
        totalDisagrees += (msg.disagrees?.length || 0) + (msg.dislikes?.length || 0) + (msg.caps?.length || 0);
     });
-    if (totalAgrees > totalDisagrees * 2 && totalAgrees > 3) consensusLevel = 'High';
-    else if (totalDisagrees > totalAgrees * 1.5 && totalDisagrees > 3) consensusLevel = 'Low';
+    if (totalAgrees > totalDisagrees * 2 && totalAgrees > 3) {consensusLevel = 'High';}
+    else if (totalDisagrees > totalAgrees * 1.5 && totalDisagrees > 3) {consensusLevel = 'Low';}
 
     // 5. Intelligent Overview Generation
     const overview = `The room is currently maintaining a ${energy?.level || 'calm'} intensity. Thus far, ${timelineEvents?.length || 0} major timeline milestones have occurred. The discussion is heavily centered around claims relating to "${strongestArg.substring(0, 45)}...".`;

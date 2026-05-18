@@ -103,7 +103,7 @@ function useSearch() {
       setResults({ users: [], posts: [], rooms: [] });
       return;
     }
-    if (abortRef.current) abortRef.current.abort();
+    if (abortRef.current) {abortRef.current.abort();}
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -130,8 +130,8 @@ function useSearch() {
       ];
       try {
         const storedUser = storageCache.getUser();
-        if (storedUser && !localUsers.find(u => u._id === storedUser._id)) localUsers.push(storedUser);
-      } catch(e) {}
+        if (storedUser && !localUsers.find(u => u._id === storedUser._id)) {localUsers.push(storedUser);}
+      } catch(e) { console.warn('useSearch: failed to read stored user', e); }
 
       const matchedPosts = localPosts.filter(p => p.content?.toLowerCase().includes(qLower) || p.tags?.some(t => t.toLowerCase().includes(qLower)));
       const matchedRooms = localRooms.filter(r => r.topic?.toLowerCase().includes(qLower) || r.description?.toLowerCase().includes(qLower));
@@ -219,7 +219,7 @@ function useTrendingData() {
           ]);
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     };
     fetchAll();
@@ -308,9 +308,9 @@ const CreatorCard = React.memo(({ creator }) => {
     e.preventDefault();
     const prev = following;
     setFollowing(!prev);
-    if (!prev) storageCache.addFollow(creator._id || creator.username);
-    else storageCache.removeFollow(creator._id || creator.username);
-    if (!prev) window.dispatchEvent(new Event('local_notify'));
+    if (!prev) {storageCache.addFollow(creator._id || creator.username);}
+    else {storageCache.removeFollow(creator._id || creator.username);}
+    if (!prev) {window.dispatchEvent(new Event('local_notify'));}
   };
 
   return (

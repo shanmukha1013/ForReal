@@ -323,7 +323,7 @@ function useScrollDirection(threshold = 10) {
 
   useEffect(() => {
     const onScroll = () => {
-      if (ticking.current) return;
+      if (ticking.current) {return;}
       ticking.current = true;
       requestAnimationFrame(() => {
         const y     = window.scrollY;
@@ -350,9 +350,9 @@ function useScrollDirection(threshold = 10) {
  */
 function useOutsideClick(ref, callback, enabled = true) {
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {return;}
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) callback(e);
+      if (ref.current && !ref.current.contains(e.target)) {callback(e);}
     };
     document.addEventListener("mousedown",  handler);
     document.addEventListener("touchstart", handler);
@@ -380,7 +380,7 @@ function useFocusTrap(containerRef, active) {
     previousFocus.current = document.activeElement;
 
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     const FOCUSABLE = [
       "a[href]",
@@ -398,9 +398,9 @@ function useFocusTrap(containerRef, active) {
     focusable[0]?.focus();
 
     const onKeyDown = (e) => {
-      if (e.key !== "Tab") return;
+      if (e.key !== "Tab") {return;}
       const nodes = getFocusable();
-      if (!nodes.length) return;
+      if (!nodes.length) {return;}
 
       const first = nodes[0];
       const last  = nodes[nodes.length - 1];
@@ -432,7 +432,7 @@ function useNavBadges(user) {
   const [badges, setBadges] = useState({ messages: 0, notifications: 0, rooms: 0 });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {return;}
     const socket = getSocket();
 
     const set = (key) => (data) =>
@@ -453,7 +453,7 @@ function useNavBadges(user) {
       const notifs = JSON.parse(localStorage.getItem('forreal_notifications') || '[]');
       const unreadNotifs = notifs.filter(n => !n.read).length;
       setBadges(prev => {
-        if (prev.notifications === unreadNotifs) return prev;
+        if (prev.notifications === unreadNotifs) {return prev;}
         return { ...prev, notifications: unreadNotifs };
       });
     };
@@ -535,7 +535,7 @@ const NavLogo = memo(function NavLogo({ compact = false }) {
 
 // ── NavBadge ───────────────────────────────────────────────────────
 const NavBadge = memo(function NavBadge({ count }) {
-  if (!count || count < 1) return null;
+  if (!count || count < 1) {return null;}
   const label = count > 99 ? "99+" : String(count);
 
   return (
@@ -673,8 +673,8 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
 
   // Close on Escape
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    if (!open) {return;}
+    const onKey = (e) => { if (e.key === "Escape") {setOpen(false);} };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
@@ -701,9 +701,9 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
       >
         {/* Avatar + online dot */}
         <div className="relative flex-shrink-0">
-          <img
-            src={displayUser?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayUser?.username || "user"}`}
-            alt={displayUser?.displayName || "Your avatar"}
+            <img
+              src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username || "user"}`}
+              alt={user?.displayName || "Your avatar"}
             className="h-7 w-7 rounded-full object-cover"
             style={{ border: `1.5px solid rgba(34,197,94,0.2)` }}
             loading="lazy"
@@ -721,13 +721,13 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
             className="text-[11.5px] font-bold truncate leading-tight"
             style={{ color: T.text }}
           >
-            {displayUser?.displayName || "User"}
+            {user?.displayName || "User"}
           </div>
           <div
             className="text-[10px] truncate leading-tight mt-[1px]"
             style={{ fontFamily: "'Space Mono', monospace", color: T.textMuted }}
           >
-            @{displayUser?.username || "setup"}
+            @{user?.username || "setup"}
           </div>
         </div>
 
@@ -770,26 +770,25 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
             >
               <div className="flex items-center gap-2.5">
                 <img
-              <img
-                  src={displayUser?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayUser?.username}`}
-                  alt=""
-                  className="h-9 w-9 rounded-full object-cover flex-shrink-0"
-                  style={{ border: `1.5px solid rgba(34,197,94,0.2)` }}
-              />
+                      src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username}`}
+                      alt=""
+                      className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                      style={{ border: `1.5px solid rgba(34,197,94,0.2)` }}
+                  />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[12px] font-bold text-white truncate max-w-[120px]">
-                      {displayUser?.displayName || "User"}
-                    </span>
-                    {displayUser?.verified && (
-                      <Icons.Verified className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.green }} />
-                    )}
+                          {user?.displayName || "User"}
+                        </span>
+                        {user?.verified && (
+                          <Icons.Verified className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.green }} />
+                        )}
                   </div>
                   <div
                     className="text-[10px] truncate mt-0.5"
                     style={{ fontFamily: "'Space Mono', monospace", color: T.textMuted }}
                   >
-                    @{displayUser?.username || "setup"}
+                        @{user?.username || "setup"}
                   </div>
                 </div>
               </div>
@@ -920,8 +919,8 @@ const MobileDrawer = memo(function MobileDrawer({
 
   // Escape key
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    if (!open) {return;}
+    const onKey = (e) => { if (e.key === "Escape") {onClose();} };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
@@ -1011,12 +1010,12 @@ const MobileDrawer = memo(function MobileDrawer({
                   to={`/profile/${meId}`}
                   onClick={onClose}
                   className="flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 rounded-xl"
-                  aria-label={`View ${displayUser?.displayName}'s profile`}
+                  aria-label={`View ${user?.displayName}'s profile`}
                 >
                   <div className="relative flex-shrink-0">
                     <img
-                      src={displayUser?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayUser?.username}`}
-                      alt={displayUser?.displayName || "Your avatar"}
+                      src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username}`}
+                      alt={user?.displayName || "Your avatar"}
                       className="h-11 w-11 rounded-full object-cover"
                       style={{ border: `2px solid rgba(34,197,94,0.2)` }}
                       loading="lazy"

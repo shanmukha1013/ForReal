@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useCallback } from 'react';
+import { useState, useEffect, forwardRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import './Intro.css';
 
@@ -25,7 +25,7 @@ const GlitchText = forwardRef(({
 
   // Memoize the trigger function so it doesn't cause unnecessary re-renders in effects
   const triggerGlitch = useCallback(() => {
-    if (isGlitching) return;
+    if (isGlitching) {return;}
     setIsGlitching(true);
     
     // Stop the glitch after the configured duration
@@ -57,8 +57,8 @@ const GlitchText = forwardRef(({
 
   // Handle Hover triggers
   const handleMouseEnter = (e) => {
-    if (trigger === 'hover') triggerGlitch();
-    if (props.onMouseEnter) props.onMouseEnter(e);
+    if (trigger === 'hover') {triggerGlitch();}
+    if (props.onMouseEnter) {props.onMouseEnter(e);}
   };
 
   // Convert the chosen DOM element into a Framer Motion component dynamically

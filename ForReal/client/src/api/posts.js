@@ -34,15 +34,15 @@ export const fetchPost = async (postId) => {
  * @returns {Promise<Object>}
  */
 export const createPost = async (postData) => {
-  const { text, media, metadata, sourceUrl } = postData;
+  const { content, text, media, metadata, sourceUrl } = postData;
 
   const response = await api.post('/posts', {
-    text,
+    content: content || text, // Backend strictly expects 'content' property
     media,
     metadata: { ...metadata, sourceUrl },
   });
 
-  return response.post;
+  return response.post || response;
 };
 
 
@@ -80,9 +80,8 @@ export const fetchUserPosts = async (userId, options = {}) => {
     const response = await api.get(`/posts?author=${userId}&page=${page}&limit=${limit}`);
     return response;
   } catch (error) {
-    // Fallback to localStorage
-    const localPosts = storageCache.getPosts().filter(p => String(p.author?._id) === String(userId));
-    return { posts: localPosts };
+    console.warn('[postsApi] fetchUserPosts failed:', error);
+    return { posts: [] };
   }
 };
 

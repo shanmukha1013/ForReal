@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 import http from 'http';
 import jwt from 'jsonwebtoken';
@@ -19,6 +20,17 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const app = express();
+
+// Diagnostic headers to identify which backend instance handled a request
+// (Used only for smoke-test tracing; does not alter route behavior.)
+app.use((req, res, next) => {
+  res.set('X-Mock-API', 'false');
+  res.set('X-Server-Name', process.env.SERVER_NAME || 'real-backend-esm');
+  res.set('X-Route-Version', process.env.ROUTE_VERSION || 'v1');
+  // Ensure headers are readable by browser clients
+  res.set('Access-Control-Expose-Headers', 'X-Mock-API,X-Server-Name,X-Route-Version');
+  next();
+});
 // Respect proxies (when behind a load balancer / platform proxy like Render)
 app.set('trust proxy', 1);
 
@@ -83,11 +95,39 @@ app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/talks', postRoutes); // Alias for backward compatibility
 app.use('/api/rooms', roomRoutes);
+app.use('/api/users', userRoutes);
 app.use('/chat', chatRoutes);
+app.use('/api/chat', chatRoutes); // Standardized API prefix mapping
 
 // API health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Fallback Explore Route to prevent 404s on the frontend search bar
+app.get('/api/explore/search', async (req, res) => {
+  try {
+    const q = String(req.query.q || '');
+    if (!q) return res.json({ users: [], posts: [], rooms: [] });
+    
+    let users = [], posts = [], rooms = [];
+    try {
+      const User = (await import('./models/User.js')).default;
+      users = await User.find({ $or: [{ username: new RegExp(q, 'i') }, { displayName: new RegExp(q, 'i') }] }).limit(10).select('-password').lean();
+    } catch(e) {}
+    try {
+      const Post = (await import('./models/Post.js')).default;
+      posts = await Post.find({ content: new RegExp(q, 'i') }).limit(10).populate('author', 'username displayName avatar').lean();
+    } catch(e) {}
+    try {
+      const Room = (await import('./models/Room.js')).default;
+      rooms = await Room.find({ topic: new RegExp(q, 'i') }).limit(10).lean();
+    } catch(e) {}
+    
+    res.json({ users, posts, rooms });
+  } catch (err) {
+    res.json({ users: [], posts: [], rooms: [] });
+  }
 });
 
 // ============================================================================
@@ -404,10 +444,14 @@ io.on('connection', (socket) => {
           createdAt: new Date().toISOString(),
         };
 
+        let capturedBody = null;
         const fakeReq = { user: { id: user.id }, body: payload };
-        const fakeRes = { status: () => fakeRes, json: (body) => body };
-        const body = await createOrSendMessage(fakeReq, fakeRes, () => {});
-        const message = body?.message;
+        const fakeRes = { 
+          status: () => fakeRes, 
+          json: (b) => { capturedBody = b; return fakeRes; } 
+        };
+        await createOrSendMessage(fakeReq, fakeRes, () => {});
+        const message = capturedBody?.message;
         if (!message) throw new Error('message not created');
 
         io.to(`dm:conv:${message.conversationId}`).emit('dm:new', message);
@@ -458,9 +502,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', (reason) => {
+  socket.on('disconnecting', (reason) => {
     // Clean in-memory participant state for any rooms the socket is in.
-    // socket.rooms is a Set including socket.id itself.
+    // Must be done in 'disconnecting' because socket.rooms is empty in 'disconnect'
     for (const joined of socket.rooms) {
       if (joined.startsWith('room:')) {
         const roomId = joined.slice('room:'.length);
@@ -474,8 +518,10 @@ io.on('connection', (socket) => {
         }
       }
     }
+  });
 
-    console.info('[Socket] disconnected', { userId: user.id, reason });
+  socket.on('disconnect', (reason) => {
+    console.info('[Socket] disconnected', { userId: user?.id, reason });
   });
 });
 

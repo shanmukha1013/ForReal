@@ -1311,7 +1311,7 @@ export default function Room() {
                     <ChatMessage
                       key={msg._id || idx}
                       message={msg}
-                    isMine={String(msg.author?._id || msg.author?.id || msg.sender?._id || msg.author?.username || msg.author) === String(user?._id || user?.id || user?.username)}
+                    isMine={String(msg.author?._id || msg.author?.id || msg.sender?._id || msg.author?.username) === String(user?._id || user?.id || user?.username)}
                       onReact={reactToChatMessage}
                       anonymityMode={room?.anonymityMode}
                     />

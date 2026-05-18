@@ -508,7 +508,7 @@ export default function Explore() {
                             <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'active' ? 'bg-neon' : 'bg-gray-500'}`} />
                             {room.status}
                           </span>
-                          <span>{room.participants || 0} debaters</span>
+                        <span>{Array.isArray(room.participants) ? room.participants.length : (room.participantCount || 0)} debaters</span>
                         </div>
                       </Link>
                     )}

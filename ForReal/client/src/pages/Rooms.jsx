@@ -238,14 +238,17 @@ const RoomCard = React.memo(({ room, index }) => {
     participants,
     createdAt,
     creator,
+    createdBy,
     anonymityMode, // 'public', 'hybrid', 'anonymous'
     intensity, // e.g. 'hot', 'calm', 'moderate'
   } = room;
 
   const proCount = pro?.participants?.length || 0;
   const againstCount = against?.participants?.length || 0;
-  const totalSpectators = observers?.length || participants || 0;
+  const participantsCount = Array.isArray(participants) ? participants.length : (participants || 0);
+  const totalSpectators = observers?.length || room.spectators || participantsCount || 0;
   const isLive = status === 'active';
+  const roomCreator = creator || createdBy;
 
   const energy = useDebateEnergy(room);
   const IntensityIcon = energy.icon;
@@ -329,9 +332,9 @@ const RoomCard = React.memo(({ room, index }) => {
                 <IntensityIcon className={`w-3.5 h-3.5 ${energy.level === 'explosive' ? 'animate-pulse' : ''}`} />
                 <span className="font-semibold uppercase tracking-wider">{energy.label}</span>
               </div>
-              {creator && (
-                <div className="text-[10px] text-gray-500">
-                  by <span className="text-gray-400">@{creator.username}</span>
+          {roomCreator && (
+            <div className="text-[10px] text-gray-500" title={`Created by ${roomCreator.displayName || roomCreator.username}`}>
+              by <span className="text-gray-400">@{roomCreator.username || '...'}</span>
                 </div>
               )}
             </div>

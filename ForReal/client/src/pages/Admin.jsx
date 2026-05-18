@@ -712,7 +712,7 @@ export default function Admin() {
                         <div className="flex justify-between">
                           <div>
                             <h3 className="text-white font-medium">{room.topic}</h3>
-                            <p className="text-xs text-gray-400 mt-1">{room.status} · {room.participants} debaters</p>
+                          <p className="text-xs text-gray-400 mt-1">{room.status} · {Array.isArray(room.participants) ? room.participants.length : (room.participantCount || 0)} debaters</p>
                           </div>
                           <button className="text-xs text-neon hover:underline">Manage</button>
                         </div>

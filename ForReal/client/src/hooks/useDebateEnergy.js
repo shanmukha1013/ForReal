@@ -29,7 +29,7 @@ export const useDebateEnergy = (room, liveChatMessages = null) => {
     let score = (proCount + againstCount) * 2 + obsCount;
 
     // 2. Chat & Reactions Momentum
-    const chats = liveChatMessages || room.chatMessages || [];
+    const chats = liveChatMessages || room.messages || room.chatMessages || [];
     chats.forEach(msg => {
       const msgTime = new Date(msg.createdAt).getTime();
       const isRecent = msgTime > fiveMinsAgo;

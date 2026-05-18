@@ -457,9 +457,77 @@ io.on('connection', (socket) => {
       };
 
       io.to(`room:${roomId}`).emit('reaction:new', safeJson(payload));
+      try {
+        const Room = (await import('./models/Room.js')).default;
+        const room = await Room.findById(roomId);
+        if (room) {
+          room.pro = room.pro || { position: 'Pro', participants: [], score: 0 };
+          room.against = room.against || { position: 'Against', participants: [], score: 0 };
+          
+          if (reaction === 'pro') {
+            if (!room.pro.participants.includes(user.id)) room.pro.participants.push(user.id);
+            room.against.participants = room.against.participants.filter(id => String(id) !== String(user.id));
+          } else if (reaction === 'against') {
+            if (!room.against.participants.includes(user.id)) room.against.participants.push(user.id);
+            room.pro.participants = room.pro.participants.filter(id => String(id) !== String(user.id));
+          }
+          room.markModified('pro');
+          room.markModified('against');
+          await room.save();
+        }
+      } catch (e) {
+        console.warn('[Socket] Failed to persist room reaction', e);
+      }
       ack && ack({ ok: true });
     } catch (err) {
       ack && ack({ ok: false, error: err.message || 'Reaction failed' });
+    }
+  });
+
+  socket.on('debate:start', async ({ roomId, durationSec } = {}, ack) => {
+    try {
+      if (!roomId) throw new Error('roomId required');
+      const Room = (await import('./models/Room.js')).default;
+      const room = await Room.findById(roomId);
+      if (room) {
+        room.status = 'active';
+        room.debateTimer = { startedAt: new Date().toISOString(), duration: durationSec || 3600 };
+        await room.save();
+        io.to(`room:${roomId}`).emit('debate:started', { roomId, durationSec });
+      }
+      ack && ack({ ok: true });
+    } catch (err) {
+      ack && ack({ ok: false, error: err.message });
+    }
+  });
+
+  socket.on('debate:score', async ({ roomId, side, delta } = {}, ack) => {
+    try {
+      if (!roomId || !side) return;
+      const Room = (await import('./models/Room.js')).default;
+      const room = await Room.findById(roomId);
+      if (room) {
+        room[side] = room[side] || { position: side, participants: [], score: 0 };
+        room[side].score = (room[side].score || 0) + delta;
+        room.markModified(side);
+        await room.save();
+        io.to(`room:${roomId}`).emit('debate:score', { pro: room.pro?.score || 0, against: room.against?.score || 0 });
+      }
+    } catch (e) {}
+  });
+
+  socket.on('typing:start', ({ roomId } = {}) => {
+    if (roomId) {
+      socket.to(`room:${roomId}`).emit('typing:start', { 
+        userId: user.id, 
+        username: user.username || user.displayName || 'User' 
+      });
+    }
+  });
+
+  socket.on('typing:stop', ({ roomId } = {}) => {
+    if (roomId) {
+      socket.to(`room:${roomId}`).emit('typing:stop', { userId: user.id });
     }
   });
 

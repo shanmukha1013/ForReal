@@ -52,11 +52,11 @@ const RoomSchema = new Schema(
     },
     pro: {
       type: Object,
-      default: { position: 'Pro', participants: [] }
+      default: { position: 'Pro', participants: [], score: 0 }
     },
     against: {
       type: Object,
-      default: { position: 'Against', participants: [] }
+      default: { position: 'Against', participants: [], score: 0 }
     },
     maxParticipants: {
       type: Number,
@@ -71,6 +71,10 @@ const RoomSchema = new Schema(
     },
     endTime: {
       type: Date,
+    },
+    debateTimer: {
+      type: Object,
+      default: { startedAt: null, duration: 3600 }
     },
   },
   {

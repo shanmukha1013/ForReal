@@ -1,6 +1,6 @@
 import Room from '../models/Room.js';
 import User from '../models/User.js';
-import { emitRoomsNew } from '../socket.js';
+import { emitRoomsNew, getIO } from '../socket.js';
 
 // ============================================================================
 // Room Controller - Production-ready
@@ -116,6 +116,7 @@ export const createRoom = async (req, res, next) => {
 export const joinRoom = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { side } = req.body || {};
     const userId = req.user.id;
 
     const room = await Room.findOne({ _id: id, isActive: true });
@@ -124,20 +125,42 @@ export const joinRoom = async (req, res, next) => {
       return res.status(404).json({ message: 'Room not found' });
     }
 
-    if (room.participants.includes(userId)) {
-      return res.json({ message: 'Already joined', room });
+    if (side === 'pro') {
+      room.pro = room.pro || { position: 'Pro', participants: [] };
+      if (!room.pro.participants.includes(userId)) room.pro.participants.push(userId);
+      if (room.against) room.against.participants = room.against.participants.filter(pid => String(pid) !== String(userId));
+    } else if (side === 'against') {
+      room.against = room.against || { position: 'Against', participants: [] };
+      if (!room.against.participants.includes(userId)) room.against.participants.push(userId);
+      if (room.pro) room.pro.participants = room.pro.participants.filter(pid => String(pid) !== String(userId));
     }
 
-    if (room.participants.length >= room.maxParticipants) {
-      return res.status(400).json({ message: 'Room is full' });
+    if (!room.participants.includes(userId)) {
+      if (room.participants.length >= room.maxParticipants) {
+        return res.status(400).json({ message: 'Room is full' });
+      }
+      room.participants.push(userId);
     }
 
-    room.participants.push(userId);
     room.participantCount = room.participants.length;
     await room.save();
 
     const outJoined = room.toObject({ getters: true });
     outJoined.topic = outJoined.title;
+
+    try {
+      const io = getIO();
+      if (io) {
+        io.to(`room:${id}`).emit('debate:presence', {
+          proCount: room.pro?.participants?.length || 0,
+          againstCount: room.against?.participants?.length || 0,
+          observerCount: room.participants?.length || 0
+        });
+      }
+    } catch (e) {
+      console.warn('[roomController] Failed to emit presence', e);
+    }
+
     res.json({ message: 'Joined room successfully', room: outJoined });
   } catch (err) {
     console.error('[roomController.joinRoom] error:', err);

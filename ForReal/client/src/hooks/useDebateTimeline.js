@@ -46,9 +46,10 @@ export const useDebateTimeline = (roomId, room, chatMessages, energy) => {
     if (chatMessages && chatMessages.length > 0) {
       chatMessages.forEach(msg => {
         const reactionCount = (msg.likes?.length || 0) + (msg.agrees?.length || 0) + (msg.validPoints?.length || 0);
-        if (reactionCount >= 2) {addEvent('key_argument', 'Major Argument', `"${msg.text.substring(0, 60)}${msg.text.length > 60 ? '...' : ''}" resonated strongly with the room.`, `key_${msg._id}`, msg.sender);}
-        if ((msg.facts?.length || 0) >= 1) {addEvent('fact_check', 'Community Verified Fact', 'A statement was actively backed by community facts.', `fact_${msg._id}`, msg.sender);}
-        if ((msg.caps?.length || 0) >= 1 || (msg.misleadings?.length || 0) >= 1) {addEvent('dispute', 'Claim Disputed', 'The community heavily disputed a recent claim.', `dispute_${msg._id}`, msg.sender);}
+        const actor = msg.author || msg.sender;
+        if (reactionCount >= 2) {addEvent('key_argument', 'Major Argument', `"${msg.text.substring(0, 60)}${msg.text.length > 60 ? '...' : ''}" resonated strongly with the room.`, `key_${msg._id}`, actor);}
+        if ((msg.facts?.length || 0) >= 1) {addEvent('fact_check', 'Community Verified Fact', 'A statement was actively backed by community facts.', `fact_${msg._id}`, actor);}
+        if ((msg.caps?.length || 0) >= 1 || (msg.misleadings?.length || 0) >= 1) {addEvent('dispute', 'Claim Disputed', 'The community heavily disputed a recent claim.', `dispute_${msg._id}`, actor);}
       });
     }
 

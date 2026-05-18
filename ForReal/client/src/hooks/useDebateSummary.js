@@ -23,7 +23,7 @@ export const useDebateSummary = (roomId, chatMessages, timelineEvents, energy) =
     // 1. Find Most Influential Participant
     const participantScores = {};
     chatMessages.forEach(msg => {
-        const author = msg.sender?.username || 'anonymous';
+        const author = msg.author?.username || msg.sender?.username || 'anonymous';
         const impact = (msg.likes?.length || 0) + (msg.agrees?.length || 0) + (msg.validPoints?.length || 0) + (msg.facts?.length || 0);
         participantScores[author] = (participantScores[author] || 0) + impact;
     });

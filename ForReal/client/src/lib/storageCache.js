@@ -241,7 +241,11 @@ class StorageCache {
   }
 
   addRoom(room) {
-    const rooms = [room, ...this.getRooms()];
+    const existing = this.getRooms();
+    if (existing.some(r => r._id === room._id)) {
+      return this.updateRoom(room._id, room);
+    }
+    const rooms = [room, ...existing];
     this.setRooms(rooms);
     return rooms;
   }

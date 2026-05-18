@@ -204,7 +204,7 @@ const useDebateRoom = (roomId) => {
           pro: roomData.pro?.activeSpeaker || null,
           against: roomData.against?.activeSpeaker || null,
         });
-        setChatMessages(roomData.chatMessages || []);
+      setChatMessages(roomData.messages || []);
 
         if (roomData.status === 'active' && roomData.debateTimer?.startedAt) {
           const endsAt = new Date(
@@ -236,10 +236,10 @@ const useDebateRoom = (roomId) => {
 
     socket.emit('room:join', { roomId });
 
-    const onChat = ({ message }) => {
+    const onChat = (message) => {
       setChatMessages((prev) => [...prev, message]);
       // Remove typing indicator for that user
-      setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(message.sender?._id)));
+      setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(message.author?.id || message.sender?._id)));
     };
 
     const onTick = ({ remainingSec }) => {
@@ -279,40 +279,53 @@ const useDebateRoom = (roomId) => {
       );
     };
 
-    const onTyping = ({ userId, username }) => {
+    const onTyping = ({ userId, username } = {}) => {
+      if (!userId) return;
       setTypingUsers((prev) => {
         if (prev.find((u) => String(u._id) === String(userId))) {return prev;}
         return [...prev, { _id: userId, username }];
       });
     };
 
-    const onStopTyping = ({ userId }) => {
+    const onStopTyping = ({ userId } = {}) => {
+      if (!userId) return;
       setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(userId)));
     };
 
-    socket.on('room:chat', onChat);
+    socket.on('message:new', onChat);
     socket.on('debate:tick', onTick);
     socket.on('debate:votes', onVotes);
     socket.on('debate:score', onScore);
     socket.on('debate:speaker', onSpeaker);
     socket.on('debate:started', onStarted);
     socket.on('debate:presence', onPresence);
-    socket.on('debate:typing', onTyping);
-    socket.on('debate:stopTyping', onStopTyping);
+    socket.on('typing:start', onTyping);
+    socket.on('typing:stop', onStopTyping);
 
     return () => {
       socket.emit('room:leave', { roomId });
-      socket.off('room:chat', onChat);
+      socket.off('message:new', onChat);
       socket.off('debate:tick', onTick);
       socket.off('debate:votes', onVotes);
       socket.off('debate:score', onScore);
       socket.off('debate:speaker', onSpeaker);
       socket.off('debate:started', onStarted);
       socket.off('debate:presence', onPresence);
-      socket.off('debate:typing', onTyping);
-      socket.off('debate:stopTyping', onStopTyping);
+      socket.off('typing:start', onTyping);
+      socket.off('typing:stop', onStopTyping);
     };
   }, [roomId, fetchRoom]);
+
+  // Local visual timer tick
+  useEffect(() => {
+    let interval;
+    if (room?.status === 'active') {
+      interval = setInterval(() => {
+        setTimerSec((prev) => Math.max(0, prev - 1));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [room?.status]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -330,7 +343,7 @@ const useDebateRoom = (roomId) => {
         await axios.post(`/api/rooms/${roomId}/join`, { side: nextSide });
       } catch(e) { console.warn('joinSide failed', e); }
       
-      if (room && String(room.creator?._id || room.creator?.id || room.creator) !== String(user._id || user.id)) {
+      if (room && String(room.createdBy?._id || room.createdBy?.id || room.createdBy) !== String(user._id || user.id)) {
         storageCache.addNotification({
           _id: `notif_join_${Date.now()}`,
           type: 'debate',
@@ -374,7 +387,7 @@ const useDebateRoom = (roomId) => {
 
   const vote = useCallback(
     (voteSide) => {
-      try { socketRef.current?.emit('debate:vote', { roomId, side: voteSide }); } catch(e) { console.warn('emit vote failed', e); }
+      try { socketRef.current?.emit('reaction:send', { roomId, reaction: voteSide }); } catch(e) { console.warn('emit vote failed', e); }
       setVotes(prev => {
         const updated = { ...prev, [voteSide]: (prev[voteSide] || 0) + 1 };
         updateLocalRoom({ votes: updated });
@@ -416,7 +429,7 @@ const useDebateRoom = (roomId) => {
       const newMsg = {
         _id: `msg_${Date.now()}`,
         text,
-        sender: user || { username: 'Guest' },
+        author: user || { username: 'Guest' },
         isAnonymous: isAnon,
         createdAt: new Date().toISOString(),
         likes: [],
@@ -431,15 +444,14 @@ const useDebateRoom = (roomId) => {
       
       setChatMessages(prev => {
         const updated = [...prev, newMsg];
-        updateLocalRoom({ chatMessages: updated });
+        updateLocalRoom({ messages: updated });
         return updated;
       });
       try {
         const socket = socketRef.current;
-        if (socket) {socket.emit('room:chat', {
+        if (socket) {socket.emit('message:send', {
           roomId,
           text,
-          clientId: `c_${Date.now()}`,
         });}
       } catch(e) { console.warn('sendChatMessage emit failed', e); }
     },
@@ -495,7 +507,7 @@ const useDebateRoom = (roomId) => {
   const emitTyping = useCallback(
     (isTyping) => {
       try {
-        socketRef.current?.emit(isTyping ? 'debate:typing' : 'debate:stopTyping', {
+        socketRef.current?.emit(isTyping ? 'typing:start' : 'typing:stop', {
           roomId,
         });
       } catch(e) { console.warn('emitTyping failed', e); }
@@ -687,6 +699,7 @@ SidePanel.displayName = 'SidePanel';
 const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode }) => {
   const activeReactions = REACTION_TYPES.filter(rt => message[arrayKeyMap[rt.id]]?.length > 0);
   const isAnon = message.isAnonymous || anonymityMode === 'anonymous';
+  const author = message.author || message.sender;
 
   return (
   <motion.div
@@ -707,7 +720,7 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode }) => 
         {!isMine && (
           <div className="text-xs mb-1 font-mono flex items-center gap-1" style={{ color: isAnon ? '#a855f7' : 'rgba(34, 197, 94, 0.8)' }}>
             {isAnon ? <EyeSlash className="w-3 h-3" /> : null}
-            @{isAnon ? 'anonymous' : (message.sender?.username || 'user')}
+                @{isAnon ? 'anonymous' : (author?.username || 'user')}
           </div>
         )}
         <div className="text-sm break-words">{message.text}</div>
@@ -1066,7 +1079,7 @@ export default function Room() {
   const isHost = useMemo(() => {
     if (!user || !room) {return false;}
     return (
-      String(room.creator?._id || room.creator?.id || room.creator) === String(user._id || user.id) ||
+      String(room.createdBy?._id || room.createdBy?.id || room.createdBy) === String(user._id || user.id) ||
       user.role === 'admin'
     );
   }, [user, room]);
@@ -1298,7 +1311,7 @@ export default function Room() {
                     <ChatMessage
                       key={msg._id || idx}
                       message={msg}
-                      isMine={String(msg.sender?._id || msg.sender?.id || msg.sender?.username || msg.sender) === String(user?._id || user?.id || user?.username)}
+                    isMine={String(msg.author?._id || msg.author?.id || msg.sender?._id || msg.author?.username || msg.author) === String(user?._id || user?.id || user?.username)}
                       onReact={reactToChatMessage}
                       anonymityMode={room?.anonymityMode}
                     />

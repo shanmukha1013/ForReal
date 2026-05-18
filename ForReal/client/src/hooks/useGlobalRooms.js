@@ -29,17 +29,51 @@ export function useGlobalRooms() {
       const currentRooms = storageCache.getRooms();
       const room = currentRooms.find(r => r._id === msg.roomId);
       if (room) {
+        if (room.messages?.some(m => m.id === msg.id || m._id === msg.id)) return;
         const updatedMessages = [...(room.messages || []), msg];
         storageCache.updateRoom(msg.roomId, { messages: updatedMessages });
       }
     };
 
+    const handleNewRoom = (room) => {
+      if (!room || !room._id) return;
+      storageCache.addRoom(room);
+    };
+
+    const handleReactionNew = (data) => {
+      if (!data || !data.roomId) return;
+      const currentRooms = storageCache.getRooms();
+      const room = currentRooms.find(r => r._id === data.roomId);
+      if (room && !data.messageId) {
+        const updatedRoom = { ...room };
+        updatedRoom.pro = updatedRoom.pro || { position: 'Pro', participants: [] };
+        updatedRoom.against = updatedRoom.against || { position: 'Against', participants: [] };
+        
+        if (data.reaction === 'pro') {
+          if (!updatedRoom.pro.participants.includes(data.actorId)) {
+            updatedRoom.pro.participants.push(data.actorId);
+            updatedRoom.against.participants = updatedRoom.against.participants.filter(id => id !== data.actorId);
+          }
+        } else if (data.reaction === 'against') {
+          if (!updatedRoom.against.participants.includes(data.actorId)) {
+            updatedRoom.against.participants.push(data.actorId);
+            updatedRoom.pro.participants = updatedRoom.pro.participants.filter(id => id !== data.actorId);
+          }
+        }
+        storageCache.updateRoom(data.roomId, updatedRoom);
+      }
+    };
+
     socket.on('room:members:update', handleMembersUpdate);
     socket.on('message:new', handleNewMessage);
+    socket.on('rooms:new', handleNewRoom);
+    socket.on('reaction:new', handleReactionNew);
 
     return () => {
       socket.off('room:members:update', handleMembersUpdate);
       socket.off('message:new', handleNewMessage);
+      socket.off('rooms:new', handleNewRoom);
+      socket.off('reaction:new', handleReactionNew);
     };
   }, []);
 
@@ -77,7 +111,12 @@ export function useGlobalRooms() {
       const response = await api.rooms.getById(roomId);
       const roomData = response?.room || response?.data || response;
       if (roomData) {
-        storageCache.updateRoom(roomId, roomData);
+        const existing = storageCache.getRooms().find(r => r._id === roomId);
+        if (existing) {
+          storageCache.updateRoom(roomId, roomData);
+        } else {
+          storageCache.addRoom(roomData);
+        }
       }
       return roomData;
     } catch (err) {
@@ -145,9 +184,13 @@ export function useGlobalRooms() {
   // Replace optimistic room with real room from server
   const confirmRoom = useCallback((optimisticId, realRoom) => {
     const currentRooms = storageCache.getRooms();
-    const updated = currentRooms.map((r) =>
-      r._id === optimisticId ? realRoom : r
-    );
+    const alreadyExists = currentRooms.some(r => r._id === realRoom._id && r._id !== optimisticId);
+    let updated;
+    if (alreadyExists) {
+      updated = currentRooms.filter(r => r._id !== optimisticId);
+    } else {
+      updated = currentRooms.map((r) => r._id === optimisticId ? realRoom : r);
+    }
     storageCache.setRooms(updated);
     setRooms(updated);
   }, []);

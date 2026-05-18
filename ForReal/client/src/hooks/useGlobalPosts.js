@@ -10,11 +10,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageCache } from '../lib/storageCache';
 import { fetchPosts, createPost as apiCreatePost, reactToPost as apiReactToPost, deletePost as apiDeletePost } from '../api/posts';
 
+let globalPostsFetched = false;
+
 export function useGlobalPosts() {
   const [posts, setPosts] = useState(storageCache.getPosts());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const hasFetched = useRef(false);
 
   // Subscribe to posts changes in storage cache
   useEffect(() => {
@@ -27,20 +28,23 @@ export function useGlobalPosts() {
 
   // Fetch posts from API on mount
   useEffect(() => {
-    if (hasFetched.current) {return;}
+    if (globalPostsFetched) {return;}
 
     const loadPosts = async () => {
       setLoading(true);
       setError(null);
       try {
         const response = await fetchPosts({ page: 1, limit: 20 });
-        storageCache.setPosts(response.posts ?? []);
+        const postsList = Array.isArray(response) ? response : (response?.posts || response?.data || []);
+        if (postsList) {
+          storageCache.setPosts(postsList);
+        }
       } catch (err) {
         console.error('[useGlobalPosts] Failed to fetch posts:', err);
         setError(err?.message ?? 'Failed to load posts');
       } finally {
         setLoading(false);
-        hasFetched.current = true;
+        globalPostsFetched = true;
       }
     };
 
@@ -130,8 +134,9 @@ export function useGlobalPosts() {
     setError(null);
     try {
       const response = await fetchPosts({ page: 1, limit: 20 });
-      if (response.posts?.length) {
-        storageCache.setPosts(response.posts);
+      const postsList = Array.isArray(response) ? response : (response?.posts || response?.data || []);
+      if (postsList) {
+        storageCache.setPosts(postsList);
       }
     } catch (err) {
       setError(err.message);

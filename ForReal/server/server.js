@@ -509,7 +509,7 @@ io.on('connection', (socket) => {
       if (joined.startsWith('room:')) {
         const roomId = joined.slice('room:'.length);
         try {
-          leaveRoomInMemory(roomId, user.id);
+          leaveRoomInMemory(roomId, user?.id);
           const state = roomState.get(roomId);
           const participants = state ? Array.from(state.participants) : [];
           io.to(joined).emit('room:members:update', { roomId, participants });

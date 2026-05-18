@@ -13,7 +13,8 @@ import { storageCache } from '../lib/storageCache.js';
 export const fetchPosts = async (options = {}) => {
   const { page = 1, limit = 10 } = options;
   const response = await api.get('/posts', { params: { page, limit } });
-  return response;
+  const postsList = Array.isArray(response) ? response : (response?.posts || response?.data || []);
+  return { posts: postsList, pagination: response?.pagination || {} };
 };
 
 
@@ -34,15 +35,15 @@ export const fetchPost = async (postId) => {
  * @returns {Promise<Object>}
  */
 export const createPost = async (postData) => {
-  const { content, text, media, metadata, sourceUrl } = postData;
+  const { content, text, body, media, metadata, sourceUrl } = postData || {};
 
   const response = await api.post('/posts', {
-    content: content || text, // Backend strictly expects 'content' property
+    content: content || text || body || '', // Backend strictly expects 'content' property
     media,
     metadata: { ...metadata, sourceUrl },
   });
 
-  return response.post || response;
+  return response?.post || response?.data || response;
 };
 
 
@@ -78,7 +79,8 @@ export const fetchUserPosts = async (userId, options = {}) => {
   try {
     const { page = 1, limit = 10 } = options;
     const response = await api.get(`/posts?author=${userId}&page=${page}&limit=${limit}`);
-    return response;
+    const postsList = Array.isArray(response) ? response : (response?.posts || response?.data || []);
+    return { posts: postsList };
   } catch (error) {
     console.warn('[postsApi] fetchUserPosts failed:', error);
     return { posts: [] };

@@ -198,7 +198,11 @@ class StorageCache {
   }
 
   addPost(post) {
-    const posts = [post, ...this.getPosts()];
+    const existing = this.getPosts();
+    if (existing.some(p => p._id === post._id)) {
+      return this.updatePost(post._id, post);
+    }
+    const posts = [post, ...existing];
     this.setPosts(posts);
     return posts;
   }

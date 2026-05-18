@@ -557,7 +557,7 @@ const PostCard = ({
   // Normalize post data
   const safePost = {
     _id: post?._id,
-    content: post?.content || '',
+    content: post?.content || post?.text || '',
     author: (String(post?.author?._id || post?.author?.id || post?.author?.username) === String(myId)) 
              ? { ...post?.author, ...authUser } 
              : post?.author || {},
@@ -584,8 +584,8 @@ const PostCard = ({
     initialReaction,
     initialLikeCount,
     initialDislikeCount,
-    () => {
-      if (onLike && safePost._id) {onLike(safePost._id);}
+    (finalReaction) => {
+      if (onLike && safePost._id) {onLike(safePost._id, finalReaction);}
     }
   );
 
@@ -665,7 +665,7 @@ const PostCard = ({
 
     setCommentText('');
     setShowCommentInput(false);
-    if (onComment) {onComment(safePost._id);}
+    if (onComment) {onComment(safePost._id, newComment.content);}
   };
 
   const handleSave = () => {

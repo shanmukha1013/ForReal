@@ -15,7 +15,13 @@ const api = {
   posts: {
     getFeed: (params) => apiClient.get('/posts', { params }), // params: { page, limit, sort }
     getTrending: () => apiClient.get('/posts/trending'),
-    create: (postData) => apiClient.post('/posts', postData),
+    create: (postData) => {
+      const payload = {
+        ...postData,
+        content: postData?.content || postData?.text || postData?.body || ''
+      };
+      return apiClient.post('/posts', payload);
+    },
     getById: (id) => apiClient.get(`/posts/${id}`),
     interact: (id, action) => apiClient.patch(`/posts/${id}/react`, { reactionType: action }), // action: 'like' | 'dislike'
     delete: (id) => apiClient.delete(`/posts/${id}`),

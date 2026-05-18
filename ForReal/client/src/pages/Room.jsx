@@ -184,7 +184,7 @@ const useDebateRoom = (roomId) => {
     setLoading(true);
     let fetchedRoom = null;
     try {
-      const result = await axios.get(`/api/rooms/${roomId}`);
+      const result = await axios.get(`/rooms/${roomId}`);
       fetchedRoom = result.room || result;
     } catch (err) {
       // Fallback to local storage 
@@ -340,7 +340,7 @@ const useDebateRoom = (roomId) => {
       try {
         const socket = socketRef.current;
         if (socket) {socket.emit('debate:joinSide', { roomId, side: nextSide });}
-        await axios.post(`/api/rooms/${roomId}/join`, { side: nextSide });
+        await axios.post(`/rooms/${roomId}/join`, { side: nextSide });
       } catch(e) { console.warn('joinSide failed', e); }
       
       if (room && String(room.createdBy?._id || room.createdBy?.id || room.createdBy) !== String(user._id || user.id)) {

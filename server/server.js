@@ -105,6 +105,7 @@ app.use('/api/auth', unwrapESModuleRouter(authRoutes));
 app.use('/api/posts', unwrapESModuleRouter(postRoutes));
 app.use('/api/talks', unwrapESModuleRouter(postRoutes)); // Alias for backward compatibility
 app.use('/api/rooms', unwrapESModuleRouter(roomRoutes));
+app.use('/rooms', unwrapESModuleRouter(roomRoutes)); // Prefix fallback for frontend consistency
 app.use('/api/users', unwrapESModuleRouter(userRoutes));
 app.use('/chat', unwrapESModuleRouter(chatRoutes));
 app.use('/api/chat', unwrapESModuleRouter(chatRoutes)); // Standardized API prefix mapping

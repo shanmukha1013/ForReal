@@ -554,6 +554,8 @@ const PostCard = ({
     return <SkeletonCard />;
   }
 
+  const myId = currentUserId || authUser?._id || authUser?.id;
+
   // Normalize post data
   const safePost = {
     _id: post?._id,
@@ -567,8 +569,6 @@ const PostCard = ({
     media: post?.media || [],
     createdAt: post?.createdAt || new Date().toISOString(),
   };
-
-  const myId = currentUserId || authUser?._id || authUser?.id;
 
   const initialReaction = useMemo(() => {
     if (safePost.likes.some((l) => String(l) === String(myId))) {return 'like';}

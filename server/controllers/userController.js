@@ -72,4 +72,42 @@ export const toggleFollow = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-export default { getProfile, updateProfile, toggleFollow };
+/**
+ * Relationship/follow-back state.
+ * GET /api/users/:userId/relationship
+ */
+export const getRelationship = async (req, res, next) => {
+  try {
+    const targetId = req.params.userId;
+    const myId = req.user.id;
+
+    if (!targetId) return res.status(400).json({ message: 'userId required' });
+
+    if (String(targetId) === String(myId)) {
+      return res.json({ isFollowing: false, isFollower: false, isMe: true });
+    }
+
+    const [targetUser, me] = await Promise.all([
+      User.findById(targetId).select('followers following').lean(),
+      User.findById(myId).select('following followers').lean(),
+    ]);
+
+    if (!targetUser || !me) return res.status(404).json({ message: 'User not found' });
+
+    const targetFollowers = Array.isArray(targetUser.followers) ? targetUser.followers : [];
+    const meFollowing = Array.isArray(me.following) ? me.following : [];
+
+    const isFollowing = meFollowing.some((id) => String(id) === String(targetId));
+    const isFollower = targetFollowers.some((id) => String(id) === String(myId));
+
+    res.json({
+      isFollowing,
+      isFollower,
+      isMe: false,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export default { getProfile, updateProfile, toggleFollow, getRelationship };

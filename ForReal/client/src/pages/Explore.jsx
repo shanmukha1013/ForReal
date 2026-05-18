@@ -97,20 +97,24 @@ function useSearch() {
   const [loading, setLoading] = useState(false);
   const abortRef = useRef(null);
 
-  const performSearch
-    if (!q.trim()) {
+  const performSearch = useCallback(async (q) => {
+    if (!q || !String(q).trim()) {
       setResults({ users: [], posts: [], rooms: [] });
       return;
     }
-    if (abortRef.current) {abortRef.current.abort();}
+
+    const searchQ = String(q).trim();
+
+    if (abortRef.current) { abortRef.current.abort(); }
     const controller = new AbortController();
     abortRef.current = controller;
 
     setLoading(true);
     let fetched = { users: [], posts: [], rooms: [] };
+
     try {
       const { data } = await axios.get('/explore/search', {
-        params: { q: q.trim() },
+        params: { q: searchQ },
         signal: controller.signal,
       });
       fetched = data;
@@ -119,32 +123,54 @@ function useSearch() {
         console.error('Search error:', err);
       }
     } finally {
-      const qLower = q.trim().toLowerCase();
+      const qLower = searchQ.toLowerCase();
       const localPosts = storageCache.getPosts();
       const localRooms = storageCache.getRooms();
-      
+
       const localUsers = [
         { _id: '1', username: 'smarty', displayName: 'Smarty', credibilityScore: 2500 },
         { _id: '2', username: 'test', displayName: 'TestUser', credibilityScore: 1200 }
       ];
       try {
         const storedUser = storageCache.getUser();
-        if (storedUser && !localUsers.find(u => u._id === storedUser._id)) {localUsers.push(storedUser);}
-      } catch(e) { console.warn('useSearch: failed to read stored user', e); }
+        if (storedUser && !localUsers.find(u => u._id === storedUser._id)) {
+          localUsers.push(storedUser);
+        }
+      } catch (e) { console.warn('useSearch: failed to read stored user', e); }
 
-      const matchedPosts = localPosts.filter(p => p.content?.toLowerCase().includes(qLower) || p.tags?.some(t => t.toLowerCase().includes(qLower)));
-      const matchedRooms = localRooms.filter(r => r.topic?.toLowerCase().includes(qLower) || r.description?.toLowerCase().includes(qLower));
-      const matchedUsers = localUsers.filter(u => u.username?.toLowerCase().includes(qLower) || u.displayName?.toLowerCase().includes(qLower));
-      
+      const matchedPosts = localPosts.filter(
+        (p) => p.content?.toLowerCase().includes(qLower) || p.tags?.some((t) => t.toLowerCase().includes(qLower))
+      );
+      const matchedRooms = localRooms.filter(
+        (r) => r.topic?.toLowerCase().includes(qLower) || r.description?.toLowerCase().includes(qLower)
+      );
+      const matchedUsers = localUsers.filter(
+        (u) => u.username?.toLowerCase().includes(qLower) || u.displayName?.toLowerCase().includes(qLower)
+      );
+
       setResults({
-        users: Array.from(new Map([...(fetched.users || []), ...matchedUsers].map(u => [u._id || u.username, u])).values()).slice(0, 15),
+        users: Array.from(
+          new Map([...(fetched.users || []), ...matchedUsers].map((u) => [u._id || u.username, u])).values()
+        ).slice(0, 15),
         posts: [...(fetched.posts || []), ...matchedPosts].slice(0, 15),
         rooms: [...(fetched.rooms || []), ...matchedRooms].slice(0, 15)
       });
+
       setLoading(false);
       abortRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      try {
+        if (abortRef.current) { abortRef.current.abort(); }
+      } catch {
+        // no-op
+      }
+    };
+  }, []);
+
 
   const debounceRef = useRef();
   const handleChange = useCallback((e) => {

@@ -146,13 +146,15 @@ const useUserProfile = (username, currentUser) => {
     setLoading(true);
     const isMe = currentUser && (String(username) === String(currentUser.username) || String(username) === String(currentUser._id) || String(username) === String(currentUser.id));
 
-    if (isMe) {
-       setProfile({ ...currentUser, stats: currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } });
-       setLoading(false);
+        if (isMe) {
+      setProfile({ ...currentUser, stats: currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } });
+      setLoading(false);
+      return;
     }
 
+
     try {
-      const { data } = await axios.get(`/users/${username}`);
+      const { data } = await axios.get(`/api/users/${encodeURIComponent(username)}`);
         if (isMe) {
           setProfile({ ...data, ...currentUser, stats: data?.stats || currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } });
         } else {
@@ -245,7 +247,8 @@ const useUserPosts = (userId, limit = 12) => {
 const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
   const [following, setFollowing] = useState(() => {
     const localFollows = storageCache.getFollows();
-    return localFollows[targetUserId] ?? initialFollowing;
+    const v = localFollows?.[targetUserId];
+    return v ?? initialFollowing;
   });
   const [loading, setLoading] = useState(false);
   const { user } = useContext(AuthContext);
@@ -253,7 +256,8 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
 
   useEffect(() => {
     const localFollows = storageCache.getFollows();
-    if (localFollows[targetUserId] === undefined) {
+    const v = localFollows?.[targetUserId];
+    if (v === undefined) {
       setFollowing(initialFollowing);
     }
   }, [initialFollowing, targetUserId]);
@@ -268,10 +272,10 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
     else {storageCache.removeFollow(targetUserId);}
 
     try {
-      if (!prev) {
-        await axios.post(`/users/${targetUserId}/follow`);
+        if (!prev) {
+        await axios.post(`/api/users/${encodeURIComponent(targetUserId)}/follow`);
       } else {
-        await axios.delete(`/users/${targetUserId}/follow`);
+        await axios.delete(`/api/users/${encodeURIComponent(targetUserId)}/follow`);
       }
       if (onUpdate) {onUpdate(!prev);}
     } catch (err) {

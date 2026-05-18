@@ -111,7 +111,9 @@ app.use('/api/users', unwrapESModuleRouter(userRoutes));
 app.use('/chat', unwrapESModuleRouter(chatRoutes));
 app.use('/api/chat', unwrapESModuleRouter(chatRoutes)); // Standardized API prefix mapping
 app.use('/admin', unwrapESModuleRouter(adminRoutes));
+
 app.use('/api/admin', unwrapESModuleRouter(adminRoutes));
+
 
 
 app.get('/api/health', (req, res) => {

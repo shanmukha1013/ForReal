@@ -8,6 +8,7 @@ import postRoutes from './routes/postRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 import http from 'http';
 import jwt from 'jsonwebtoken';
@@ -98,6 +99,8 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/users', userRoutes);
 app.use('/chat', chatRoutes);
 app.use('/api/chat', chatRoutes); // Standardized API prefix mapping
+app.use('/admin', adminRoutes);
+app.use('/api/admin', adminRoutes);
 
 // API health check
 app.get('/api/health', (req, res) => {

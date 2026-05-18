@@ -10,6 +10,7 @@ const postRoutes = require('./routes/postRoutes.js');
 const roomRoutes = require('./routes/roomRoutes.js');
 const chatRoutes = require('./routes/chatRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
+const adminRoutes = require('./routes/adminRoutes.js');
 
 function unwrapESModuleRouter(m) {
   // ESM interop: require() returns { default: router } when file is ESM.
@@ -109,6 +110,8 @@ app.use('/rooms', unwrapESModuleRouter(roomRoutes)); // Prefix fallback for fron
 app.use('/api/users', unwrapESModuleRouter(userRoutes));
 app.use('/chat', unwrapESModuleRouter(chatRoutes));
 app.use('/api/chat', unwrapESModuleRouter(chatRoutes)); // Standardized API prefix mapping
+app.use('/admin', unwrapESModuleRouter(adminRoutes));
+app.use('/api/admin', unwrapESModuleRouter(adminRoutes));
 
 
 app.get('/api/health', (req, res) => {

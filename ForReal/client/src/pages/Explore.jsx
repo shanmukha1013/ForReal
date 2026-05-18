@@ -96,9 +96,8 @@ function useSearch() {
   const [results, setResults] = useState({ users: [], posts: [], rooms: [] });
   const [loading, setLoading] = useState(false);
   const abortRef = useRef(null);
-  const notify = () => {}; // context not needed here, errors are silent
 
-  const performSearch = useCallback(async (q) => {
+  const performSearch
     if (!q.trim()) {
       setResults({ users: [], posts: [], rooms: [] });
       return;
@@ -298,47 +297,115 @@ SearchSection.displayName = 'SearchSection';
 
 // Creator Card
 const CreatorCard = React.memo(({ creator }) => {
-  const [following, setFollowing] = useState(() => {
-    const localFollows = storageCache.getFollows();
-    return !!localFollows[creator._id || creator.username];
-  });
-  const { score, rank } = useCredibility(creator?._id || creator?.username);
+  const safeCreator = creator || {};
+  const targetId = safeCreator._id || safeCreator.username;
 
-  const toggleFollow = (e) => {
+  const [following, setFollowing] = useState(() => {
+    try {
+      const localFollows = storageCache.getFollows();
+      return !!localFollows?.[targetId];
+    } catch {
+      return false;
+    }
+  });
+
+  // If follow-changed fires elsewhere, reconcile quickly.
+  useEffect(() => {
+    const handler = (e) => {
+      const changedId = e?.detail?.targetId;
+      if (!targetId || !changedId || String(changedId) !== String(targetId)) return;
+      try {
+        const localFollows = storageCache.getFollows();
+        setFollowing(!!localFollows?.[targetId]);
+      } catch {
+        // no-op
+      }
+    };
+    window.addEventListener('forreal:follow:changed', handler);
+    return () => window.removeEventListener('forreal:follow:changed', handler);
+  }, [targetId]);
+
+  const { score, rank } = useCredibility(safeCreator?._id || safeCreator?.username);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  const toggleFollow = useCallback(async (e) => {
     e.preventDefault();
+    e.stopPropagation?.();
+
+    if (!targetId) return;
+
+    // optimistic
     const prev = following;
     setFollowing(!prev);
-    if (!prev) {storageCache.addFollow(creator._id || creator.username);}
-    else {storageCache.removeFollow(creator._id || creator.username);}
-    if (!prev) {window.dispatchEvent(new Event('local_notify'));}
-  };
+
+    try {
+      if (!prev) {
+        storageCache.addFollow(targetId);
+      } else {
+        storageCache.removeFollow(targetId);
+      }
+
+      // notify UI immediately
+      window.dispatchEvent(
+        new CustomEvent('forreal:follow:changed', { detail: { targetId, isFollowing: !prev } })
+      );
+
+      // backend reconciliation (defensive)
+      setFollowLoading(true);
+      try {
+        if (!prev) {
+          await axios.post(`/users/${targetId}/follow`);
+        } else {
+          await axios.delete(`/users/${targetId}/follow`);
+        }
+
+        // After success: trigger global refresh signal (profiles re-fetch via their own logic)
+        window.dispatchEvent(new Event('local_notify'));
+      } catch (apiErr) {
+        // rollback optimistic UI
+        setFollowing(prev);
+        try {
+          if (!prev) storageCache.removeFollow(targetId);
+          else storageCache.addFollow(targetId);
+        } catch {
+          // no-op
+        }
+        window.dispatchEvent(
+          new CustomEvent('forreal:follow:changed', { detail: { targetId, isFollowing: prev } })
+        );
+      }
+    } finally {
+      setFollowLoading(false);
+    }
+  }, [following, targetId]);
 
   return (
-    <Link to={`/profile/${creator.username}`} className="block p-4 hover:bg-white/5 transition-colors group">
+    <Link to={`/profile/${safeCreator.username}`} className="block p-4 hover:bg-white/5 transition-colors group">
       <div className="flex items-center gap-3">
         <img
-          src={creator.avatar || `https://ui-avatars.com/api/?name=${creator.username}&background=0F0F0F&color=22c55e`}
-          alt={creator.username}
+          src={safeCreator.avatar || `https://ui-avatars.com/api/?name=${safeCreator.username || 'user'}&background=0F0F0F&color=22c55e`}
+          alt={safeCreator.username}
           className="w-10 h-10 rounded-full border border-neon/30 object-cover"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-white font-medium text-sm truncate">{creator.displayName || creator.username}</p>
-          <p className="text-gray-400 text-xs">@{creator.username}</p>
+          <p className="text-white font-medium text-sm truncate">{safeCreator.displayName || safeCreator.username}</p>
+          <p className="text-gray-400 text-xs">@{safeCreator.username}</p>
           {score !== undefined && (
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
               <div className="flex items-center gap-1" title="Credibility Score">
-                <Award className={`w-3 h-3 ${rank.color}`} />
-                <span className={`text-[10px] font-mono ${rank.color}`}>{score.toLocaleString()}</span>
+                <Award className={`w-3 h-3 ${rank?.color || 'text-neon'}`} />
+                <span className={`text-[10px] font-mono ${rank?.color || 'text-neon'}`}>{Number(score || 0).toLocaleString()}</span>
               </div>
-              <span className={`text-[9px] px-1.5 py-0.5 rounded-md border ${rank.bg} ${rank.border} ${rank.color} uppercase tracking-wider`}>
-                {rank.title}
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-md border ${rank?.bg || ''} ${rank?.border || ''} ${rank?.color || ''} uppercase tracking-wider`}>
+                {rank?.title || ''}
               </span>
             </div>
           )}
         </div>
         <motion.button
           whileTap={{ scale: 0.9 }}
-          className={`hidden sm:flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition ${following ? 'bg-neon/20 border-neon/50 text-neon' : 'bg-neon/10 border-neon/30 text-neon group-hover:bg-neon/20'}`}
+          disabled={followLoading}
+          className={`hidden sm:flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition disabled:opacity-60 ${following ? 'bg-neon/20 border-neon/50 text-neon' : 'bg-neon/10 border-neon/30 text-neon group-hover:bg-neon/20'}`}
           onClick={toggleFollow}
         >
           <UserPlus className="w-3 h-3" /> {following ? 'Following' : 'Follow'}

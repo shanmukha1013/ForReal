@@ -16,9 +16,11 @@ const api = {
     getFeed: (params) => apiClient.get('/posts', { params }), // params: { page, limit, sort }
     getTrending: () => apiClient.get('/posts/trending'),
     create: (postData) => {
+      const finalContent = postData?.content || postData?.text || postData?.body || '';
       const payload = {
         ...postData,
-        content: postData?.content || postData?.text || postData?.body || ''
+        content: finalContent,
+        text: finalContent
       };
       return apiClient.post('/posts', payload);
     },

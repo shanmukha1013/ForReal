@@ -36,9 +36,11 @@ export const fetchPost = async (postId) => {
  */
 export const createPost = async (postData) => {
   const { content, text, body, media, metadata, sourceUrl } = postData || {};
+  const finalContent = content || text || body || '';
 
   const response = await api.post('/posts', {
-    content: content || text || body || '', // Backend strictly expects 'content' property
+    content: finalContent,
+    text: finalContent, // Backend strictly expects 'text' property
     media,
     metadata: { ...metadata, sourceUrl },
   });

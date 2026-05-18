@@ -300,35 +300,6 @@ export const getTrendingPosts = async (req, res, next) => {
   }
 };
 
-/**
- * Delete a post
- * DELETE /api/posts/:id
- */
-export const deletePost = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user.id;
-
-    const post = await Post.findById(id);
-
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    // Only creator can delete
-    if (String(post.author) !== String(userId)) {
-      return res.status(403).json({ message: 'Cannot delete other users posts' });
-    }
-
-    await Post.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
-
-    res.json({ message: 'Post deleted' });
-  } catch (err) {
-    console.error('[postController.deletePost] error:', err);
-    next(err);
-  }
-};
-
 export default {
   createPost,
   getFeed,

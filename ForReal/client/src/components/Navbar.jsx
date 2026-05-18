@@ -1067,7 +1067,7 @@ const MobileDrawer = memo(function MobileDrawer({
               {/* New debate CTA inside drawer */}
               <motion.div variants={drawerItemVariants} className="pt-2">
                 <Link
-                  to="/rooms/new"
+                  to="/rooms"
                   onClick={onClose}
                   aria-label="Start a new debate"
                   className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-2xl text-[11px] font-bold tracking-widest transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
@@ -1309,7 +1309,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-2.5 ml-auto flex-shrink-0">
               {/* New debate CTA */}
               <Link
-                to="/rooms/new"
+                to="/rooms"
                 aria-label="Start a new debate"
                 className="group flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[11px] font-bold tracking-widest transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
                 style={{

@@ -22,7 +22,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
 import axios from '../api/axios';
 import { storageCache } from '../lib/storageCache';
-import { fetchPosts as apiFetchPosts } from '../api/posts';
+import { fetchPosts as apiFetchPosts, createPost as apiCreatePost, deletePost as apiDeletePost } from '../api/posts';
 
 // Optional: keep socket/auth related guards from crashing Home during auth transitions.
 
@@ -97,6 +97,23 @@ const useFeed = (limit = 10) => {
     fetchTalks(1);
   }, [fetchTalks]);
 
+  const addTalk = useCallback((newTalk) => {
+    setTalks((prev) => {
+      if (prev.some((t) => t._id === newTalk._id)) return prev;
+      return [newTalk, ...prev];
+    });
+  }, []);
+
+  const deleteTalk = useCallback(async (id) => {
+    setTalks((prev) => prev.filter((t) => t._id !== id));
+    storageCache.deletePost(id);
+    try {
+      await apiDeletePost(id);
+    } catch (err) {
+      console.error('Failed to delete post on server', err);
+    }
+  }, []);
+
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) {return;}
     fetchTalks(pageRef.current + 1, true);
@@ -110,6 +127,8 @@ const useFeed = (limit = 10) => {
     error,
     refresh,
     loadMore,
+    addTalk,
+    deleteTalk,
   };
 };
 
@@ -125,7 +144,7 @@ const FeedSkeleton = () => (
 );
 
 export default function Home() {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { user, isAuthenticated } = useContext(AuthContext);
   const notify = useNotification();
 
   const {
@@ -136,7 +155,28 @@ export default function Home() {
     error,
     refresh,
     loadMore,
+    addTalk,
+    deleteTalk,
   } = useFeed(10);
+
+  const [composeText, setComposeText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCreateTalk = async () => {
+    if (!composeText.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const newPost = await apiCreatePost({ content: composeText.trim() });
+      storageCache.addPost(newPost);
+      addTalk(newPost);
+      setComposeText('');
+      if (notify?.success) notify.success('Talk published successfully!');
+    } catch (err) {
+      if (notify?.error) notify.error(err.message || 'Failed to publish talk');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const emptyState = useMemo(() => {
     if (error) {return { title: 'Failed to load feed', detail: error };}
@@ -191,6 +231,45 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {/* Talk Composer */}
+        {isAuthenticated && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-5 shadow-lg mb-6"
+          >
+            <div className="flex gap-4">
+              <img
+                src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username || 'user'}`}
+                alt="avatar"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 flex-shrink-0"
+              />
+              <div className="flex-1">
+                <textarea
+                  value={composeText}
+                  onChange={(e) => setComposeText(e.target.value)}
+                  placeholder="What's your take? Speak your truth..."
+                  className="w-full bg-transparent border-none text-white placeholder-gray-500 focus:outline-none focus:ring-0 resize-none text-sm sm:text-base min-h-[80px]"
+                />
+                <div className="flex justify-between items-center mt-2 pt-3 border-t border-white/10">
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-neon" /> Keep it real. No fake news.
+                  </div>
+                  <button
+                    onClick={handleCreateTalk}
+                    disabled={!composeText.trim() || isSubmitting}
+                    className="px-5 py-2 bg-neon text-black font-bold rounded-full text-sm disabled:opacity-50 hover:bg-neon/90 transition shadow-glow-sm disabled:shadow-none flex items-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <><div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> Publishing...</>
+                    ) : ('Post Talk')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {loading ? (
           <FeedSkeleton />
         ) : talks.length === 0 ? (
@@ -220,7 +299,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <PostCard post={post} currentUserId={post?.author?._id || post?.author?.id} />
+                <PostCard post={post} currentUserId={post?.author?._id || post?.author?.id} onDelete={deleteTalk} />
               </motion.div>
             ))}
           </div>
@@ -243,4 +322,3 @@ export default function Home() {
     </Layout>
   );
 }
-

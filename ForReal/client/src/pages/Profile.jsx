@@ -53,6 +53,7 @@ import PostCard from '../components/PostCard';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
 import axios from '../api/axios';
+import { fetchUserPosts, deletePost as apiDeletePost } from '../api/posts';
 import { useCredibility } from '../hooks/useCredibility';
 import { storageCache } from '../lib/storageCache';
 
@@ -186,31 +187,22 @@ const useUserProfile = (username, currentUser) => {
 
 /**
  * Fetch paginated posts of a user.
- * Returns { posts, loading, hasMore, loadMore }
+ * Returns { posts, loading, hasMore, loadMore, deleteTalk }
  */
 const useUserPosts = (userId, limit = 12) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const pageRef = useRef(1);
-  const abortRef = useRef(null);
 
   const fetchPosts = useCallback(
     async (page = 1, append = false) => {
-      if (abortRef.current) {abortRef.current.abort();}
-      const controller = new AbortController();
-      abortRef.current = controller;
-
       setLoading(true);
       try {
-        const { data } = await axios.get(`/users/${userId}/posts`, {
-          params: { page, limit },
-          signal: controller.signal,
-        });
-        const newPosts = data?.posts || [];
-        const total = data?.total || newPosts.length;
+        const { posts: newPosts } = await fetchUserPosts(userId, { page, limit });
+        const total = newPosts.length;
         setPosts((prev) => (append ? [...prev, ...newPosts] : newPosts));
-        setHasMore(page * limit < total);
+        setHasMore(total === limit);
         pageRef.current = page;
       } catch (err) {
         const localPosts = storageCache.getPosts();
@@ -218,7 +210,6 @@ const useUserPosts = (userId, limit = 12) => {
         userPosts.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         setPosts(prev => append ? [...prev, ...userPosts] : userPosts);
         setHasMore(false);
-        if (axios.isCancel(err)) {return;}
       } finally {
         setLoading(false);
       }
@@ -228,9 +219,6 @@ const useUserPosts = (userId, limit = 12) => {
 
   useEffect(() => {
     fetchPosts(1);
-    return () => {
-      if (abortRef.current) {abortRef.current.abort();}
-    };
   }, [fetchPosts]);
 
   const loadMore = useCallback(() => {
@@ -238,7 +226,17 @@ const useUserPosts = (userId, limit = 12) => {
     fetchPosts(pageRef.current + 1, true);
   }, [fetchPosts, hasMore]);
 
-  return { posts, loading, hasMore, loadMore, refetch: fetchPosts };
+  const deleteTalk = useCallback(async (id) => {
+    setPosts((prev) => prev.filter((t) => t._id !== id));
+    storageCache.deletePost(id);
+    try {
+      await apiDeletePost(id);
+    } catch (err) {
+      console.error('Failed to delete post on server', err);
+    }
+  }, []);
+
+  return { posts, loading, hasMore, loadMore, refetch: fetchPosts, deleteTalk };
 };
 
 /**
@@ -482,7 +480,7 @@ const ProfileTabs = React.memo(({ activeTab, onChange }) => {
 ProfileTabs.displayName = 'ProfileTabs';
 
 const UserFeed = React.memo(({ userId, activeTab }) => {
-  const { posts, loading, hasMore, loadMore } = useUserPosts(userId);
+  const { posts, loading, hasMore, loadMore, deleteTalk } = useUserPosts(userId);
   const bottomRef = useRef(null);
   const isInView = useInView(bottomRef, { once: false, margin: '0px 0px 200px 0px' });
 
@@ -530,7 +528,7 @@ const UserFeed = React.memo(({ userId, activeTab }) => {
             <PostCard
               post={post}
               currentUserId={userId}
-              // In a real app, pass handlers or let PostCard handle internally
+              onDelete={deleteTalk}
             />
           </motion.div>
         ))

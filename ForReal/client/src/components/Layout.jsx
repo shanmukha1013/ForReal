@@ -601,7 +601,7 @@ const CreateDebateButton = memo(function CreateDebateButton() {
   return (
     <motion.div variants={navItemVariants} className="px-1 pt-1">
       <Link
-        to="/rooms/new"
+        to="/rooms"
         aria-label="Start a new debate"
         className="group relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
         style={{

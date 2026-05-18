@@ -28,6 +28,7 @@ import { useNotification } from '../components/Notification';
 import { useInView } from 'framer-motion'; // for viewport detection if needed
 import { useCredibility, updateCredibility, getVoteWeight } from '../hooks/useCredibility';
 import { storageCache } from '../lib/storageCache';
+import api from '../api/api';
 
 // -----------------------------------------------------------------------------
 // Helper Utils
@@ -255,6 +256,8 @@ const useFactCheck = (postId, initialVerifications, initialDisputes, myId, myCre
 
     // Persist to local storage
     storageCache.updatePost(postId, { verifications: newV, disputes: newD });
+    
+    api.posts.interact(postId, action).catch(e => console.warn('Fact check sync failed', e));
   }, [postId, verifications, disputes, myId, myCredScore]);
 
   return { verifications, disputes, handleFactCheck };
@@ -843,11 +846,12 @@ const PostCard = ({
     setShowCommentInput(!showCommentInput);
   };
 
-  const submitComment = (isAnon) => {
+  const submitComment = async (isAnon) => {
     if (!commentText.trim()) {return;}
+    const content = commentText.trim();
     const newComment = {
       _id: `comment_${Date.now()}`,
-      content: commentText.trim(),
+      content,
       author: authUser || { username: 'Guest' },
       isAnonymous: isAnon,
       createdAt: new Date().toISOString()
@@ -864,7 +868,13 @@ const PostCard = ({
 
     setCommentText('');
     setShowCommentInput(false);
-    if (onComment) {onComment(safePost._id);}
+    if (onComment) {onComment(safePost._id, content);}
+    
+    try {
+      await api.comments.add(safePost._id, content);
+    } catch (e) {
+      console.warn('Failed to save comment to server', e);
+    }
   };
 
   const handleSave = () => {

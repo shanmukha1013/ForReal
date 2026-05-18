@@ -376,7 +376,8 @@ io.on('connection', (socket) => {
         id: `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
         roomId,
         text: String(text).trim(),
-        author: create Date().toISOString(),
+        author: authorData,
+        createdAt: new Date().toISOString(),
       };
 
       io.to(`room:${roomId}`).emit('message:new', safeJson(payload));
@@ -442,14 +443,16 @@ io.on('connection', (socket) => {
       }
 
       if (!roomId || !reaction) {
-        ack &&ke, error: 'invalid reaction payload' });
-      r
+        ack && ack({ ok: false, error: 'invalid reaction payload' });
+        return;
+      }
 
       const payload = {
         id: `rx_${Date.now()}_${Math.random().toString(16).slice(2)}`,
         roomId,
         messageId: messageId || null,
-        reac: user.id,
+        reaction,
+        actorId: user.id,
         createdAt: new Date().toISOString(),
       };
 

@@ -198,7 +198,7 @@ const useUserProfile = (username, currentUser) => {
       String(post.author?._id || post.author?.id || post.author?.username || post.author) === String(p._id || p.id || p.username)
     ).length;
     
-    p.stats = { ...p.stats } || { followersCount: 0, followingCount: 0, postsCount: 0 };
+    p.stats = { ...(p.stats || { followersCount: 0, followingCount: 0, postsCount: 0 }) };
     p.stats.postsCount = Math.max(p.stats.postsCount || 0, userPostsCount);
     return p;
   }, [profile, refreshTrigger]);
@@ -223,7 +223,7 @@ const useUserPosts = (userId, limit = 12) => {
       let fetchedPosts = [];
       try {
         const res = await fetchUserPosts(userId, { page, limit });
-        fetchedPosts = res.posts || res || [];
+        fetchedPosts = res?.posts || (Array.isArray(res) ? res : []);
       } catch (err) {
         console.warn('API fetch failed, using local cache', err);
       } finally {
@@ -419,7 +419,7 @@ const StatsBar = React.memo(({ stats }) => (
       { label: 'Posts', value: stats?.postsCount ?? 0 },
     ].map(({ label, value }) => (
       <motion.div key={label} variants={statVariant} className="text-center">
-        <span className="font-bold text-white">{value.toLocaleString()}</span>
+        <span className="font-bold text-white">{Number(value || 0).toLocaleString()}</span>
         <span className="text-gray-400 ml-1">{label}</span>
       </motion.div>
     ))}
@@ -441,7 +441,7 @@ const CredibilityBadge = React.memo(({ cred, rank }) => (
       animate={{ scale: 1, color: 'inherit' }}
       className={`text-sm font-mono font-bold ${rank.color}`}
     >
-      {cred.toLocaleString()}
+      {Number(cred || 0).toLocaleString()}
     </motion.span>
   </motion.div>
 ));

@@ -16,9 +16,8 @@ import React, {
 import {
   useParams,
   useNavigate,
-  Link,
 } from 'react-router-dom';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import {
   Cog6ToothIcon as SettingsIcon,
   MapPinIcon,
@@ -222,23 +221,7 @@ const useUserPosts = (userId, limit = 12) => {
     fetchPosts(1);
   }, [fetchPosts]);
 
-  // Keep profile talks synced with newly created posts from anywhere in the app.
-  // Uses localStorage 'forreal_posts' update as the canonical signal via storageCache.
-  useEffect(() => {
-    const onPostsChanged = () => {
-      // Re-fetch to ensure author population/shape correctness and prevent profile "No talks yet".
-      fetchPosts(1);
-    };
 
-    // storageCache already notifies subscribers; easiest/most reliable is to listen to localStorage event.
-    window.addEventListener('storage', onPostsChanged);
-    window.addEventListener('local_post_created', onPostsChanged);
-
-    return () => {
-      window.removeEventListener('storage', onPostsChanged);
-      window.removeEventListener('local_post_created', onPostsChanged);
-    };
-  }, [fetchPosts]);
 
   const loadMore = useCallback(() => {
     if (!hasMore) {return;}

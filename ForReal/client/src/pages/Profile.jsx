@@ -137,6 +137,7 @@ const useUserProfile = (username, currentUser) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const notify = useNotification();
 
   const fetchProfile = useCallback(async () => {
@@ -180,9 +181,29 @@ const useUserProfile = (username, currentUser) => {
 
   useEffect(() => {
     fetchProfile();
+    const handleEvent = () => {
+      fetchProfile();
+      setRefreshTrigger(prev => prev + 1);
+    };
+    window.addEventListener('local_post_created', handleEvent);
+    return () => window.removeEventListener('local_post_created', handleEvent);
   }, [fetchProfile]);
 
-  return { profile, loading, error, refetch: fetchProfile };
+  const displayProfile = useMemo(() => {
+    const _ = refreshTrigger; // force re-evaluation
+    if (!profile) return null;
+    const p = { ...profile };
+    const localPosts = storageCache.getPosts();
+    const userPostsCount = localPosts.filter(post => 
+      String(post.author?._id || post.author?.id || post.author?.username || post.author) === String(p._id || p.id || p.username)
+    ).length;
+    
+    p.stats = { ...p.stats } || { followersCount: 0, followingCount: 0, postsCount: 0 };
+    p.stats.postsCount = Math.max(p.stats.postsCount || 0, userPostsCount);
+    return p;
+  }, [profile, refreshTrigger]);
+
+  return { profile: displayProfile, loading, error, refetch: fetchProfile };
 };
 
 /**
@@ -197,20 +218,29 @@ const useUserPosts = (userId, limit = 12) => {
 
   const fetchPosts = useCallback(
     async (page = 1, append = false) => {
+      if (!userId) return;
       setLoading(true);
+      let fetchedPosts = [];
       try {
-        const { posts: newPosts } = await fetchUserPosts(userId, { page, limit });
-        const total = newPosts.length;
-        setPosts((prev) => (append ? [...prev, ...newPosts] : newPosts));
-        setHasMore(total === limit);
-        pageRef.current = page;
+        const res = await fetchUserPosts(userId, { page, limit });
+        fetchedPosts = res.posts || res || [];
       } catch (err) {
-        const localPosts = storageCache.getPosts();
-        const userPosts = localPosts.filter(p => String(p.author?._id || p.author?.id || p.author?.username) === String(userId));
-        userPosts.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-        setPosts(prev => append ? [...prev, ...userPosts] : userPosts);
-        setHasMore(false);
+        console.warn('API fetch failed, using local cache', err);
       } finally {
+        const localPosts = storageCache.getPosts();
+        const userPosts = localPosts.filter(p => 
+          String(p.author?._id || p.author?.id || p.author?.username || p.author) === String(userId)
+        );
+        
+        const allPosts = [...fetchedPosts, ...userPosts];
+        const unique = Array.from(new Map(allPosts.map(p => [p._id, p])).values());
+        unique.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        
+        const paginated = unique.slice((page - 1) * limit, page * limit);
+        
+        setPosts(prev => append ? [...prev, ...paginated] : paginated);
+        setHasMore(unique.length > page * limit);
+        pageRef.current = page;
         setLoading(false);
       }
     },

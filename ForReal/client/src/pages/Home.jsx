@@ -169,8 +169,11 @@ export default function Home() {
       const newPost = await apiCreatePost({ content: composeText.trim() });
       storageCache.addPost(newPost);
       addTalk(newPost);
+      // Ensure profile feed renders immediately without requiring a manual refresh
+      // (Profile.jsx fetches using fetchUserPosts; backend returns populated author.)
+      window.dispatchEvent(new Event('local_post_created'));
       setComposeText('');
-      if (notify?.success) notify.success('Talk published successfully!');
+      if (notify?.success) { notify.success('Talk published successfully!'); }
     } catch (err) {
       if (notify?.error) notify.error(err.message || 'Failed to publish talk');
     } finally {

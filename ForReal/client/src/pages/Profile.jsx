@@ -11,7 +11,6 @@ import React, {
   useEffect,
   useCallback,
   useContext,
-  useMemo,
   useRef,
 } from 'react';
 import {
@@ -484,7 +483,8 @@ const ProfileTabs = React.memo(({ activeTab, onChange }) => {
 ProfileTabs.displayName = 'ProfileTabs';
 
 const UserFeed = React.memo(({ userId, activeTab }) => {
-  const { posts, loading, hasMore, loadMore, deleteTalk } = useUserPosts(userId);
+  const safeUserId = userId ? String(userId) : '';
+  const { posts, loading, hasMore, loadMore, deleteTalk } = useUserPosts(safeUserId);
   const bottomRef = useRef(null);
   const isInView = useInView(bottomRef, { once: false, margin: '0px 0px 200px 0px' });
 
@@ -556,14 +556,16 @@ UserFeed.displayName = 'UserFeed';
 export default function Profile() {
   const { username } = useParams();
   const { user: currentUser } = useContext(AuthContext);
-  const notify = useNotification();
   const navigate = useNavigate();
+
 
   // Fetch profile based on URL param or fallback to current user
   const targetUsername = username || currentUser?.username || currentUser?._id || currentUser?.id;
   const { profile, loading: profileLoading, error } = useUserProfile(targetUsername, currentUser);
   const isOwnProfile = currentUser && (currentUser.username === targetUsername || currentUser._id === targetUsername || currentUser.id === targetUsername);
   const { score, rank } = useCredibility(targetUsername);
+  const notify = useNotification();
+
 
   const [activeTab, setActiveTab] = useState('posts');
 

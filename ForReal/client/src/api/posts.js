@@ -80,7 +80,7 @@ export const deletePost = async (postId) => {
 export const fetchUserPosts = async (userId, options = {}) => {
   try {
     const { page = 1, limit = 10 } = options;
-    const response = await api.get(`/api/posts?author=${userId}&page=${page}&limit=${limit}`);
+    const response = await api.get('/posts', { params: { author: userId, page, limit } });
     const postsList = Array.isArray(response) ? response : (response?.posts || response?.data || []);
     return { posts: postsList };
   } catch (error) {

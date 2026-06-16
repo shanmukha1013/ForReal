@@ -46,6 +46,22 @@ const MetadataSchema = new Schema(
   { _id: false }
 );
 
+const CommentSchema = new Schema(
+  {
+    author: { type: Types.ObjectId, ref: 'User', required: true },
+    text: { type: String, required: true, trim: true, maxlength: 500 },
+    replies: [
+      {
+        author: { type: Types.ObjectId, ref: 'User', required: true },
+        text: { type: String, required: true, trim: true, maxlength: 500 },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    createdAt: { type: Date, default: Date.now },
+  },
+  { timestamps: false }
+);
+
 /**
  * Post Schema - Professional-grade schema for social media workloads
  */
@@ -71,6 +87,7 @@ const PostSchema = new Schema(
 
     // Engagement - Using embedded reactions for performance
     reactions: { type: ReactionSchema, default: () => ({}) },
+    comments: { type: [CommentSchema], default: [] },
     commentsCount: { type: Number, default: 0, min: 0 },
     likesCount: { type: Number, default: 0, min: 0 },
     dislikesCount: { type: Number, default: 0, min: 0 },

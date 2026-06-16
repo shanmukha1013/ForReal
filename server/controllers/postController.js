@@ -1,10 +1,54 @@
 import Post from '../models/Post.js';
 import User from '../models/User.js';
-import createHttpError from 'http-errors';
+import mongoose from 'mongoose';
 
 // ============================================================================
 // Post Controller - Production-ready with proper error handling
 // ============================================================================
+
+const validObjectId = (value) => mongoose.Types.ObjectId.isValid(String(value || ''));
+
+const transformComment = (comment) => ({
+  _id: comment._id,
+  content: comment.text,
+  text: comment.text,
+  author: comment.author,
+  replies: (comment.replies || []).map((reply) => ({
+    _id: reply._id,
+    content: reply.text,
+    text: reply.text,
+    author: reply.author,
+    createdAt: reply.createdAt,
+  })),
+  createdAt: comment.createdAt,
+});
+
+const transformPost = (post) => ({
+  _id: post._id,
+  content: post.text,
+  text: post.text,
+  media: post.media || [],
+  author: post.author,
+  likes: post.reactions?.likes || [],
+  dislikes: post.reactions?.dislikes || [],
+  likesCount: post.likesCount || 0,
+  dislikesCount: post.dislikesCount || 0,
+  commentsCount: post.commentsCount || 0,
+  comments: (post.comments || []).map(transformComment),
+  createdAt: post.createdAt,
+  updatedAt: post.updatedAt,
+  metadata: post.metadata,
+  tags: post.metadata?.tags || [],
+  sourceUrl: post.metadata?.sourceUrl || '',
+  verifications: post.metadata?.verifications || [],
+  disputes: post.metadata?.disputes || [],
+  agrees: post.reactions?.agrees || [],
+  disagrees: post.reactions?.disagrees || [],
+  facts: post.reactions?.facts || [],
+  caps: post.reactions?.caps || [],
+  misleadings: post.reactions?.misleadings || [],
+  validPoints: post.reactions?.validPoints || [],
+});
 
 /**
  * Create a new post
@@ -73,45 +117,30 @@ export const getFeed = async (req, res, next) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
     const skip = (page - 1) * limit;
+    const query = { isDeleted: { $ne: true } };
+
+    if (req.query.author) {
+      if (!validObjectId(req.query.author)) {
+        return res.status(400).json({ message: 'Invalid author id' });
+      }
+      query.author = req.query.author;
+    }
 
     // Query with proper projection for performance
-    const posts = await Post.find({ isDeleted: { $ne: true } })
+    const posts = await Post.find(query)
       .populate('author', '-password -__v')
+      .populate('comments.author', 'username displayName avatar')
+      .populate('comments.replies.author', 'username displayName avatar')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .select('-__v -isDeleted')
       .lean();
 
-    const total = await Post.countDocuments({ isDeleted: { $ne: true } });
+    const total = await Post.countDocuments(query);
 
     // Transform for client compatibility
-    const transformedPosts = posts.map(post => ({
-      _id: post._id,
-      content: post.text,
-      text: post.text,
-      media: post.media || [],
-      author: post.author,
-      likes: post.reactions?.likes || [],
-      dislikes: post.reactions?.dislikes || [],
-      likesCount: post.likesCount || 0,
-      dislikesCount: post.dislikesCount || 0,
-      commentsCount: post.commentsCount || 0,
-      comments: [],
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      metadata: post.metadata,
-      tags: post.metadata?.tags || [],
-      sourceUrl: post.metadata?.sourceUrl || '',
-      verifications: post.metadata?.verifications || [],
-      disputes: post.metadata?.disputes || [],
-      agrees: post.reactions?.agrees || [],
-      disagrees: post.reactions?.disagrees || [],
-      facts: post.reactions?.facts || [],
-      caps: post.reactions?.caps || [],
-      misleadings: post.reactions?.misleadings || [],
-      validPoints: post.reactions?.validPoints || [],
-    }));
+    const transformedPosts = posts.map(transformPost);
 
     res.json({
       posts: transformedPosts,
@@ -139,30 +168,15 @@ export const getPost = async (req, res, next) => {
 
     const post = await Post.findOne({ _id: id, isDeleted: { $ne: true } })
       .populate('author', '-password -__v')
+      .populate('comments.author', 'username displayName avatar')
+      .populate('comments.replies.author', 'username displayName avatar')
       .select('-__v -isDeleted');
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Transform for client compatibility
-    const transformedPost = {
-      _id: post._id,
-      content: post.text,
-      text: post.text,
-      media: post.media || [],
-      author: post.author,
-      likes: post.reactions?.likes || [],
-      dislikes: post.reactions?.dislikes || [],
-      likesCount: post.likesCount || 0,
-      dislikesCount: post.dislikesCount || 0,
-      commentsCount: post.commentsCount || 0,
-      comments: [],
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    };
-
-    res.json({ post: transformedPost });
+    res.json({ post: transformPost(post.toObject()) });
   } catch (err) {
     console.error('[postController.getPost] error:', err);
     next(err);
@@ -184,8 +198,10 @@ export const deletePost = async (req, res, next) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Ownership check
-    if (String(post.author) !== String(userId)) {
+    // Ownership/admin check
+    const isOwner = String(post.author) === String(userId);
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
@@ -197,6 +213,59 @@ export const deletePost = async (req, res, next) => {
     res.json({ message: 'Post deleted successfully' });
   } catch (err) {
     console.error('[postController.deletePost] error:', err);
+    next(err);
+  }
+};
+
+/**
+ * Get comments for a post.
+ * GET /api/posts/:id/comments
+ */
+export const getComments = async (req, res, next) => {
+  try {
+    const post = await Post.findOne({ _id: req.params.id, isDeleted: { $ne: true } })
+      .populate('comments.author', 'username displayName avatar')
+      .populate('comments.replies.author', 'username displayName avatar')
+      .select('comments')
+      .lean();
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json({ comments: (post.comments || []).map(transformComment) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Add a comment to a post.
+ * POST /api/posts/:id/comments
+ */
+export const addComment = async (req, res, next) => {
+  try {
+    const text = String(req.body?.text || req.body?.content || '').trim();
+    if (!text) {
+      return res.status(400).json({ message: 'Comment text is required' });
+    }
+    if (text.length > 500) {
+      return res.status(400).json({ message: 'Comment cannot exceed 500 characters' });
+    }
+
+    const post = await Post.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    post.comments.push({ author: req.user.id, text });
+    post.commentsCount = post.comments.length;
+    await post.save();
+    await post.populate('comments.author', 'username displayName avatar');
+
+    const savedComment = post.comments[post.comments.length - 1];
+    res.status(201).json({ comment: transformComment(savedComment.toObject()) });
+  } catch (err) {
     next(err);
   }
 };
@@ -307,4 +376,6 @@ export default {
   deletePost,
   getTrendingPosts,
   reactToPost,
+  getComments,
+  addComment,
 };

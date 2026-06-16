@@ -12,6 +12,7 @@ import React, {
   useCallback,
   useContext,
   useRef,
+  useMemo,
 } from 'react';
 import {
   useParams,
@@ -140,25 +141,21 @@ const useUserProfile = (username, currentUser) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const notify = useNotification();
 
+  // Instantly clear stale profile state when routing to a new user
+  const [prevUsername, setPrevUsername] = useState(username);
+  if (username !== prevUsername) {
+    setProfile(null);
+    setPrevUsername(username);
+  }
+
   const fetchProfile = useCallback(async () => {
-    if (!username) {return;}
+    if (!username) { setLoading(false); return; }
     setLoading(true);
     const isMe = currentUser && (String(username) === String(currentUser.username) || String(username) === String(currentUser._id) || String(username) === String(currentUser.id));
 
-        if (isMe) {
-      setProfile({ ...currentUser, stats: currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } });
-      setLoading(false);
-      return;
-    }
-
-
     try {
-      const { data } = await axios.get(`/api/users/${encodeURIComponent(username)}`);
-        if (isMe) {
-          setProfile({ ...data, ...currentUser, stats: data?.stats || currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } });
-        } else {
-          setProfile(data);
-        }
+      const data = await axios.get(`/users/${encodeURIComponent(username)}`);
+      setProfile(isMe ? { ...currentUser, ...data, stats: data?.stats || currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } } : data);
       setError(null);
     } catch (err) {
       // Fallback to local context if fetching current user fails
@@ -175,7 +172,7 @@ const useUserProfile = (username, currentUser) => {
         }
       }
     } finally {
-      if (!isMe) {setLoading(false);}
+      setLoading(false);
     }
   }, [username, notify, currentUser]);
 
@@ -195,7 +192,7 @@ const useUserProfile = (username, currentUser) => {
     const p = { ...profile };
     const localPosts = storageCache.getPosts();
     const userPostsCount = localPosts.filter(post => 
-      String(post.author?._id || post.author?.id || post.author?.username || post.author) === String(p._id || p.id || p.username)
+      String(post.author?._id || post.author?.id || post.author) === String(p._id || p.id)
     ).length;
     
     p.stats = { ...(p.stats || { followersCount: 0, followingCount: 0, postsCount: 0 }) };
@@ -215,30 +212,42 @@ const useUserPosts = (userId, limit = 12) => {
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const pageRef = useRef(1);
+  const abortRef = useRef(null);
 
   const fetchPosts = useCallback(
     async (page = 1, append = false) => {
-      if (!userId) return;
+      if (abortRef.current) { abortRef.current.abort(); }
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      if (!userId) { setPosts([]); setLoading(false); return; }
+      if (page === 1 && !append) setPosts([]);
       setLoading(true);
       let fetchedPosts = [];
       try {
         const res = await fetchUserPosts(userId, { page, limit });
+        if (controller.signal.aborted) return;
         fetchedPosts = res?.posts || (Array.isArray(res) ? res : []);
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.warn('API fetch failed, using local cache', err);
       } finally {
         const localPosts = storageCache.getPosts();
         const userPosts = localPosts.filter(p => 
-          String(p.author?._id || p.author?.id || p.author?.username || p.author) === String(userId)
+          String(p.author?._id || p.author?.id || p.author) === String(userId)
         );
         
         const allPosts = [...fetchedPosts, ...userPosts];
-        const unique = Array.from(new Map(allPosts.map(p => [p._id, p])).values());
+        const validPosts = allPosts.filter(post => String(post.author?._id || post.author?.id || post.author) === String(userId));
+        const unique = Array.from(new Map(validPosts.map(p => [p._id, p])).values());
         unique.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         
         const paginated = unique.slice((page - 1) * limit, page * limit);
         
-        setPosts(prev => append ? [...prev, ...paginated] : paginated);
+        setPosts(prev => {
+          const next = append ? [...prev, ...paginated] : paginated;
+          return Array.from(new Map(next.map(p => [p._id, p])).values());
+        });
         setHasMore(unique.length > page * limit);
         pageRef.current = page;
         setLoading(false);
@@ -250,6 +259,30 @@ const useUserPosts = (userId, limit = 12) => {
   useEffect(() => {
     fetchPosts(1);
   }, [fetchPosts]);
+
+  useEffect(() => {
+    const syncFromCache = () => {
+      if (!userId) {return;}
+      const cachedPosts = storageCache.getPosts();
+      const userPosts = cachedPosts
+        .filter(p => String(p.author?._id || p.author?.id || p.author) === String(userId))
+        .sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        
+        setPosts(prev => {
+          const all = [...prev, ...userPosts];
+          const unique = Array.from(new Map(all.map(p => [p._id, p])).values());
+          unique.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          return unique;
+        });
+    };
+
+    const unsubscribe = storageCache.subscribe('posts', syncFromCache);
+    window.addEventListener('local_post_created', syncFromCache);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('local_post_created', syncFromCache);
+    };
+  }, [userId]);
 
 
 
@@ -278,7 +311,7 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
   const [following, setFollowing] = useState(() => {
     const localFollows = storageCache.getFollows();
     const v = localFollows?.[targetUserId];
-    return v ?? initialFollowing;
+    return (initialFollowing !== undefined ? initialFollowing : v) || false;
   });
   const [loading, setLoading] = useState(false);
   const { user } = useContext(AuthContext);
@@ -287,9 +320,7 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
   useEffect(() => {
     const localFollows = storageCache.getFollows();
     const v = localFollows?.[targetUserId];
-    if (v === undefined) {
-      setFollowing(initialFollowing);
-    }
+    setFollowing(initialFollowing ?? v ?? false);
   }, [initialFollowing, targetUserId]);
 
   const toggle = useCallback(async () => {
@@ -303,28 +334,17 @@ const useFollowToggle = (initialFollowing, targetUserId, onUpdate) => {
 
     try {
         if (!prev) {
-        await axios.post(`/api/users/${encodeURIComponent(targetUserId)}/follow`);
+        const result = await axios.post(`/users/${encodeURIComponent(targetUserId)}/follow`);
+        if (onUpdate) {onUpdate(true, result);}
       } else {
-        await axios.delete(`/api/users/${encodeURIComponent(targetUserId)}/follow`);
+        const result = await axios.delete(`/users/${encodeURIComponent(targetUserId)}/follow`);
+        if (onUpdate) {onUpdate(false, result);}
       }
-      if (onUpdate) {onUpdate(!prev);}
     } catch (err) {
-      // Fallback local persistence
-      
-      if (!prev && targetUserId !== String(user?._id || user?.id)) {
-        storageCache.addNotification({
-          _id: `notif_follow_${Date.now()}`,
-          type: 'follow',
-          actor: user || { username: 'User' },
-          text: 'started following you',
-          targetId: targetUserId,
-          read: false,
-          createdAt: new Date().toISOString()
-        });
-        window.dispatchEvent(new Event('local_notify'));
-      }
-
-      if (onUpdate) {onUpdate(!prev);}
+      setFollowing(prev);
+      if (!prev) {storageCache.removeFollow(targetUserId);}
+      else {storageCache.addFollow(targetUserId);}
+      notify.error(err?.message || 'Could not update follow');
     } finally {
       setLoading(false);
     }
@@ -447,13 +467,12 @@ const CredibilityBadge = React.memo(({ cred, rank }) => (
 ));
 CredibilityBadge.displayName = 'CredibilityBadge';
 
-const FollowButton = React.memo(({ profile, isOwnProfile }) => {
+const FollowButton = React.memo(({ profile, isOwnProfile, onFollowChange }) => {
   const { user } = useContext(AuthContext);
-  const [followingCount, setFollowingCount] = useState(profile?.stats?.followersCount || 0);
   const { following, loading, toggle } = useFollowToggle(
-    profile?.isFollowing || false,
+    profile?.isFollowing,
     profile?._id,
-    (newState) => setFollowingCount((prev) => prev + (newState ? 1 : -1))
+    onFollowChange
   );
 
   if (isOwnProfile) {return null;}
@@ -477,7 +496,7 @@ const FollowButton = React.memo(({ profile, isOwnProfile }) => {
       ) : (
         <UserPlus className="w-4 h-4" />
       )}
-      {following ? 'Following' : 'Follow'}
+      {following ? 'Following' : profile?.isFollower ? 'Follow back' : 'Follow'}
     </motion.button>
   );
 });
@@ -562,7 +581,6 @@ const UserFeed = React.memo(({ userId, activeTab }) => {
           <motion.div key={post._id} variants={postItemVariant}>
             <PostCard
               post={post}
-              currentUserId={userId}
               onDelete={deleteTalk}
             />
           </motion.div>
@@ -593,12 +611,34 @@ export default function Profile() {
   // Fetch profile based on URL param or fallback to current user
   const targetUsername = username || currentUser?.username || currentUser?._id || currentUser?.id;
   const { profile, loading: profileLoading, error } = useUserProfile(targetUsername, currentUser);
-  const isOwnProfile = currentUser && (currentUser.username === targetUsername || currentUser._id === targetUsername || currentUser.id === targetUsername);
+  const isOwnProfile = !!(currentUser && profile && (
+    String(profile._id || profile.id || profile.username) === String(currentUser._id || currentUser.id || currentUser.username) ||
+    String(profile.username) === String(currentUser.username)
+  ));
   const { score, rank } = useCredibility(targetUsername);
   const notify = useNotification();
 
 
   const [activeTab, setActiveTab] = useState('posts');
+  const [statsOverride, setStatsOverride] = useState(null);
+
+  useEffect(() => {
+    setStatsOverride(profile?.stats || null);
+  }, [profile?._id, profile?.stats?.followersCount, profile?.stats?.followingCount, profile?.stats?.postsCount]);
+
+  const displayProfile = useMemo(() => (
+    profile ? { ...profile, stats: statsOverride || profile.stats } : profile
+  ), [profile, statsOverride]);
+
+  const handleFollowChange = useCallback((isFollowing, result) => {
+    setStatsOverride((prev) => ({
+      ...(prev || profile?.stats || {}),
+      followersCount: result?.data?.followersCount ?? result?.followersCount ?? Math.max(0, Number((prev || profile?.stats)?.followersCount || 0) + (isFollowing ? 1 : -1)),
+    }));
+    window.dispatchEvent(new CustomEvent('forreal:follow:changed', {
+      detail: { targetId: profile?._id, isFollowing },
+    }));
+  }, [profile?._id, profile?.stats]);
 
   // If no username and no current user, redirect to login
   useEffect(() => {
@@ -611,6 +651,8 @@ export default function Profile() {
   if (profileLoading) {return <ProfileSkeleton />;}
 
   // Error state
+  if (!displayProfile && !error) { return <ProfileSkeleton />; }
+
   if (error) {
     return (
       <Layout>
@@ -638,7 +680,7 @@ export default function Profile() {
         className="max-w-4xl mx-auto px-4 md:px-6 pt-4 pb-20 md:pb-8"
       >
         {/* Cover Image */}
-        <ProfileCover profile={profile} />
+        <ProfileCover profile={displayProfile} />
 
         {/* Profile Header */}
         <motion.div
@@ -647,8 +689,8 @@ export default function Profile() {
         >
           {/* Left: Avatar + mobile stats */}
           <div className="flex flex-col items-center md:items-start">
-            <ProfileAvatar profile={profile} />
-            <StatsBar stats={profile?.stats} />
+            <ProfileAvatar profile={displayProfile} />
+            <StatsBar stats={displayProfile?.stats} />
           </div>
 
           {/* Right: Info & actions */}
@@ -657,32 +699,32 @@ export default function Profile() {
               <div>
                 <div className="flex items-center gap-2 justify-center md:justify-start">
                   <h1 className="text-2xl md:text-3xl font-bold text-white">
-                    {profile?.displayName || profile?.username}
+                    {displayProfile?.displayName || displayProfile?.username}
                   </h1>
-                  {profile?.verified && (
+                  {displayProfile?.verified && (
                     <span className="text-neon" title="Verified">
                       <ShieldCheck className="w-5 h-5" />
                     </span>
                   )}
                 </div>
                 <p className="text-gray-400 text-sm md:text-base">
-                  @{profile?.username}
+                  @{displayProfile?.username}
                   <span className={`ml-2 text-[10px] font-mono uppercase px-2 py-0.5 rounded-full border ${rank.bg} ${rank.color} ${rank.border}`}>
                     {rank.title}
                   </span>
                 </p>
-                {profile?.bio && (
-                  <p className="mt-2 text-gray-300 text-sm max-w-md">{profile.bio}</p>
+                {displayProfile?.bio && (
+                  <p className="mt-2 text-gray-300 text-sm max-w-md">{displayProfile.bio}</p>
                 )}
                 <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-500 justify-center md:justify-start">
-                  {profile?.location && (
+                  {displayProfile?.location && (
                     <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {profile.location}
+                      <MapPin className="w-3 h-3" /> {displayProfile.location}
                     </span>
                   )}
-                  {profile?.website && (
+                  {displayProfile?.website && (
                     <a
-                      href={profile.website}
+                      href={displayProfile.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-neon hover:underline"
@@ -691,7 +733,7 @@ export default function Profile() {
                     </a>
                   )}
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" /> Joined {new Date(profile?.createdAt).toLocaleDateString()}
+                    <Calendar className="w-3 h-3" /> Joined {displayProfile?.createdAt ? new Date(displayProfile.createdAt).toLocaleDateString() : 'recently'}
                   </span>
                 </div>
                 <CredibilityBadge cred={score} rank={rank} />
@@ -708,7 +750,17 @@ export default function Profile() {
                     <Edit3 className="w-4 h-4" /> Edit Profile
                   </motion.button>
                 ) : (
-                  <FollowButton profile={profile} isOwnProfile={isOwnProfile} />
+                  <>
+                    <FollowButton profile={displayProfile} isOwnProfile={isOwnProfile} onFollowChange={handleFollowChange} />
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate(`/messages?user=${encodeURIComponent(displayProfile?._id || displayProfile?.id || displayProfile?.username)}`)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition text-sm"
+                    >
+                      <MessageSquare className="w-4 h-4" /> Message
+                    </motion.button>
+                  </>
                 )}
               </div>
             </div>
@@ -718,7 +770,7 @@ export default function Profile() {
         {/* Tabs & Feed */}
         <div className="mt-8">
           <ProfileTabs activeTab={activeTab} onChange={setActiveTab} />
-          <UserFeed userId={profile?._id} activeTab={activeTab} />
+          <UserFeed userId={displayProfile?._id || displayProfile?.id} activeTab={activeTab} />
         </div>
       </motion.div>
     </Layout>

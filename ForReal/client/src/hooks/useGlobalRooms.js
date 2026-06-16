@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { storageCache } from '../lib/storageCache';
-import api from '../api/axios.js';
+import apiClient from '../api/api.js';
 import { getSocket } from '../realtime/socket';
 
 export function useGlobalRooms() {
@@ -40,6 +40,11 @@ export function useGlobalRooms() {
       storageCache.addRoom(room);
     };
 
+    const handleRoomDeleted = ({ roomId } = {}) => {
+      if (!roomId) return;
+      storageCache.deleteRoom(roomId);
+    };
+
     const handleReactionNew = (data) => {
       if (!data || !data.roomId) return;
       const currentRooms = storageCache.getRooms();
@@ -67,12 +72,14 @@ export function useGlobalRooms() {
     socket.on('room:members:update', handleMembersUpdate);
     socket.on('message:new', handleNewMessage);
     socket.on('rooms:new', handleNewRoom);
+    socket.on('rooms:deleted', handleRoomDeleted);
     socket.on('reaction:new', handleReactionNew);
 
     return () => {
       socket.off('room:members:update', handleMembersUpdate);
       socket.off('message:new', handleNewMessage);
       socket.off('rooms:new', handleNewRoom);
+      socket.off('rooms:deleted', handleRoomDeleted);
       socket.off('reaction:new', handleReactionNew);
     };
   }, []);
@@ -91,7 +98,7 @@ export function useGlobalRooms() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.rooms.getAll(params);
+      const response = await apiClient.rooms.getAll(params);
       // Determine if response is an array or object wrapping an array
       const roomList = Array.isArray(response) ? response : (response?.rooms || response?.data || []);
       storageCache.setRooms(roomList);
@@ -108,7 +115,7 @@ export function useGlobalRooms() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.rooms.getById(roomId);
+      const response = await apiClient.rooms.getById(roomId);
       const roomData = response?.room || response?.data || response;
       if (roomData) {
         const existing = storageCache.getRooms().find(r => r._id === roomId);
@@ -131,7 +138,7 @@ export function useGlobalRooms() {
   const createRoom = useCallback(async (roomData) => {
     setError(null);
     try {
-      const response = await api.rooms.create(roomData);
+      const response = await apiClient.rooms.create(roomData);
       const newRoom = response.room || response;
       
       // Ensure required fallback fields for UI assumptions
@@ -160,6 +167,21 @@ export function useGlobalRooms() {
     const updated = storageCache.deleteRoom(roomId);
     setRooms(updated);
   }, []);
+
+  const endRoom = useCallback(async (roomId) => {
+    const response = await apiClient.rooms.end(roomId);
+    const roomData = response?.room || response;
+    if (roomData?._id) {
+      const updated = storageCache.updateRoom(roomId, roomData);
+      setRooms(updated);
+    }
+    return roomData;
+  }, []);
+
+  const deleteRoomRemote = useCallback(async (roomId) => {
+    await apiClient.rooms.delete(roomId);
+    return deleteRoom(roomId);
+  }, [deleteRoom]);
 
   // Optimistic create: immediately show room while API processes
   const optimisticCreateRoom = useCallback((roomData) => {
@@ -198,7 +220,7 @@ export function useGlobalRooms() {
   // Join an existing room via API
   const joinRoom = useCallback(async (roomId) => {
     try {
-      await api.rooms.join(roomId);
+      await apiClient.rooms.join(roomId);
     } catch (err) {
       console.warn(`[useGlobalRooms] Failed to join room API:`, err);
       // Socket handles real-time fallbacks, no throw required
@@ -208,7 +230,7 @@ export function useGlobalRooms() {
   // Leave a room via API
   const leaveRoom = useCallback(async (roomId) => {
     try {
-      await api.rooms.leave(roomId);
+      await apiClient.rooms.leave(roomId);
     } catch (err) {
       console.warn(`[useGlobalRooms] Failed to leave room API:`, err);
     }
@@ -223,6 +245,8 @@ export function useGlobalRooms() {
     createRoom,
     updateRoom,
     deleteRoom,
+    endRoom,
+    deleteRoomRemote,
     optimisticCreateRoom,
     confirmRoom,
     joinRoom,

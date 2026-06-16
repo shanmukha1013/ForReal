@@ -8,10 +8,14 @@ export const createOrSendMessage = async (req, res, next) => {
     const { text, recipientId, conversationId } = req.body || {};
     const senderId = req.user.id;
 
-    if (!text) return res.status(400).json({ message: 'Text is required' });
+    const trimmed = String(text || '').trim();
+    if (!trimmed) return res.status(400).json({ message: 'Text is required' });
 
     let convId = conversationId;
     if (!convId && recipientId) {
+      const recipient = await User.findById(recipientId).select('_id');
+      if (!recipient) return res.status(404).json({ message: 'Recipient not found' });
+
       let conv = await Conversation.findOne({ participants: { $all: [senderId, recipientId], $size: 2 } });
       if (!conv) {
         conv = new Conversation({ participants: [senderId, recipientId] });
@@ -21,13 +25,18 @@ export const createOrSendMessage = async (req, res, next) => {
     }
 
     if (!convId) return res.status(400).json({ message: 'Conversation or recipient required' });
+    const conversation = await Conversation.findById(convId).select('participants');
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+    if (!conversation.participants.some((id) => String(id) === String(senderId))) {
+      return res.status(403).json({ message: 'Not a conversation participant' });
+    }
 
     const senderData = await User.findById(senderId).select('username displayName avatar');
-    const message = new Message({ conversationId: convId, sender: senderId, text });
+    const message = new Message({ conversationId: convId, sender: senderId, text: trimmed });
     await message.save();
 
     const populatedMessage = { ...message.toObject(), sender: senderData };
-    await Conversation.findByIdAndUpdate(convId, { lastMessage: populatedMessage });
+    await Conversation.findByIdAndUpdate(convId, { lastMessage: populatedMessage, updatedAt: new Date() });
 
     const io = getIO();
     if (io) io.to(`dm:conv:${convId}`).emit('dm:new', populatedMessage);
@@ -62,6 +71,12 @@ export const getConversations = async (req, res, next) => {
  */
 export const getMessages = async (req, res, next) => {
   try {
+    const conversation = await Conversation.findById(req.params.conversationId).select('participants').lean();
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+    if (!conversation.participants.some((id) => String(id) === String(req.user.id))) {
+      return res.status(403).json({ message: 'Not a conversation participant' });
+    }
+
     const messages = await Message.find({ conversationId: req.params.conversationId })
       .populate('sender', 'username displayName avatar')
       .sort({ createdAt: 1 })

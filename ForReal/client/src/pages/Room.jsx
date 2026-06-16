@@ -14,7 +14,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheckIcon,
@@ -118,6 +118,22 @@ const formatTime = (totalSec) => {
   return `${mm.toString().padStart(2, '0')}:${ss.toString().padStart(2, '0')}`;
 };
 
+const getMessageKey = (message) => message?.clientId || message?._id || message?.id;
+const mergeChatMessages = (messages) => {
+  const map = new Map();
+  (messages || []).filter(Boolean).forEach((msg, index) => {
+    const key = getMessageKey(msg) || 'idx_' + index;
+    const existing = map.get(key);
+    if (existing && String(existing._id).startsWith('msg_') && !String(msg._id).startsWith('msg_')) return;
+    map.set(key, { ...existing, ...msg, _id: msg._id || existing?._id || msg.id });
+  });
+  return Array.from(map.values());
+};
+const profilePathFor = (user) => {
+  const target = user?.username || user?._id || user?.id;
+  return target ? `/profile/${encodeURIComponent(target)}` : null;
+};
+
 // -----------------------------------------------------------------------------
 // Custom Hooks
 // -----------------------------------------------------------------------------
@@ -204,7 +220,7 @@ const useDebateRoom = (roomId) => {
           pro: roomData.pro?.activeSpeaker || null,
           against: roomData.against?.activeSpeaker || null,
         });
-      setChatMessages(roomData.messages || []);
+      setChatMessages(mergeChatMessages(roomData.messages || []));
 
         if (roomData.status === 'active' && roomData.debateTimer?.startedAt) {
           const endsAt = new Date(
@@ -237,7 +253,27 @@ const useDebateRoom = (roomId) => {
     socket.emit('room:join', { roomId });
 
     const onChat = (message) => {
-      setChatMessages((prev) => [...prev, message]);
+      setChatMessages((prev) => {
+        const incomingClientId = message?.clientId;
+        const isMyMessage = String(message.author?._id || message.author?.id || message.sender?._id || message.sender) === String(userRef.current?._id || userRef.current?.id);
+        
+        let foundMatch = false;
+        const updated = prev.map((existing) => {
+          if (incomingClientId && existing.clientId === incomingClientId) {
+            foundMatch = true;
+            return { ...existing, ...message, _id: message._id || message.id };
+          }
+          // Heuristic match if clientId missing but it's our optimistic message
+          if (!incomingClientId && isMyMessage && existing.text === message.text && String(existing._id).startsWith('msg_')) {
+            foundMatch = true;
+            return { ...existing, ...message, _id: message._id || message.id };
+          }
+          return existing;
+        });
+        
+        if (foundMatch) return mergeChatMessages(updated);
+        return mergeChatMessages([...updated, { ...message, _id: message._id || message.id }]);
+      });
       // Remove typing indicator for that user
       setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(message.author?.id || message.sender?._id)));
     };
@@ -261,6 +297,17 @@ const useDebateRoom = (roomId) => {
     const onStarted = () => {
       // Re‑fetch entire room to sync everything
       fetchRoom();
+    };
+
+    const onEnded = ({ room: endedRoom } = {}) => {
+      setRoom((prev) => ({ ...(prev || {}), ...(endedRoom || {}), status: 'ended' }));
+      setTimerSec(0);
+    };
+
+    const onDeleted = () => {
+      setRoom((prev) => prev ? { ...prev, status: 'deleted', isActive: false } : prev);
+      setTimerSec(0);
+      setError('This debate was deleted.');
     };
 
     const onPresence = ({ proCount, againstCount, observerCount }) => {
@@ -298,6 +345,8 @@ const useDebateRoom = (roomId) => {
     socket.on('debate:score', onScore);
     socket.on('debate:speaker', onSpeaker);
     socket.on('debate:started', onStarted);
+    socket.on('debate:ended', onEnded);
+    socket.on('room:deleted', onDeleted);
     socket.on('debate:presence', onPresence);
     socket.on('typing:start', onTyping);
     socket.on('typing:stop', onStopTyping);
@@ -310,6 +359,8 @@ const useDebateRoom = (roomId) => {
       socket.off('debate:score', onScore);
       socket.off('debate:speaker', onSpeaker);
       socket.off('debate:started', onStarted);
+      socket.off('debate:ended', onEnded);
+      socket.off('room:deleted', onDeleted);
       socket.off('debate:presence', onPresence);
       socket.off('typing:start', onTyping);
       socket.off('typing:stop', onStopTyping);
@@ -412,6 +463,34 @@ const useDebateRoom = (roomId) => {
     [roomId, updateLocalRoom, notify]
   );
 
+  const endDebate = useCallback(async () => {
+    try {
+      const result = await axios.patch(`/rooms/${roomId}/end`);
+      const endedRoom = result?.room || result;
+      setRoom((prev) => {
+        const updated = { ...(prev || {}), ...(endedRoom || {}), status: 'ended', endTime: endedRoom?.endTime || new Date().toISOString() };
+        updateLocalRoom(updated);
+        return updated;
+      });
+      setTimerSec(0);
+      notify.success('Debate ended');
+    } catch (err) {
+      notify.error(err?.message || 'Failed to end debate');
+      throw err;
+    }
+  }, [roomId, updateLocalRoom, notify]);
+
+  const deleteDebate = useCallback(async () => {
+    try {
+      await axios.delete(`/rooms/${roomId}`);
+      storageCache.deleteRoom(roomId);
+      notify.success('Debate deleted');
+    } catch (err) {
+      notify.error(err?.message || 'Failed to delete debate');
+      throw err;
+    }
+  }, [roomId, notify]);
+
   const adjustScore = useCallback(
     (team, delta) => {
       try { socketRef.current?.emit('debate:score', { roomId, side: team, delta }); } catch(e) { console.warn('emit adjustScore failed', e); }
@@ -426,8 +505,10 @@ const useDebateRoom = (roomId) => {
 
   const sendChatMessage = useCallback(
     (text, isAnon) => {
+      const clientId = `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`;
       const newMsg = {
-        _id: `msg_${Date.now()}`,
+        _id: clientId,
+        clientId,
         text,
         author: user || { username: 'Guest' },
         isAnonymous: isAnon,
@@ -443,7 +524,7 @@ const useDebateRoom = (roomId) => {
       };
       
       setChatMessages(prev => {
-        const updated = [...prev, newMsg];
+        const updated = mergeChatMessages([...prev, newMsg]);
         updateLocalRoom({ messages: updated });
         return updated;
       });
@@ -452,6 +533,8 @@ const useDebateRoom = (roomId) => {
         if (socket) {socket.emit('message:send', {
           roomId,
           text,
+          clientId,
+          isAnonymous: isAnon,
         });}
       } catch(e) { console.warn('sendChatMessage emit failed', e); }
     },
@@ -499,7 +582,7 @@ const useDebateRoom = (roomId) => {
             
             return updatedMsg;
         });
-        updateLocalRoom({ chatMessages: newMessages });
+        updateLocalRoom({ messages: newMessages });
         return newMessages;
     });
   }, [updateLocalRoom, userRef]);
@@ -529,6 +612,8 @@ const useDebateRoom = (roomId) => {
     vote,
     startDebate,
     adjustScore,
+    endDebate,
+    deleteDebate,
     sendChatMessage,
     emitTyping,
     reactToChatMessage,
@@ -700,6 +785,7 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode }) => 
   const activeReactions = REACTION_TYPES.filter(rt => message[arrayKeyMap[rt.id]]?.length > 0);
   const isAnon = message.isAnonymous || anonymityMode === 'anonymous';
   const author = message.author || message.sender;
+  const profilePath = !isAnon ? profilePathFor(author) : null;
 
   return (
   <motion.div
@@ -720,7 +806,13 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode }) => 
         {!isMine && (
           <div className="text-xs mb-1 font-mono flex items-center gap-1" style={{ color: isAnon ? '#a855f7' : 'rgba(34, 197, 94, 0.8)' }}>
             {isAnon ? <EyeSlash className="w-3 h-3" /> : null}
-                @{isAnon ? 'anonymous' : (author?.username || 'user')}
+            {profilePath ? (
+              <Link to={profilePath} className="hover:underline">
+                @{author?.username || 'user'}
+              </Link>
+            ) : (
+              <>@{isAnon ? 'anonymous' : (author?.username || 'user')}</>
+            )}
           </div>
         )}
         <div className="text-sm break-words">{message.text}</div>
@@ -774,7 +866,7 @@ const TypingIndicator = React.memo(({ typingUsers, anonymityMode }) => {
 TypingIndicator.displayName = 'TypingIndicator';
 
 // Chat input with typing emission
-const ChatInput = React.memo(({ onSend, onTyping, anonymityMode }) => {
+const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled }) => {
   const [text, setText] = useState('');
   const [postAnon, setPostAnon] = useState(anonymityMode === 'anonymous');
   const typingTimeout = useRef(null);
@@ -785,6 +877,7 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode }) => {
   }, [anonymityMode]);
 
   const handleChange = (e) => {
+    if (disabled) {return;}
     setText(e.target.value);
     if (onTyping) {
       onTyping(true);
@@ -795,7 +888,7 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode }) => {
 
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed) {return;}
+    if (!trimmed || disabled) {return;}
     onSend(trimmed, postAnon);
     setText('');
     if (onTyping) {onTyping(false);}
@@ -803,7 +896,7 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode }) => {
 
   return (
     <div className="flex flex-col border-t border-white/10 bg-black/40">
-      {anonymityMode === 'hybrid' && (
+      {anonymityMode === 'hybrid' && !disabled && (
          <div className="flex items-center gap-3 px-4 pt-3 pb-1">
            <span className="text-xs text-gray-500">Identity:</span>
            <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer hover:text-white transition">
@@ -822,14 +915,15 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode }) => {
         value={text}
         onChange={handleChange}
         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-        placeholder="Type your argument..."
-        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 text-sm"
+        placeholder={disabled ? 'This debate is closed.' : 'Type your argument...'}
+        disabled={disabled}
+        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 text-sm disabled:opacity-60"
       />
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleSend}
-        disabled={!text.trim()}
+        disabled={disabled || !text.trim()}
         className="px-4 py-2 rounded-xl bg-neon text-black font-bold flex items-center gap-1 disabled:opacity-50"
       >
         <Send className="w-4 h-4" />
@@ -1047,6 +1141,7 @@ DebateVerdictPanel.displayName = 'DebateVerdictPanel';
 // -----------------------------------------------------------------------------
 export default function Room() {
   const { id: roomId } = useParams();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const myId = user?._id || user?.id;
   const { score: myCredScore } = useCredibility(myId);
@@ -1066,6 +1161,8 @@ export default function Room() {
     vote,
     startDebate,
     adjustScore,
+    endDebate,
+    deleteDebate,
     sendChatMessage,
     emitTyping,
     reactToChatMessage,
@@ -1078,8 +1175,9 @@ export default function Room() {
 
   const isHost = useMemo(() => {
     if (!user || !room) {return false;}
+    const ownerId = room.creator?._id || room.creator?.id || room.creator || room.createdBy?._id || room.createdBy?.id || room.createdBy;
     return (
-      String(room.createdBy?._id || room.createdBy?.id || room.createdBy) === String(user._id || user.id) ||
+      String(ownerId) === String(user._id || user.id) ||
       user.role === 'admin'
     );
   }, [user, room]);
@@ -1090,6 +1188,7 @@ export default function Room() {
   const isPro = mySide === 'pro';
   const isAgainst = mySide === 'against';
   const isObserver = mySide === 'observe';
+  const isClosed = room?.status === 'ended' || room?.status === 'deleted';
 
   const energy = useDebateEnergy(room, chatMessages);
   const IntensityIcon = energy.icon;
@@ -1098,6 +1197,7 @@ export default function Room() {
   const { verdictData, castEvaluationVote, generateVerdict } = useDebateVerdict(roomId, myId, myCredScore, room, summary);
 
   const handleJoin = async (nextSide) => {
+    if (isClosed) {return;}
     if (joining) {return;}
     setJoining(true);
     try {
@@ -1108,6 +1208,17 @@ export default function Room() {
     } finally {
       setJoining(false);
     }
+  };
+
+  const handleEndDebate = async () => {
+    if (!window.confirm('End this debate now? The room stays readable, but chat closes.')) {return;}
+    await endDebate();
+  };
+
+  const handleDeleteDebate = async () => {
+    if (!window.confirm('Delete this debate? It will be removed from discovery.')) {return;}
+    await deleteDebate();
+    navigate('/rooms');
   };
 
   // Broadcast timeline event when verdict is finalized
@@ -1225,46 +1336,52 @@ export default function Room() {
           <div className="flex flex-wrap gap-2 mt-5">
             <button
               onClick={() => handleJoin('pro')}
-              disabled={joining}
+              disabled={joining || isClosed}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isPro ? 'bg-neon text-black' : 'bg-white/5 border border-white/10 hover:border-neon/50'}`}
             >
               {isPro ? 'Pro (joined)' : 'Join Pro'}
             </button>
             <button
               onClick={() => handleJoin('against')}
-              disabled={joining}
+              disabled={joining || isClosed}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isAgainst ? 'bg-red-400 text-black' : 'bg-white/5 border border-white/10 hover:border-neon/50'}`}
             >
               {isAgainst ? 'Against (joined)' : 'Join Against'}
             </button>
             <button
               onClick={() => handleJoin('observe')}
-              disabled={joining}
+              disabled={joining || isClosed}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isObserver ? 'bg-white/20 text-white' : 'bg-white/5 border border-white/10 hover:border-neon/50'}`}
             >
               Observe
             </button>
             {isHost && (
               <>
-                <button onClick={() => startDebate()} className="px-4 py-2 rounded-xl bg-neon text-black font-bold text-sm flex items-center gap-1">
+                <button disabled={isClosed} onClick={() => startDebate()} className="px-4 py-2 rounded-xl bg-neon text-black font-bold text-sm flex items-center gap-1 disabled:opacity-50">
                   <Play className="w-3.5 h-3.5" /> Start
                 </button>
-                <button onClick={() => adjustScore('pro', 1)} className="px-3 py-2 rounded-xl bg-neon/10 border border-neon/30 text-neon text-sm">
+                <button disabled={isClosed} onClick={() => adjustScore('pro', 1)} className="px-3 py-2 rounded-xl bg-neon/10 border border-neon/30 text-neon text-sm disabled:opacity-50">
                   +Pro
                 </button>
-                <button onClick={() => adjustScore('against', 1)} className="px-3 py-2 rounded-xl bg-red-400/10 border border-red-400/30 text-red-400 text-sm">
+                <button disabled={isClosed} onClick={() => adjustScore('against', 1)} className="px-3 py-2 rounded-xl bg-red-400/10 border border-red-400/30 text-red-400 text-sm disabled:opacity-50">
                   +Against
+                </button>
+                <button disabled={isClosed} onClick={handleEndDebate} className="px-3 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-sm disabled:opacity-50">
+                  End
+                </button>
+                <button onClick={handleDeleteDebate} className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  Delete
                 </button>
               </>
             )}
             <div className="flex-1" />
-            <button onClick={() => vote('pro')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1">
+            <button disabled={isClosed} onClick={() => vote('pro')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1 disabled:opacity-50">
               <ThumbsUp className="w-3.5 h-3.5 text-neon" /> Pro
             </button>
-            <button onClick={() => vote('against')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1">
+            <button disabled={isClosed} onClick={() => vote('against')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1 disabled:opacity-50">
               <ThumbsDown className="w-3.5 h-3.5 text-red-400" /> Against
             </button>
-            <button onClick={() => vote('neutral')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1">
+            <button disabled={isClosed} onClick={() => vote('neutral')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1 disabled:opacity-50">
               <Minus className="w-3.5 h-3.5" /> Neutral
             </button>
           </div>
@@ -1304,12 +1421,12 @@ export default function Room() {
               <AnimatePresence>
                 {chatMessages.length === 0 ? (
                   <div className="text-center py-12 text-gray-500 text-sm">
-                    No messages yet. Fire the first argument!
+                    {isClosed ? 'This debate is closed.' : 'No messages yet. Fire the first argument!'}
                   </div>
                 ) : (
                   chatMessages.map((msg, idx) => (
                     <ChatMessage
-                      key={msg._id || idx}
+                      key={getMessageKey(msg) || idx}
                       message={msg}
                     isMine={String(msg.author?._id || msg.author?.id || msg.sender?._id || msg.author?.username) === String(user?._id || user?.id || user?.username)}
                       onReact={reactToChatMessage}
@@ -1318,10 +1435,10 @@ export default function Room() {
                   ))
                 )}
               </AnimatePresence>
-              <TypingIndicator typingUsers={typingUsers} anonymityMode={room?.anonymityMode} />
+              {!isClosed && <TypingIndicator typingUsers={typingUsers} anonymityMode={room?.anonymityMode} />}
             </div>
 
-            <ChatInput onSend={sendChatMessage} onTyping={emitTyping} anonymityMode={room?.anonymityMode} />
+            <ChatInput onSend={sendChatMessage} onTyping={emitTyping} anonymityMode={room?.anonymityMode} disabled={isClosed} />
           </motion.div>
 
           <SidePanel

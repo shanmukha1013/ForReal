@@ -77,7 +77,12 @@ const useFeed = (limit = 10) => {
         const unique = Array.from(new Map(allTalks.map(t => [t._id, t])).values());
         unique.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         const paginated = unique.slice((page - 1) * limit, page * limit);
-        setTalks((prev) => (append ? [...prev, ...paginated] : paginated));
+        
+        setTalks((prev) => {
+          if (!append) return paginated;
+          const merged = [...prev, ...paginated];
+          return Array.from(new Map(merged.map(t => [t._id, t])).values());
+        });
         pageRef.current = page;
         if (isInitial) {setLoading(false);}
         else {setLoadingMore(false);}
@@ -92,6 +97,19 @@ const useFeed = (limit = 10) => {
       if (abortRef.current) {abortRef.current.abort();}
     };
   }, [fetchTalks]);
+
+  useEffect(() => {
+    const unsubscribe = storageCache.subscribe('posts', (updatedPosts) => {
+      setTalks((prev) => {
+        // Merge instead of replace to prevent feed shrinkage on pagination
+        const merged = [...prev, ...(updatedPosts || [])];
+        const unique = Array.from(new Map(merged.map(t => [t._id, t])).values());
+        unique.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        return unique.slice(0, Math.max(limit, prev.length || limit));
+      });
+    });
+    return unsubscribe;
+  }, [limit]);
 
   const refresh = useCallback(() => {
     fetchTalks(1);
@@ -302,7 +320,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <PostCard post={post} currentUserId={post?.author?._id || post?.author?.id} onDelete={deleteTalk} />
+                <PostCard post={post} onDelete={deleteTalk} />
               </motion.div>
             ))}
           </div>

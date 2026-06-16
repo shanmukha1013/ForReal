@@ -1,5 +1,6 @@
-import React, { useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeftIcon,
   ChatBubbleLeftRightIcon,
@@ -21,6 +22,15 @@ import Layout from '../components/Layout';
 import axios from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { getSocket } from '../realtime/socket';
+
+const mergeMessages = (items) => Array.from(
+  new Map((items || []).filter(Boolean).map((message) => [message._id || message.id, message])).values()
+);
+
+const profilePathFor = (user) => {
+  const target = user?.username || user?._id || user?.id;
+  return target ? `/profile/${encodeURIComponent(target)}` : null;
+};
 
 // Message bubble component
 const MessageBubble = ({ message, isMine, senderUsername, time, onReact }) => (
@@ -69,12 +79,20 @@ const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, 
   const title = otherParticipant.displayName || otherParticipant.username || 'Unknown User';
   const avatar = otherParticipant.avatar || `https://ui-avatars.com/api/?name=${title}&background=0F0F0F&color=22c55e`;
   const isOnline = otherParticipant.status === 'online' || ['smarty', 'test'].includes(otherParticipant.username?.toLowerCase());
+  const profilePath = profilePathFor(otherParticipant);
 
   return (
-    <motion.button
+    <motion.div
+      role="button"
+      tabIndex={0}
       whileHover={{ x: 4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick();
+        }
+      }}
       className={`w-full text-left p-4 rounded-xl transition-all duration-200 ${
         isActive
           ? 'bg-neon/10 border border-neon/30 shadow-glow-sm'
@@ -83,14 +101,26 @@ const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, 
     >
       <div className="flex items-center gap-3">
         <div className="relative flex-shrink-0">
-          <img src={avatar} alt={title} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+          {profilePath ? (
+            <Link to={profilePath} onClick={(e) => e.stopPropagation()} aria-label={`Open ${title}'s profile`}>
+              <img src={avatar} alt={title} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+            </Link>
+          ) : (
+            <img src={avatar} alt={title} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+          )}
           {isOnline && (
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-neon border-2 border-black rounded-full shadow-glow-sm" />
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">
-            <p className="text-sm text-white font-medium truncate">{title}</p>
+            {profilePath ? (
+              <Link to={profilePath} onClick={(e) => e.stopPropagation()} className="text-sm text-white font-medium truncate hover:text-neon">
+                {title}
+              </Link>
+            ) : (
+              <p className="text-sm text-white font-medium truncate">{title}</p>
+            )}
             {unreadCount > 0 && (
               <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-neon text-black text-[10px] font-bold rounded-full">
                 {unreadCount}
@@ -102,7 +132,7 @@ const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, 
           </p>
         </div>
       </div>
-    </motion.button>
+    </motion.div>
   );
 };
 
@@ -127,12 +157,14 @@ const TypingIndicator = React.memo(({ isTyping }) => {
 
 export default function Messages() {
   const { user } = useContext(AuthContext);
+  const [searchParams] = useSearchParams();
   const myId = user?._id || user?.id;
 
   const [conversations, setConversations] = useState([]);
-  const [activeConversationId, setActiveConversationId] = useState(localStorage.getItem('forreal_active_conv') || null);
+  const initialRecipient = searchParams.get('user') || '';
+  const [activeConversationId, setActiveConversationId] = useState(initialRecipient ? null : (localStorage.getItem('forreal_active_conv') || null));
   const [messages, setMessages] = useState([]);
-  const [recipientId, setRecipientId] = useState('');
+  const [recipientId, setRecipientId] = useState(initialRecipient);
   const [text, setText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState({ conversations: true, messages: false });
@@ -164,6 +196,26 @@ export default function Messages() {
     return () => window.removeEventListener('local_notify', updateUnreadCounts);
   }, [updateUnreadCounts]);
 
+  useEffect(() => {
+    const userParam = searchParams.get('user');
+    if (userParam) {
+      const existing = conversations.find(c => {
+        const p = c.participants?.find(part => String(part._id || part.id || part) !== String(myId)) || c.otherUser;
+        return p && (String(p._id || p.id || p.username) === String(userParam));
+      });
+      if (existing) {
+        if (activeConversationId !== existing._id) {
+          selectConversation(existing._id);
+        }
+        setRecipientId('');
+      } else {
+        setActiveConversationId(null);
+        setRecipientId(userParam);
+        localStorage.removeItem('forreal_active_conv');
+      }
+    }
+  }, [searchParams.get('user'), conversations.length, myId]);
+
   // Load conversations
   const loadConversations = useCallback(async () => {
     setLoading(prev => ({ ...prev, conversations: true }));
@@ -171,7 +223,7 @@ export default function Messages() {
     let fetched = [];
     try {
       const res = await axios.get('/chat/conversations');
-      fetched = res.data || [];
+      fetched = Array.isArray(res) ? res : (res?.conversations || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -191,14 +243,13 @@ export default function Messages() {
     let fetched = [];
     try {
       const res = await axios.get(`/chat/${conversationId}`);
-      fetched = res.data || [];
+      fetched = Array.isArray(res) ? res : (res?.messages || []);
     } catch (err) {
       console.error(err);
     } finally {
       const local = JSON.parse(localStorage.getItem('forreal_messages') || '[]');
       const localConvMsgs = local.filter(m => m.conversationId === conversationId);
-      const merged = [...fetched, ...localConvMsgs];
-      const unique = Array.from(new Map(merged.map(m => [m._id, m])).values());
+      const unique = mergeMessages([...fetched, ...localConvMsgs]);
       unique.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       setMessages(unique);
       setLoading(prev => ({ ...prev, messages: false }));
@@ -210,7 +261,7 @@ export default function Messages() {
   const selectConversation = useCallback(async (conversationId) => {
     setActiveConversationId(conversationId);
     localStorage.setItem('forreal_active_conv', conversationId);
-    socket.emit('dm:joinConversation', { conversationId });
+    socket?.emit('dm:joinConversation', { conversationId });
     await loadMessages(conversationId);
 
     // Mark local messages as read
@@ -237,9 +288,9 @@ export default function Messages() {
     const tempId = `temp-${Date.now()}`;
     let convId = activeConversationId;
     let isNewConv = false;
+    const recipient = recipientId.trim();
 
     if (!convId) {
-      const recipient = recipientId.trim();
       if (!recipient) {
         setError(prev => ({ ...prev, messages: 'Enter recipient ID or select conversation' }));
         return;
@@ -269,7 +320,7 @@ export default function Messages() {
       read: false,
       likes: []
     };
-    setMessages(prev => [...prev, optimisticMessage]);
+    setMessages(prev => mergeMessages([...prev, optimisticMessage]));
     setText('');
     setTimeout(scrollToBottom, 20);
 
@@ -292,7 +343,7 @@ export default function Messages() {
       } else if (isNewConv) {
         updated.unshift({
           _id: convId,
-          participants: [user, { _id: recipientId.trim(), username: recipientId.trim(), displayName: recipientId.trim() }],
+          participants: [user, { _id: recipient, username: recipient, displayName: recipient }],
           lastMessage: optimisticMessage,
           createdAt: new Date().toISOString()
         });
@@ -317,19 +368,49 @@ export default function Messages() {
 
     try {
       const requestPayload = { text: trimmed, media: [] };
-      if (isNewConv) {requestPayload.recipientId = recipientId.trim();}
+      if (isNewConv) {requestPayload.recipientId = recipient;}
       else {requestPayload.conversationId = convId;}
-      await axios.post('/chat', requestPayload);
+      const savedMessage = await axios.post('/chat', requestPayload);
+      const serverConvId = savedMessage?.conversationId || convId;
+
+      setMessages(prev => mergeMessages(prev.map(m => (
+        m._id === tempId ? { ...savedMessage, likes: savedMessage?.likes || [] } : (m.conversationId === convId ? { ...m, conversationId: serverConvId } : m)
+      ))));
+
+      const persistedMsgs = JSON.parse(localStorage.getItem('forreal_messages') || '[]')
+        .map(m => (m._id === tempId ? { ...savedMessage, likes: savedMessage?.likes || [] } : (m.conversationId === convId ? { ...m, conversationId: serverConvId } : m)));
+      localStorage.setItem('forreal_messages', JSON.stringify(mergeMessages(persistedMsgs)));
+
+      const persistedConvs = JSON.parse(localStorage.getItem('forreal_conversations') || '[]')
+        .map(c => (c._id === convId ? { ...c, _id: serverConvId, lastMessage: savedMessage } : c));
+      localStorage.setItem('forreal_conversations', JSON.stringify(Array.from(new Map(persistedConvs.map(c => [c._id, c])).values())));
+
+      if (serverConvId !== convId) {
+        localStorage.setItem('forreal_active_conv', serverConvId);
+        setActiveConversationId(serverConvId);
+        socket?.emit('dm:joinConversation', { conversationId: serverConvId });
+      }
+
+      setConversations(prev => {
+        const updated = prev.map(c => (
+          c._id === convId
+            ? { ...c, _id: serverConvId, lastMessage: savedMessage }
+            : c
+        ));
+        return Array.from(new Map(updated.map(c => [c._id, c])).values())
+          .sort((a, b) => new Date(b.lastMessage?.createdAt || b.createdAt || 0) - new Date(a.lastMessage?.createdAt || a.createdAt || 0));
+      });
+      loadConversations();
     } catch (err) {
       console.warn('API chat send failed, falling back to local');
     }
-  }, [text, activeConversationId, recipientId, myId, user, loadConversations, scrollToBottom]);
+  }, [text, activeConversationId, recipientId, myId, user, loadConversations, scrollToBottom, socket]);
 
   const handleTextChange = (e) => {
     setText(e.target.value);
     try {
       if (activeConversationId) {
-        socket.emit('dm:typing', { conversationId: activeConversationId });
+        socket?.emit('dm:typing', { conversationId: activeConversationId });
       }
     } catch(err) { console.warn('emit typing failed', err); }
   };
@@ -357,10 +438,26 @@ export default function Messages() {
     const handleNewMessage = (message) => {
       if (!activeConversationId) {return;}
       if (message.conversationId !== activeConversationId) {return;}
-      setMessages(prev => [...prev, message]);
+      setMessages(prev => {
+        if (prev.some(m => m._id === message._id)) return prev;
+        const isMine = String(message.sender?._id || message.sender) === String(myId);
+        let matched = false;
+        const updated = prev.map(m => {
+          if (isMine && m.text === message.text && (String(m._id).startsWith('msg_') || String(m._id).startsWith('temp-'))) {
+            matched = true;
+            return { ...m, ...message };
+          }
+          return m;
+        });
+        if (matched) return mergeMessages(updated);
+        return mergeMessages([...prev, message]);
+      });
+      setConversations(prev => prev.map(conv => (
+        conv._id === message.conversationId ? { ...conv, lastMessage: message } : conv
+      )));
       setTimeout(scrollToBottom, 20);
     };
-    socket.on('dm:new', handleNewMessage);
+    socket?.on('dm:new', handleNewMessage);
 
     const handleTyping = (data) => {
       if (data.conversationId === activeConversationId) {
@@ -368,11 +465,11 @@ export default function Messages() {
         setTimeout(() => setTypingConversationId(null), 2500);
       }
     };
-    socket.on('dm:typing', handleTyping);
+    socket?.on('dm:typing', handleTyping);
 
     return () => {
-      socket.off('dm:new', handleNewMessage);
-      socket.off('dm:typing', handleTyping);
+      socket?.off('dm:new', handleNewMessage);
+      socket?.off('dm:typing', handleTyping);
     };
   }, [activeConversationId, socket, scrollToBottom]);
 
@@ -395,7 +492,7 @@ export default function Messages() {
 
   const activeConversation = conversations.find(c => c._id === activeConversationId);
   
-  let headerTitle = 'Direct Message';
+  let headerTitle;
   if (activeConversation) {
     const otherParticipant = activeConversation.participants?.find(p => String(p._id || p.id || p) !== String(myId)) || activeConversation.otherUser || {};
     headerTitle = otherParticipant.displayName || otherParticipant.username || 'Direct Message';

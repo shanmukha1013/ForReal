@@ -125,19 +125,21 @@ app.get('/api/explore/search', async (req, res) => {
   try {
     const q = String(req.query.q || '');
     if (!q) return res.json({ users: [], posts: [], rooms: [] });
+    const safePattern = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     
     let users = [], posts = [], rooms = [];
     try {
       const User = (await import('./models/User.js')).default;
-      users = await User.find({ $or: [{ username: new RegExp(q, 'i') }, { displayName: new RegExp(q, 'i') }] }).limit(10).select('-password').lean();
+      users = await User.find({ $or: [{ username: safePattern }, { displayName: safePattern }] }).limit(10).select('-password -refreshTokens').lean();
     } catch(e) {}
     try {
       const Post = (await import('./models/Post.js')).default;
-      posts = await Post.find({ content: new RegExp(q, 'i') }).limit(10).populate('author', 'username displayName avatar').lean();
+      posts = await Post.find({ text: safePattern, isDeleted: { $ne: true } }).limit(10).populate('author', 'username displayName avatar').lean();
+      posts = posts.map((post) => ({ ...post, content: post.text }));
     } catch(e) {}
     try {
       const Room = (await import('./models/Room.js')).default;
-      rooms = await Room.find({ $or: [{ topic: new RegExp(q, 'i') }, { title: new RegExp(q, 'i') }] }).limit(10).lean();
+      rooms = await Room.find({ $or: [{ topic: safePattern }, { title: safePattern }] }).limit(10).lean();
     } catch(e) {}
     
     res.json({ users, posts, rooms });
@@ -366,7 +368,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('message:send', async ({ roomId, text } = {}, ack) => {
+  socket.on('message:send', async ({ roomId, text, clientId, isAnonymous } = {}, ack) => {
     try {
       if (!roomId) throw new Error('roomId required');
       if (!text || !String(text).trim()) throw new Error('text required');
@@ -378,11 +380,15 @@ io.on('connection', (socket) => {
         if (sender) authorData = { id: String(sender._id), username: sender.username, displayName: sender.displayName, avatar: sender.avatar };
       } catch(e) {}
 
+      const id = `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`;
       const payload = {
-        id: `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        id,
+        _id: id,
+        clientId: clientId || null,
         roomId,
         text: String(text).trim(),
         author: authorData,
+        isAnonymous: !!isAnonymous,
         createdAt: new Date().toISOString(),
       };
 

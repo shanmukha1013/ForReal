@@ -7,6 +7,7 @@ import React, {
   useContext,
 } from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   HeartIcon,
@@ -115,6 +116,20 @@ const arrayKeyMap = {
   misleading: 'misleadings',
   validPoint: 'validPoints'
 };
+
+const getProfilePath = (user) => {
+  const target = user?.username || user?._id || user?.id;
+  return target ? `/profile/${encodeURIComponent(target)}` : null;
+};
+
+const mergeById = (items) => Array.from(
+  new Map((items || []).filter(Boolean).map((item, index) => [item._id || item.id || `idx_${index}_${item.createdAt || ''}`, item])).values()
+);
+
+const normalizeComment = (comment) => ({
+  ...comment,
+  content: comment?.content || comment?.text || '',
+});
 
 /**
  * Optimistic like handler – instantly updates local state and reverts on error.
@@ -298,21 +313,41 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete, isAnonymous }) =>
     ? `https://ui-avatars.com/api/?name=A&background=0F0F0F&color=a855f7&bold=true`
     : (author?.avatar || `https://ui-avatars.com/api/?name=${displayName}&background=0F0F0F&color=00FF88&bold=true`);
   const { score, rank } = useCredibility(author?._id || author?.username);
+  const profilePath = !isAnonymous ? getProfilePath(author) : null;
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3 min-w-0">
-        <motion.img
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: 'spring', stiffness: 400 }}
-          src={avatarSrc}
-          alt={displayName}
-          className="h-11 w-11 rounded-full border border-neon/30 bg-black/40 object-cover shadow-glow-sm"
-          loading="lazy"
-        />
+        {profilePath ? (
+          <Link to={profilePath} className="flex-shrink-0" aria-label={`Open ${displayName}'s profile`}>
+            <motion.img
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 400 }}
+              src={avatarSrc}
+              alt={displayName}
+              className="h-11 w-11 rounded-full border border-neon/30 bg-black/40 object-cover shadow-glow-sm"
+              loading="lazy"
+            />
+          </Link>
+        ) : (
+          <motion.img
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: 'spring', stiffness: 400 }}
+            src={avatarSrc}
+            alt={displayName}
+            className="h-11 w-11 rounded-full border border-neon/30 bg-black/40 object-cover shadow-glow-sm"
+            loading="lazy"
+          />
+        )}
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white truncate">{displayName}</span>
+            {profilePath ? (
+              <Link to={profilePath} className="text-sm font-bold text-white truncate hover:text-neon transition-colors">
+                {displayName}
+              </Link>
+            ) : (
+              <span className="text-sm font-bold text-white truncate">{displayName}</span>
+            )}
             {!isAnonymous && (
               <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full border ${rank.color} ${rank.bg} ${rank.border}`}>
                 <span className="uppercase">{rank.title}</span>
@@ -627,10 +662,18 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
                 </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`font-semibold text-xs ${isAnon ? 'text-purple-400' : 'text-neon'}`}>
+                  <Link
+                    to={getProfilePath(comment.author) || '#'}
+                    onClick={(e) => {
+                      if (isAnon || !getProfilePath(comment.author)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    className={`font-semibold text-xs ${isAnon ? 'text-purple-400 cursor-default' : 'text-neon hover:underline'}`}
+                  >
                     {isAnon ? <EyeSlashIcon className="w-3 h-3 inline mr-1 -mt-0.5" /> : null}
                     @{isAnon ? 'anonymous' : (comment.author?.username || 'anonymous')}
-                  </span>
+                  </Link>
                   <span className="text-gray-500 text-[10px]">
                     {timeAgoFn(comment.createdAt)}
                   </span>
@@ -718,6 +761,7 @@ const PostCard = ({
     likes: Array.isArray(post?.likes) ? post.likes : [],
     dislikes: Array.isArray(post?.dislikes) ? post.dislikes : [],
     comments: Array.isArray(post?.comments) ? post.comments : [],
+    commentsCount: Number(post?.commentsCount || post?.comments?.length || 0),
     media: Array.isArray(post?.media) ? post.media : [],
     isAnonymous: post?.isAnonymous || false,
     createdAt: post?.createdAt || new Date().toISOString(),
@@ -734,7 +778,7 @@ const PostCard = ({
     tags: Array.isArray(post?.tags) ? post.tags : [],
   };
 
-  const myId = currentUserId || authUser?._id || authUser?.id;
+  const myId = authUser?._id || authUser?.id || currentUserId;
   const { score: myCredScore } = useCredibility(myId);
 
   const initialCounts = {
@@ -774,15 +818,42 @@ const PostCard = ({
     myCredScore
   );
 
-  const [localComments, setLocalComments] = useState(safePost.comments);
+  const [localComments, setLocalComments] = useState(() => safePost.comments.map(normalizeComment));
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const fetchedCommentsRef = useRef(false);
   
   const [saved, setSaved] = useState(() => {
     try {
       return storageCache.isSaved(safePost._id);
     } catch(e) { return false; }
   });
+
+  useEffect(() => {
+    setLocalComments((prev) => mergeById([...prev, ...safePost.comments.map(normalizeComment)]));
+  }, [safePost._id, safePost.comments]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const shouldFetch = safePost._id && safePost.commentsCount > localComments.length;
+    if (!shouldFetch || fetchedCommentsRef.current) {
+      return undefined;
+    }
+
+    fetchedCommentsRef.current = true;
+
+    api.comments.getByPost(safePost._id)
+      .then((res) => {
+        if (cancelled) {
+          return;
+        }
+        const fetched = res?.comments || res?.data?.comments || [];
+        setLocalComments((prev) => mergeById([...prev, ...fetched.map(normalizeComment)]));
+      })
+      .catch((e) => console.warn('Failed to fetch comments', e));
+
+    return () => { cancelled = true; };
+  }, [safePost._id, safePost.commentsCount]);
 
   const handleReaction = (reactionType) => {
     if (reactionType === 'comment') {
@@ -840,6 +911,12 @@ const PostCard = ({
     } else {
       storageCache.addPost(updatedPost);
     }
+
+    // Fallback sync to backend if parent lacks handler
+    try {
+      if (api?.posts?.react) api.posts.react(safePost._id, newReaction || 'remove');
+      else if (api?.posts?.interact) api.posts.interact(safePost._id, newReaction || 'remove');
+    } catch (e) { console.warn('React sync failed', e); }
   };
 
   const handleCommentToggle = () => {
@@ -849,14 +926,15 @@ const PostCard = ({
   const submitComment = async (isAnon) => {
     if (!commentText.trim()) {return;}
     const content = commentText.trim();
+    const tempId = `comment_${Date.now()}`;
     const newComment = {
-      _id: `comment_${Date.now()}`,
+      _id: tempId,
       content,
       author: authUser || { username: 'Guest' },
       isAnonymous: isAnon,
       createdAt: new Date().toISOString()
     };
-    setLocalComments(prev => [...prev, newComment]);
+    setLocalComments(prev => mergeById([...prev, newComment]));
 
     const localTalks = storageCache.getPosts();
     const idx = localTalks.findIndex(p => p._id === safePost._id);
@@ -871,7 +949,14 @@ const PostCard = ({
     if (onComment) {onComment(safePost._id, content);}
     
     try {
-      await api.comments.add(safePost._id, content);
+      const res = await api.comments.add(safePost._id, content);
+      const savedComment = normalizeComment(res?.comment || res?.data?.comment);
+      if (savedComment?._id) {
+        setLocalComments(prev => mergeById(prev.map(comment => comment._id === tempId ? savedComment : comment)));
+        storageCache.updatePost(safePost._id, {
+          comments: mergeById(localComments.map(c => c._id === tempId ? savedComment : c)),
+        });
+      }
     } catch (e) {
       console.warn('Failed to save comment to server', e);
     }
@@ -897,7 +982,12 @@ const PostCard = ({
     if (onDelete && safePost._id) {onDelete(safePost._id);}
   }, [onDelete, safePost._id]);
 
-  const showDelete = !!onDelete && !!myId && String(safePost.author?._id) === String(myId);
+  const authorId = safePost.author?._id || safePost.author?.id || safePost.author;
+  const showDelete = !!onDelete && !!myId && (
+    String(authorId) === String(myId) || 
+    String(safePost.author?.username) === String(authUser?.username) || 
+    authUser?.role === 'admin'
+  );
 
   return (
     <motion.article

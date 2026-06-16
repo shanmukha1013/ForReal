@@ -37,7 +37,10 @@ export function useGlobalPosts() {
         const response = await fetchPosts({ page: 1, limit: 20 });
         const postsList = Array.isArray(response) ? response : (response?.posts || response?.data || []);
         if (postsList) {
-          storageCache.setPosts(postsList);
+          const current = storageCache.getPosts();
+          const merged = [...postsList, ...current];
+          const unique = Array.from(new Map(merged.map(p => [p._id, p])).values()).slice(0, 50);
+          storageCache.setPosts(unique);
         }
       } catch (err) {
         console.error('[useGlobalPosts] Failed to fetch posts:', err);

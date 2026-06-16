@@ -5,6 +5,8 @@ import {
   createRoom,
   joinRoom,
   leaveRoom,
+  endRoom,
+  deleteRoom,
 } from '../controllers/roomController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
@@ -22,5 +24,7 @@ router.get('/:id', getRoom);
 router.post('/', requireAuth, createRoom);
 router.post('/:id/join', requireAuth, joinRoom);
 router.post('/:id/leave', requireAuth, leaveRoom);
+router.patch('/:id/end', requireAuth, endRoom);
+router.delete('/:id', requireAuth, deleteRoom);
 
 export default router;

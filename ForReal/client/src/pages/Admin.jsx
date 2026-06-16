@@ -126,7 +126,7 @@ const useAdminStats = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const { data } = await axios.get('/admin/stats');
+      const data = await axios.get('/admin/stats');
       setStats(data);
     } catch (err) {
       notify.error('Failed to load statistics');
@@ -160,7 +160,7 @@ const useReports = () => {
     abortRef.current = controller;
 
     try {
-      const { data } = await axios.get('/admin/reports', {
+      const data = await axios.get('/admin/reports', {
         params: { page: pageNum, limit: 10 },
         signal: controller.signal,
       });
@@ -199,31 +199,32 @@ const useUsers = (search = '') => {
   const [loading, setLoading] = useState(true);
   const abortRef = useRef(null);
 
-  useEffect(() => {
+  const fetchUsers = useCallback(async () => {
     if (abortRef.current) {abortRef.current.abort();}
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const { data } = await axios.get('/admin/users', {
-          params: { search: search || undefined, limit: 50 },
-          signal: controller.signal,
-        });
-        setUsers(data.users || []);
-      } catch (err) {
-        if (!axios.isCancel(err)) {console.error(err);}
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-
-    return () => controller.abort();
+    setLoading(true);
+    try {
+      const data = await axios.get('/admin/users', {
+        params: { search: search || undefined, limit: 50 },
+        signal: controller.signal,
+      });
+      setUsers(data.users || []);
+    } catch (err) {
+      if (!axios.isCancel(err)) {console.error(err);}
+    } finally {
+      setLoading(false);
+    }
   }, [search]);
 
-  return { users, loading };
+  useEffect(() => {
+    fetchUsers();
+
+    return () => abortRef.current?.abort();
+  }, [fetchUsers]);
+
+  return { users, loading, refetch: fetchUsers };
 };
 
 /**
@@ -236,7 +237,7 @@ const useAuditLogs = () => {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const { data } = await axios.get('/admin/audit-logs', { params: { limit: 30 } });
+        const data = await axios.get('/admin/audit-logs', { params: { limit: 30 } });
         setLogs(data.logs || []);
       } catch (err) {
         console.error(err);
@@ -257,21 +258,22 @@ const useRooms = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const { data } = await axios.get('/admin/rooms', { params: { status: 'all' } });
-        setRooms(data.rooms || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRooms();
+  const fetchRooms = useCallback(async () => {
+    try {
+      const data = await axios.get('/admin/rooms', { params: { status: 'all' } });
+      setRooms(data.rooms || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { rooms, loading };
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  return { rooms, loading, refetch: fetchRooms };
 };
 
 // -----------------------------------------------------------------------------
@@ -437,6 +439,12 @@ const UserRow = React.memo(({ user, onAction }) => (
         Ban
       </button>
       <button
+        onClick={() => onAction('delete', user._id)}
+        className="text-xs text-red-300 hover:bg-red-400/10 px-3 py-1 rounded-lg border border-red-400/20"
+      >
+        Delete
+      </button>
+      <button
         onClick={() => onAction('view', user._id)}
         className="text-xs text-neon hover:bg-neon/10 px-3 py-1 rounded-lg border border-neon/20"
       >
@@ -482,11 +490,11 @@ export default function Admin() {
 
   // Data hooks
   const { stats, loading: statsLoading, refetch: refetchStats } = useAdminStats();
-  const { reports, loading: reportsLoading, loadMore: loadMoreReports, refetch: refetchReports } = useReports();
+  const { reports, loading: reportsLoading, hasMore, loadMore: loadMoreReports, refetch: refetchReports } = useReports();
   const [userSearch, setUserSearch] = useState('');
-  const { users, loading: usersLoading } = useUsers(userSearch);
+  const { users, loading: usersLoading, refetch: refetchUsers } = useUsers(userSearch);
   const { logs, loading: logsLoading } = useAuditLogs();
-  const { rooms, loading: roomsLoading } = useRooms();
+  const { rooms, loading: roomsLoading, refetch: refetchRooms } = useRooms();
 
   // Access control – only admin
   const isAdmin = user?.role === 'admin';
@@ -529,16 +537,47 @@ export default function Admin() {
     try {
       await axios.delete(`/admin/users/${userId}`);
       notify.success('User deleted');
-      refetchReports(); // might remove reports related
+      refetchReports();
+      refetchUsers();
     } catch (err) {
       notify.error('Failed to delete user');
     }
-  }, [notify, refetchReports]);
+  }, [notify, refetchReports, refetchUsers]);
 
   const handleUserAction = async (action, userId) => {
-    // placeholder for suspend/ban
-    notify.info(`${action} action simulated for user ${userId}`);
+    if (action === 'view') {
+      window.location.href = `/profile/${userId}`;
+      return;
+    }
+    if (action === 'delete') {
+      await handleDeleteUser(userId);
+      return;
+    }
+    notify.info(`${action} is not enabled yet`);
   };
+
+  const handleEndRoom = useCallback(async (roomId) => {
+    try {
+      await axios.patch(`/admin/rooms/${roomId}/end`);
+      notify.success('Debate ended');
+      refetchRooms();
+      refetchStats();
+    } catch (err) {
+      notify.error('Failed to end debate');
+    }
+  }, [notify, refetchRooms, refetchStats]);
+
+  const handleDeleteRoom = useCallback(async (roomId) => {
+    if (!window.confirm('Remove this debate room?')) {return;}
+    try {
+      await axios.delete(`/admin/rooms/${roomId}`);
+      notify.success('Debate removed');
+      refetchRooms();
+      refetchStats();
+    } catch (err) {
+      notify.error('Failed to remove debate');
+    }
+  }, [notify, refetchRooms, refetchStats]);
 
   // Tabs configuration
   const tabs = useMemo(() => [
@@ -711,10 +750,19 @@ export default function Admin() {
                       <motion.div key={room._id} variants={cardVariant} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-4 hover:border-neon/40">
                         <div className="flex justify-between">
                           <div>
-                            <h3 className="text-white font-medium">{room.topic}</h3>
+                            <h3 className="text-white font-medium">{room.topic || room.title}</h3>
                           <p className="text-xs text-gray-400 mt-1">{room.status} · {Array.isArray(room.participants) ? room.participants.length : (room.participantCount || 0)} debaters</p>
                           </div>
-                          <button className="text-xs text-neon hover:underline">Manage</button>
+                          <div className="flex items-center gap-2">
+                            {room.status === 'active' && (
+                              <button onClick={() => handleEndRoom(room._id)} className="text-xs text-yellow-300 hover:bg-yellow-400/10 px-3 py-1 rounded-lg border border-yellow-400/20">
+                                End
+                              </button>
+                            )}
+                            <button onClick={() => handleDeleteRoom(room._id)} className="text-xs text-red-400 hover:bg-red-400/10 px-3 py-1 rounded-lg border border-red-400/20">
+                              Remove
+                            </button>
+                          </div>
                         </div>
                       </motion.div>
                     ))}

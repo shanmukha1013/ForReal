@@ -186,10 +186,93 @@ export const leaveRoom = async (req, res, next) => {
   }
 };
 
+const canModerateRoom = (room, user) => (
+  String(room.createdBy) === String(user.id) || user.role === 'admin'
+);
+
+/**
+ * End a room without deleting its history.
+ * PATCH /api/rooms/:id/end
+ */
+export const endRoom = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const room = await Room.findOne({ _id: id, isActive: true });
+
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+    if (!canModerateRoom(room, req.user)) {
+      return res.status(403).json({ message: 'Not authorized to end this debate' });
+    }
+
+    room.status = 'ended';
+    room.endTime = new Date();
+    await room.save();
+
+    const out = room.toObject({ getters: true });
+    out.topic = out.title;
+
+    try {
+      const io = getIO();
+      if (io) {
+        io.to(`room:${id}`).emit('debate:ended', { roomId: id, room: out });
+      }
+    } catch (err) {
+      console.warn('[roomController.endRoom] failed to emit debate:ended', err.message || err);
+    }
+
+    res.json({ message: 'Debate ended', room: out });
+  } catch (err) {
+    console.error('[roomController.endRoom] error:', err);
+    next(err);
+  }
+};
+
+/**
+ * Soft delete a room.
+ * DELETE /api/rooms/:id
+ */
+export const deleteRoom = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const room = await Room.findOne({ _id: id, isActive: true });
+
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+    if (!canModerateRoom(room, req.user)) {
+      return res.status(403).json({ message: 'Not authorized to delete this debate' });
+    }
+
+    room.isActive = false;
+    room.status = 'deleted';
+    room.endTime = room.endTime || new Date();
+    await room.save();
+
+    try {
+      const io = getIO();
+      if (io) {
+        io.to(`room:${id}`).emit('room:deleted', { roomId: id });
+        io.emit('rooms:deleted', { roomId: id });
+      }
+    } catch (err) {
+      console.warn('[roomController.deleteRoom] failed to emit delete', err.message || err);
+    }
+
+    res.json({ message: 'Debate deleted', roomId: id });
+  } catch (err) {
+    console.error('[roomController.deleteRoom] error:', err);
+    next(err);
+  }
+};
+
 export default {
   getRooms,
   getRoom,
   createRoom,
   joinRoom,
   leaveRoom,
+  endRoom,
+  deleteRoom,
 };

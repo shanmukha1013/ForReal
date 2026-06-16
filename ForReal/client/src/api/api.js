@@ -51,11 +51,13 @@ const api = {
     getById: (roomId) => apiClient.get(`/rooms/${roomId}`),
     join: (roomId) => apiClient.post(`/rooms/${roomId}/join`),
     leave: (roomId) => apiClient.post(`/rooms/${roomId}/leave`),
+    end: (roomId) => apiClient.patch(`/rooms/${roomId}/end`),
+    delete: (roomId) => apiClient.delete(`/rooms/${roomId}`),
   },
   
   users: {
     // Get user profile by username (legacy)
-    getProfile: (username) => apiClient.get(`/users/${username}/profile`),
+    getProfile: (username) => apiClient.get(`/users/${username}`),
     // Get user by ID
     getById: (userId) => apiClient.get(`/users/${userId}`),
     // Update own profile (Aligned with Phase 3 REST)

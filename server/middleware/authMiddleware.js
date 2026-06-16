@@ -22,4 +22,17 @@ export const requireAuth = (req, res, next) => {
   }
 };
 
+export const optionalAuth = (req, _res, next) => {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) return next();
+
+  try {
+    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
+    req.user = { id: decoded.id, role: decoded.role };
+  } catch {
+    // Public routes should still work with an absent or expired token.
+  }
+  return next();
+};
+
 export default requireAuth;

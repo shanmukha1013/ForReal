@@ -18,6 +18,7 @@ import {
   HandThumbDownIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon, BookmarkIcon as BookmarkSolidIcon, HandThumbDownIcon as HandThumbDownSolidIcon } from '@heroicons/react/24/solid';
+import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../realtime/socket';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
@@ -237,6 +238,7 @@ const SkeletonCard = () => (
 );
 
 const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
+  const navigate = useNavigate();
   const displayName = author?.displayName || author?.username || 'Anonymous';
   const username = author?.username || 'user';
   const avatarSrc =
@@ -251,7 +253,8 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
           transition={{ type: 'spring', stiffness: 400 }}
           src={avatarSrc}
           alt={displayName}
-          className="h-11 w-11 rounded-full border border-neon/30 bg-black/40 object-cover shadow-glow-sm"
+          onClick={(e) => { e.stopPropagation(); if(author?.username || author?._id || author?.id) navigate('/profile/' + encodeURIComponent(author.username || author._id || author.id)); }}
+          className="cursor-pointer h-11 w-11 rounded-full border border-neon/30 bg-black/40 object-cover shadow-glow-sm"
           loading="lazy"
         />
         <div className="min-w-0">
@@ -451,6 +454,7 @@ const TalkActions = ({ reaction, onReact, counts, isLoading, saved, onSave, onSh
 };
 
 const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentText, setCommentText, onSubmitComment }) => {
+  const navigate = useNavigate();
   const { comments: displayComments, expanded, loading, handleViewAll } =
     useCommentsExpander(comments, comments.length, null); // null means no fetch more
 
@@ -479,7 +483,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
                 </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-neon text-xs">
+                  <span onClick={(e) => { e.stopPropagation(); if (comment.author?.username || comment.author?._id) navigate('/profile/' + encodeURIComponent(comment.author.username || comment.author._id)); }} className="font-semibold text-neon text-xs cursor-pointer hover:underline">
                     @{comment.author?.username || 'anonymous'}
                   </span>
                   <span className="text-gray-500 text-[10px]">
@@ -688,7 +692,7 @@ const PostCard = ({
     if (onDelete && safePost._id) {onDelete(safePost._id);}
   }, [onDelete, safePost._id]);
 
-  const showDelete = !!onDelete && !!myId && String(safePost.author?._id) === String(myId);
+  const showDelete = !!onDelete && !!myId && (String(safePost.author?._id) === String(myId) || String(safePost.author) === String(myId) || authUser?.role === 'admin');
 
   return (
     <motion.article

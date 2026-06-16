@@ -113,11 +113,11 @@ function useSearch() {
     let fetched = { users: [], posts: [], rooms: [] };
 
     try {
-      const { data } = await axios.get('/explore/search', {
+      const data = await axios.get('/explore/search', {
         params: { q: searchQ },
         signal: controller.signal,
       });
-      fetched = data;
+      fetched = data || fetched;
     } catch (err) {
       if (!axios.isCancel(err)) {
         console.error('Search error:', err);
@@ -152,8 +152,8 @@ function useSearch() {
         users: Array.from(
           new Map([...(fetched.users || []), ...matchedUsers].map((u) => [u._id || u.username, u])).values()
         ).slice(0, 15),
-        posts: [...(fetched.posts || []), ...matchedPosts].slice(0, 15),
-        rooms: [...(fetched.rooms || []), ...matchedRooms].slice(0, 15)
+        posts: Array.from(new Map([...(fetched.posts || []), ...matchedPosts].map(p => [p._id, p])).values()).slice(0, 15),
+        rooms: Array.from(new Map([...(fetched.rooms || []), ...matchedRooms].map(r => [r._id, r])).values()).slice(0, 15)
       });
 
       setLoading(false);
@@ -212,9 +212,9 @@ function useTrendingData() {
           axios.get('/explore/trending/topics'),
         ]);
         if (!cancelled) {
-          setRooms(roomsRes.data || []);
-          setCreators(creatorsRes.data || []);
-          setTopics(topicsRes.data || []);
+          setRooms(roomsRes?.rooms || roomsRes || []);
+          setCreators(creatorsRes?.users || creatorsRes || []);
+          setTopics(topicsRes?.topics || topicsRes || []);
         }
       } catch (err) {
         console.error('Trending data error:', err);
@@ -406,7 +406,7 @@ const CreatorCard = React.memo(({ creator }) => {
   }, [following, targetId]);
 
   return (
-    <Link to={`/profile/${safeCreator.username}`} className="block p-4 hover:bg-white/5 transition-colors group">
+    <Link to={`/profile/${encodeURIComponent(safeCreator.username)}`} className="block p-4 hover:bg-white/5 transition-colors group">
       <div className="flex items-center gap-3">
         <img
           src={safeCreator.avatar || `https://ui-avatars.com/api/?name=${safeCreator.username || 'user'}&background=0F0F0F&color=22c55e`}

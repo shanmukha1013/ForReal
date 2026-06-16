@@ -1,26 +1,64 @@
 import User from '../models/User.js';
+import Post from '../models/Post.js';
+
+const escapeRegex = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const getProfile = async (req, res, next) => {
   try {
     const identifier = req.params.identifier;
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(identifier);
     const user = await User.findOne({ 
-      $or: [{ username: identifier }, { _id: identifier.match(/^[0-9a-fA-F]{24}$/) ? identifier : null }]
+      $or: [{ username: String(identifier).toLowerCase() }, ...(isObjectId ? [{ _id: identifier }] : [])]
     }).select('-password -refreshTokens').lean();
     
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    const postsCount = await Post.countDocuments({
+      author: user._id,
+      isDeleted: { $ne: true },
+    });
+
     user.stats = {
       followersCount: user.followers?.length || 0,
       followingCount: user.following?.length || 0,
-      postsCount: user.postsCount || 0
+      postsCount
     };
 
     if (req.user) {
       user.isFollowing = user.followers?.some(id => String(id) === String(req.user.id));
+      const me = await User.findById(req.user.id).select('followers').lean();
+      user.isFollower = me?.followers?.some(id => String(id) === String(user._id)) || false;
     }
     
     res.json(user);
   } catch (err) { next(err); }
+};
+
+export const searchUsers = async (req, res, next) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (!q) return res.json({ users: [] });
+
+    const pattern = new RegExp(escapeRegex(q), 'i');
+    const users = await User.find({
+      $or: [{ username: pattern }, { displayName: pattern }],
+    })
+      .select('username displayName avatar credibility verified followers following')
+      .limit(15)
+      .lean();
+
+    res.json({
+      users: users.map((user) => ({
+        ...user,
+        stats: {
+          followersCount: user.followers?.length || 0,
+          followingCount: user.following?.length || 0,
+        },
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const updateProfile = async (req, res, next) => {
@@ -48,27 +86,26 @@ export const toggleFollow = async (req, res, next) => {
     targetUser.followers = targetUser.followers || [];
     me.following = me.following || [];
 
-    const isFollowing = targetUser.followers.includes(myId);
+    const isFollowing = targetUser.followers.some(id => String(id) === String(myId));
     if (req.method === 'POST' && !isFollowing) {
       targetUser.followers.push(myId);
-      me.following.push(targetId);
+      if (!me.following.some(id => String(id) === String(targetId))) {
+        me.following.push(targetId);
+      }
     } else if (req.method === 'DELETE' && isFollowing) {
       targetUser.followers = targetUser.followers.filter(id => String(id) !== String(myId));
       me.following = me.following.filter(id => String(id) !== String(targetId));
-    } else {
-      // Toggle fallback
-      if (isFollowing) {
-        targetUser.followers = targetUser.followers.filter(id => String(id) !== String(myId));
-        me.following = me.following.filter(id => String(id) !== String(targetId));
-      } else {
-        targetUser.followers.push(myId);
-        me.following.push(targetId);
-      }
     }
 
     await targetUser.save();
     await me.save();
-    res.json({ success: true, isFollowing: !isFollowing });
+    const nowFollowing = req.method === 'DELETE' ? false : true;
+    res.json({
+      success: true,
+      isFollowing: nowFollowing,
+      followersCount: targetUser.followers.length,
+      followingCount: me.following.length,
+    });
   } catch (err) { next(err); }
 };
 
@@ -94,11 +131,11 @@ export const getRelationship = async (req, res, next) => {
 
     if (!targetUser || !me) return res.status(404).json({ message: 'User not found' });
 
-    const targetFollowers = Array.isArray(targetUser.followers) ? targetUser.followers : [];
     const meFollowing = Array.isArray(me.following) ? me.following : [];
+    const myFollowers = Array.isArray(me.followers) ? me.followers : [];
 
     const isFollowing = meFollowing.some((id) => String(id) === String(targetId));
-    const isFollower = targetFollowers.some((id) => String(id) === String(myId));
+    const isFollower = myFollowers.some((id) => String(id) === String(targetId));
 
     res.json({
       isFollowing,
@@ -110,4 +147,4 @@ export const getRelationship = async (req, res, next) => {
   }
 };
 
-export default { getProfile, updateProfile, toggleFollow, getRelationship };
+export default { getProfile, searchUsers, updateProfile, toggleFollow, getRelationship };

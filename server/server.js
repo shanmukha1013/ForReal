@@ -380,7 +380,7 @@ io.on('connection', (socket) => {
         if (sender) authorData = { id: String(sender._id), username: sender.username, displayName: sender.displayName, avatar: sender.avatar };
       } catch(e) {}
 
-      const id = `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      const id = clientId || `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`;
       const payload = {
         id,
         _id: id,

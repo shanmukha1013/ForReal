@@ -208,12 +208,12 @@ function useTrendingData() {
       try {
         const [roomsRes, creatorsRes, topicsRes] = await Promise.all([
           axios.get('/explore/trending/rooms'),
-          axios.get('/explore/trending/creators'),
+          axios.get('/users/suggested'),
           axios.get('/explore/trending/topics'),
         ]);
         if (!cancelled) {
           setRooms(roomsRes?.rooms || roomsRes || []);
-          setCreators(creatorsRes?.users || creatorsRes || []);
+          setCreators(creatorsRes?.suggestions || creatorsRes?.users || creatorsRes || []);
           setTopics(topicsRes?.topics || topicsRes || []);
         }
       } catch (err) {

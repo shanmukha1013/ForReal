@@ -11,7 +11,6 @@ export function getIO() {
 export function emitRoomsNew(room) {
   try {
     if (!ioInstance) return false;
-    // Broadcast to all connected sockets
     ioInstance.emit('rooms:new', room);
     return true;
   } catch (err) {
@@ -20,4 +19,15 @@ export function emitRoomsNew(room) {
   }
 }
 
-export default { setIO, getIO, emitRoomsNew };
+export function emitNotification(userId, notification) {
+  try {
+    if (!ioInstance) return false;
+    ioInstance.to(`notify:user:${userId}`).emit('notification:new', notification);
+    return true;
+  } catch (err) {
+    console.error('[socket] emitNotification error', err);
+    return false;
+  }
+}
+
+export default { setIO, getIO, emitRoomsNew, emitNotification };

@@ -37,9 +37,23 @@ const UserSchema = new Schema(
       type: String,
       default: '',
     },
+    coverImage: {
+      type: String,
+      default: '',
+    },
     bio: {
       type: String,
       maxlength: 280,
+      default: '',
+    },
+    website: {
+      type: String,
+      maxlength: 100,
+      default: '',
+    },
+    location: {
+      type: String,
+      maxlength: 100,
       default: '',
     },
     credibility: {
@@ -102,6 +116,7 @@ UserSchema.methods.toJSON = function () {
   return obj;
 };
 
+UserSchema.index({ username: 1, displayName: 1 });
 const User = mongoose.model('User', UserSchema);
 
 export default User;

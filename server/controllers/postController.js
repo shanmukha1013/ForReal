@@ -1,6 +1,8 @@
 import Post from '../models/Post.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 import mongoose from 'mongoose';
+import { emitNotification } from '../socket.js';
 
 // ============================================================================
 // Post Controller - Production-ready with proper error handling
@@ -84,23 +86,38 @@ export const createPost = async (req, res, next) => {
 
     await post.save();
 
+    // Parse mentions from text and notify them
+    const mentionRegex = /@([a-zA-Z0-9_]{3,30})/g;
+    const mentions = [];
+    let match;
+    while ((match = mentionRegex.exec(text)) !== null) {
+      mentions.push(match[1].toLowerCase());
+    }
+
+    if (mentions.length > 0) {
+      const mentionedUsers = await User.find({ username: { $in: mentions } }).select('_id').lean();
+      const notificationsObj = mentionedUsers
+        .filter(u => String(u._id) !== String(authorId))
+        .map(u => ({
+          userId: u._id,
+          type: 'mention',
+          actorId: authorId,
+          payload: {
+            title: 'You were mentioned',
+            body: `${author.username || 'Someone'} mentioned you in a post.`,
+          }
+        }));
+      if (notificationsObj.length > 0) {
+        const createdNotifications = await Notification.insertMany(notificationsObj);
+        createdNotifications.forEach(notif => emitNotification(notif.userId, notif));
+      }
+    }
+
     // Populate author for response (without password)
     await post.populate('author', '-password -__v');
 
     res.status(201).json({
-      post: {
-        _id: post._id,
-        text: post.text,
-        media: post.media,
-        metadata: post.metadata,
-        author: post.author,
-        likesCount: post.likesCount,
-        dislikesCount: post.dislikesCount,
-        commentsCount: post.commentsCount,
-        reactions: { likes: [], dislikes: [] },
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-      },
+      post: transformPost(post.toObject()),
     });
   } catch (err) {
     console.error('[postController.createPost] error:', err);

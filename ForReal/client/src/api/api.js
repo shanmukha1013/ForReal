@@ -82,6 +82,7 @@ const api = {
   explore: {
     // Align with server.js explore search route
     search: (query) => apiClient.get('/explore/search', { params: { q: query } }),
+    getSuggestedUsers: () => apiClient.get('/users/suggested'),
   },
 
   reports: {

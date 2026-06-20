@@ -113,6 +113,9 @@ const useSettings = () => {
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [coverImage, setCoverImage] = useState(user?.coverImage || '');
+  const [website, setWebsite] = useState(user?.website || '');
+  const [location, setLocation] = useState(user?.location || '');
   const [email, setEmail] = useState(user?.email || '');
   const [username] = useState(user?.username || '');
 
@@ -174,19 +177,19 @@ const useSettings = () => {
       
       // --- GLOBAL IDENTITY SYNC MOCK ---
       if (section === 'account') {
-        
+        const payload = { displayName, bio, avatar, coverImage, website, location };
         const myId = user?._id || user?.id || user?.username;
         
         const posts = storageCache.getPosts();
         const updatedPosts = posts.map(p => {
           const pUpdate = { ...p };
           if (String(pUpdate.author?._id || pUpdate.author?.id || pUpdate.author?.username) === String(myId)) {
-            pUpdate.author = { ...pUpdate.author, ...updates };
+            pUpdate.author = { ...pUpdate.author, ...payload };
           }
           if (pUpdate.comments) {
             pUpdate.comments = pUpdate.comments.map(c => {
               if (String(c.author?._id || c.author?.id || c.author?.username) === String(myId)) {
-                return { ...c, author: { ...c.author, ...updates } };
+                return { ...c, author: { ...c.author, ...payload } };
               }
               return c;
             });
@@ -201,7 +204,7 @@ const useSettings = () => {
           const cUpdate = { ...c };
           if (cUpdate.participants) {
             cUpdate.participants = cUpdate.participants.map(p => {
-              if (String(p._id || p.id || p.username || p) === String(myId)) {return { ...p, ...updates };}
+              if (String(p._id || p.id || p.username || p) === String(myId)) {return { ...p, ...payload };}
               return p;
             });
           }
@@ -217,10 +220,10 @@ const useSettings = () => {
     } finally {
       setSavingSection(null);
     }
-  }, [updateUser, notify]);
+  }, [updateUser, notify, displayName, bio, avatar, coverImage, website, location, user]);
 
   // Save handlers for each tab
-  const saveAccount = () => saveSection('account', { displayName, bio, avatar, email });
+  const saveAccount = () => saveSection('account', { displayName, bio, avatar, coverImage, website, location, email });
   const savePrivacy = () => saveSection('privacy', { profileVisibility, debatePrivacy, allowMessagesFrom });
   const saveNotifications = () => saveSection('notifications', {
     push: pushEnabled,
@@ -270,6 +273,9 @@ const useSettings = () => {
     displayName, setDisplayName,
     bio, setBio,
     avatar, setAvatar,
+    coverImage, setCoverImage,
+    website, setWebsite,
+    location, setLocation,
     email, setEmail,
     username,
     // Privacy
@@ -410,6 +416,9 @@ export default function Settings() {
     displayName, setDisplayName,
     bio, setBio,
     avatar, setAvatar,
+    coverImage, setCoverImage,
+    website, setWebsite,
+    location, setLocation,
     email, setEmail,
     username,
     // Privacy
@@ -539,18 +548,62 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="py-3 border-b border-white/5">
-                  <label className="text-white text-sm font-medium block mb-2">Display Name</label>
-                  <div className="relative group">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon transition-colors" />
+                {/* Basic Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-300">Display Name</label>
                     <input
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Your public name"
-                      className="w-full pl-9 pr-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/70 transition text-sm"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition"
+                      placeholder="How you appear to others"
                     />
                   </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-300">Avatar URL</label>
+                    <input
+                      type="text"
+                      value={avatar}
+                      onChange={(e) => setAvatar(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition font-mono text-sm"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-300">Cover Image URL</label>
+                    <input
+                      type="text"
+                      value={coverImage}
+                      onChange={(e) => setCoverImage(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition font-mono text-sm"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-300">Location</label>
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition"
+                      placeholder="City, Country"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-300">Website</label>
+                  <input
+                    type="text"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition"
+                    placeholder="https://your-website.com"
+                  />
                 </div>
 
                 <div className="py-3 border-b border-white/5">

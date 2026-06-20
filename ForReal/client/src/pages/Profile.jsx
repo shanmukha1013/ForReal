@@ -55,6 +55,7 @@ import axios from '../api/axios';
 import { fetchUserPosts, deletePost as apiDeletePost } from '../api/posts';
 import { useCredibility } from '../hooks/useCredibility';
 import { storageCache } from '../lib/storageCache';
+import UserListModal from '../components/UserListModal';
 
 // -----------------------------------------------------------------------------
 // Backward-compatible icon aliases (removes lucide-react dependency)
@@ -426,7 +427,7 @@ const ProfileAvatar = React.memo(({ profile }) => {
 });
 ProfileAvatar.displayName = 'ProfileAvatar';
 
-const StatsBar = React.memo(({ stats }) => (
+const StatsBar = React.memo(({ stats, onOpenFollowers, onOpenFollowing }) => (
   <motion.div
     variants={pageContainer}
     initial="hidden"
@@ -434,11 +435,16 @@ const StatsBar = React.memo(({ stats }) => (
     className="flex flex-wrap justify-center md:justify-start gap-6 md:gap-8 mt-2 text-sm md:text-base"
   >
     {[
-      { label: 'Followers', value: stats?.followersCount ?? 0 },
-      { label: 'Following', value: stats?.followingCount ?? 0 },
+      { label: 'Followers', value: stats?.followersCount ?? 0, onClick: onOpenFollowers },
+      { label: 'Following', value: stats?.followingCount ?? 0, onClick: onOpenFollowing },
       { label: 'Posts', value: stats?.postsCount ?? 0 },
-    ].map(({ label, value }) => (
-      <motion.div key={label} variants={statVariant} className="text-center">
+    ].map(({ label, value, onClick }) => (
+      <motion.div
+        key={label}
+        variants={statVariant}
+        className={`text-center ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+        onClick={onClick}
+      >
         <span className="font-bold text-white">{Number(value || 0).toLocaleString()}</span>
         <span className="text-gray-400 ml-1">{label}</span>
       </motion.div>
@@ -621,6 +627,21 @@ export default function Profile() {
 
   const [activeTab, setActiveTab] = useState('posts');
   const [statsOverride, setStatsOverride] = useState(null);
+  
+  // Modal State
+  const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', fetchType: null });
+  
+  const openFollowers = useCallback(() => {
+    setModalConfig({ isOpen: true, title: 'Followers', fetchType: 'followers' });
+  }, []);
+  
+  const openFollowing = useCallback(() => {
+    setModalConfig({ isOpen: true, title: 'Following', fetchType: 'following' });
+  }, []);
+  
+  const closeListModal = useCallback(() => {
+    setModalConfig(prev => ({ ...prev, isOpen: false }));
+  }, []);
 
   useEffect(() => {
     setStatsOverride(profile?.stats || null);
@@ -690,7 +711,7 @@ export default function Profile() {
           {/* Left: Avatar + mobile stats */}
           <div className="flex flex-col items-center md:items-start">
             <ProfileAvatar profile={displayProfile} />
-            <StatsBar stats={displayProfile?.stats} />
+            <StatsBar stats={displayProfile?.stats} onOpenFollowers={openFollowers} onOpenFollowing={openFollowing} />
           </div>
 
           {/* Right: Info & actions */}
@@ -773,6 +794,14 @@ export default function Profile() {
           <UserFeed userId={displayProfile?._id || displayProfile?.id} activeTab={activeTab} />
         </div>
       </motion.div>
+      
+      <UserListModal
+        isOpen={modalConfig.isOpen}
+        onClose={closeListModal}
+        title={modalConfig.title}
+        fetchType={modalConfig.fetchType}
+        userId={displayProfile?._id || displayProfile?.id}
+      />
     </Layout>
   );
 }

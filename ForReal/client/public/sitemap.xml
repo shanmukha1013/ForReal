@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+          http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Homepage / Landing -->
+  <url>
+    <loc>https://forreal.app/</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Auth pages (publicly accessible) -->
+  <url>
+    <loc>https://forreal.app/login</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://forreal.app/signup</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Main app sections -->
+  <url>
+    <loc>https://forreal.app/explore</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://forreal.app/rooms</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://forreal.app/notifications</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://forreal.app/messages</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://forreal.app/settings</loc>
+    <lastmod>2026-06-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+</urlset>

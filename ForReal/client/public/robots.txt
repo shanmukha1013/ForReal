@@ -1,0 +1,19 @@
+# ForReal — robots.txt
+# Allow all search engines to index the site
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /signup
+Allow: /explore
+Allow: /rooms
+
+# Disallow private/authenticated-only sections from direct crawl
+Disallow: /admin
+Disallow: /messages
+Disallow: /notifications
+Disallow: /settings
+Disallow: /profile/
+
+# Sitemap location
+Sitemap: https://forreal.app/sitemap.xml

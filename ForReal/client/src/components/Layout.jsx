@@ -400,48 +400,25 @@ const ForRealLogo = memo(function ForRealLogo() {
       aria-label="ForReal — Home"
       className="group flex items-center gap-3 px-2 py-2 rounded-xl transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
     >
-      {/* Logomark */}
-      <div className="relative flex-shrink-0">
-        <motion.div
-          className="absolute inset-0 rounded-xl"
-          style={{ background: "radial-gradient(circle, rgba(34,197,94,0.35), transparent 70%)", filter: "blur(8px)" }}
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div
-          className="relative h-10 w-10 rounded-xl grid place-items-center overflow-hidden"
-          style={{
-            background: "linear-gradient(145deg, #0d1a0f, #050a06)",
-            border: "1px solid rgba(34,197,94,0.3)",
-            boxShadow: "0 0 0 1px rgba(34,197,94,0.08) inset, 0 2px 8px rgba(0,0,0,0.5)",
-          }}
-        >
-          {/* Subtle grid texture inside logo */}
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(34,197,94,0.15) 3px, rgba(34,197,94,0.15) 4px)",
-            }}
-          />
-          <span
-            className="relative font-black text-green-400 tracking-tight select-none"
-            style={{ fontFamily: "'Bebas Neue', 'Impact', sans-serif", fontSize: "16px", letterSpacing: "1.5px" }}
-          >
-            FR
-          </span>
-        </div>
-      </div>
+      {/* FR wordmark — F white, R green, no icon, no background */}
+      <span
+        className="select-none tracking-tight font-black"
+        style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", fontSize: "22px", letterSpacing: "-0.05em", lineHeight: "1" }}
+      >
+        <span style={{ color: "#FFFFFF" }}>F</span>
+        <span style={{ color: TOKEN.green }}>R</span>
+      </span>
 
       {/* Wordmark */}
       <div className="min-w-0">
         <div
-          className="text-white font-black tracking-wide leading-none select-none"
-          style={{ fontFamily: "'Bebas Neue', 'Impact', sans-serif", fontSize: "21px", letterSpacing: "2.5px" }}
+          className="text-white font-black select-none"
+          style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "20px", letterSpacing: "-0.04em", lineHeight: "1" }}
         >
           FOR<span style={{ color: TOKEN.green }}>REAL</span>
         </div>
         <div
-          className="text-[9px] tracking-[0.2em] uppercase mt-[3px] select-none"
+          className="text-[9px] tracking-[0.2em] uppercase mt-[4px] select-none"
           style={{ fontFamily: "'Space Mono', 'Courier New', monospace", color: TOKEN.textDim }}
         >
           We Don't Talk Shit

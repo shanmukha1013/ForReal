@@ -148,9 +148,29 @@ export default function Intro({ onFinish }) {
                   animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, scale: 1.1, filter: "blur(12px)" }}
                   transition={{ duration: 1, ease: EASE }}
-                  className="text-5xl font-bold tracking-tighter text-zinc-400"
+                  className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/80"
                 >
-                  Fr.
+                  <svg
+                    viewBox="0 0 512 512"
+                    className="h-24 w-24 block"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect width="512" height="512" rx="128" fill="#0A0A0A"/>
+                    <g fill="#FFFFFF">
+                      <rect x="231" y="140" width="25" height="232" rx="0"/>
+                      <rect x="131" y="140" width="100" height="50" rx="0"/>
+                      <rect x="151" y="231" width="80" height="50" rx="0"/>
+                    </g>
+                    <g fill="none" stroke="#22C55E" strokeWidth="50" strokeLinecap="square" strokeLinejoin="miter">
+                      <path d="M 256 165 H 331 A 33 33 0 0 1 331 231 H 256"/>
+                      <line x1="266" y1="231" x2="336" y2="347"/>
+                    </g>
+                    <g fill="#22C55E">
+                      <rect x="256" y="347" width="25" height="25" rx="0"/>
+                      <polygon points="316,347 341,347 361,372 336,372"/>
+                    </g>
+                  </svg>
                 </motion.div>
               )}
 
@@ -161,8 +181,9 @@ export default function Intro({ onFinish }) {
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)", letterSpacing: "-2px" }}
                   transition={{ duration: 1.2, ease: EASE }}
                   className="text-6xl sm:text-8xl font-black text-white drop-shadow-2xl"
+                  style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
                 >
-                  FOR<span className="text-gradient-brand">REAL</span>
+                  FOR<span style={{ color: "#22C55E" }}>REAL</span>
                 </motion.h1>
               )}
             </AnimatePresence>

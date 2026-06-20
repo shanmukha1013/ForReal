@@ -488,43 +488,20 @@ const NavLogo = memo(function NavLogo({ compact = false }) {
       aria-label="ForReal — Home"
       className="group flex items-center gap-2.5 flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 rounded-xl"
     >
-      {/* Logomark */}
-      <div className="relative">
-        <motion.div
-          className="absolute inset-0 rounded-lg"
-          style={{ background: "radial-gradient(circle, rgba(34,197,94,0.35), transparent 70%)", filter: "blur(7px)" }}
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div
-          className="relative h-8 w-8 rounded-lg grid place-items-center overflow-hidden"
-          style={{
-            background: "linear-gradient(145deg, #0d1a0f, #050a06)",
-            border:     `1px solid rgba(34,197,94,0.3)`,
-            boxShadow:  "0 0 0 1px rgba(34,197,94,0.07) inset",
-          }}
-        >
-          {/* Grid texture */}
-          <div
-            className="absolute inset-0 opacity-[0.18]"
-            style={{
-              backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(34,197,94,0.2) 3px, rgba(34,197,94,0.2) 4px)",
-            }}
-          />
-          <span
-            className="relative font-black text-green-400 select-none"
-            style={{ fontFamily: "'Bebas Neue', 'Impact', sans-serif", fontSize: "13px", letterSpacing: "1.5px" }}
-          >
-            FR
-          </span>
-        </div>
-      </div>
+      {/* FR wordmark — F white, R green, no icon, no background */}
+      <span
+        className="select-none font-black"
+        style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", fontSize: "20px", letterSpacing: "-0.05em", lineHeight: "1" }}
+      >
+        <span style={{ color: "#FFFFFF" }}>F</span>
+        <span style={{ color: T.green }}>R</span>
+      </span>
 
       {/* Wordmark — hidden on very small or when compact=true */}
       {!compact && (
         <span
-          className="hidden sm:block text-white font-black tracking-widest leading-none select-none"
-          style={{ fontFamily: "'Bebas Neue', 'Impact', sans-serif", fontSize: "19px", letterSpacing: "3px" }}
+          className="hidden sm:block text-white font-black select-none"
+          style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "18px", letterSpacing: "-0.04em", lineHeight: "1" }}
         >
           FOR<span style={{ color: T.green }}>REAL</span>
         </span>

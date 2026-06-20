@@ -25,6 +25,7 @@ const { Server: SocketIOServer } = require('socket.io');
 const { setIO } = require('./socket.js');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 
 // Load environment variables (required)
 dotenv.config();
@@ -82,6 +83,9 @@ try {
 } catch (e) {
   console.warn('[Security] rateLimit not available', e && e.message ? e.message : e);
 }
+
+// Compress API responses
+app.use(compression());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

@@ -204,6 +204,19 @@ function useTrendingData() {
 
   useEffect(() => {
     let cancelled = false;
+    
+    // SWR Cache Return
+    const cachedTrending = sessionStorage.getItem('forreal_explore_trending');
+    if (cachedTrending) {
+      try {
+        const parsed = JSON.parse(cachedTrending);
+        setRooms(parsed.rooms || []);
+        setCreators(parsed.creators || []);
+        setTopics(parsed.topics || []);
+        setLoading(false); // Instant load
+      } catch(e) {}
+    }
+
     const fetchAll = async () => {
       try {
         const [roomsRes, creatorsRes, topicsRes] = await Promise.all([
@@ -212,9 +225,15 @@ function useTrendingData() {
           axios.get('/explore/trending/topics'),
         ]);
         if (!cancelled) {
-          setRooms(roomsRes?.rooms || roomsRes || []);
-          setCreators(creatorsRes?.suggestions || creatorsRes?.users || creatorsRes || []);
-          setTopics(topicsRes?.topics || topicsRes || []);
+          const finalData = {
+            rooms: roomsRes?.rooms || roomsRes || [],
+            creators: creatorsRes?.suggestions || creatorsRes?.users || creatorsRes || [],
+            topics: topicsRes?.topics || topicsRes || []
+          };
+          setRooms(finalData.rooms);
+          setCreators(finalData.creators);
+          setTopics(finalData.topics);
+          sessionStorage.setItem('forreal_explore_trending', JSON.stringify(finalData));
         }
       } catch (err) {
         console.error('Trending data error:', err);

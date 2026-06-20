@@ -151,16 +151,36 @@ const useUserProfile = (username, currentUser) => {
 
   const fetchProfile = useCallback(async () => {
     if (!username) { setLoading(false); return; }
-    setLoading(true);
+    
+    // Optimistic Cache Return (SWR Pattern)
+    const cacheKey = `forreal_profile_cache_${username}`;
+    const cachedData = sessionStorage.getItem(cacheKey);
+    
+    if (cachedData && !profile) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setProfile(parsed);
+        setLoading(false); // Instantly stop loading!
+      } catch(e) {
+        setLoading(true);
+      }
+    } else if (!profile) {
+      setLoading(true);
+    }
+
     const isMe = currentUser && (String(username) === String(currentUser.username) || String(username) === String(currentUser._id) || String(username) === String(currentUser.id));
 
     try {
       const data = await axios.get(`/users/${encodeURIComponent(username)}`);
-      setProfile(isMe ? { ...currentUser, ...data, stats: data?.stats || currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } } : data);
+      const finalProfile = isMe ? { ...currentUser, ...data, stats: data?.stats || currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 } } : data;
+      
+      // Update state and cache
+      setProfile(finalProfile);
+      sessionStorage.setItem(cacheKey, JSON.stringify(finalProfile));
       setError(null);
     } catch (err) {
       // Fallback to local context if fetching current user fails
-        if (isMe) {
+      if (isMe) {
         setProfile({
           ...currentUser,
           stats: currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 }

@@ -31,7 +31,7 @@ const api = axios.create({
 const rawApi = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
-  timeout: 5000,
+  timeout: 25000, // Increased from 5000 to prevent false logouts on slow connections or sleeping servers
 });
 
 // ─── Mutex Token Refresh State ─────────────────────────────────────────────

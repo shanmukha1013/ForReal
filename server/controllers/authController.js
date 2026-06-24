@@ -38,8 +38,8 @@ export const register = async (req, res) => {
     // set HttpOnly cookie for refresh token
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     });
     return res.status(201).json({ token, refreshToken, user: user.toJSON() });
@@ -67,8 +67,8 @@ export const login = async (req, res) => {
     await user.save();
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
     return res.json({ token, refreshToken, user: user.toJSON() });
@@ -115,14 +115,14 @@ export const logout = async (req, res) => {
     const refreshToken = (req.body && req.body.refreshToken) || req.cookies?.refreshToken;
     if (!refreshToken) {
       // Clear cookie anyway
-      res.clearCookie('refreshToken');
+      res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
       return res.json({ ok: true });
     }
     let payload;
     try {
       payload = jwt.verify(refreshToken, JWT_SECRET);
     } catch (e) {
-      res.clearCookie('refreshToken');
+      res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
       return res.json({ ok: true });
     }
 
@@ -132,11 +132,11 @@ export const logout = async (req, res) => {
       await user.save();
     }
 
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
     return res.json({ ok: true });
   } catch (err) {
     console.error('[auth][logout] error', err);
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -237,7 +237,7 @@ export const terminateSession = async (req, res) => {
           await user.save();
         }
       }
-      res.clearCookie('refreshToken');
+      res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
       return res.json({ message: 'Session terminated' });
     }
     

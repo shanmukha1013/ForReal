@@ -41,54 +41,7 @@ const formContainer = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.2, ease: 'easeOut' } },
 };
 
-const floatingParticle = {
-  animate: (i) => ({
-    x: [0, Math.random() * 20 - 10, -Math.random() * 15 + 7, 0],
-    y: [0, -Math.random() * 10, Math.random() * 15 - 5, 0],
-    transition: {
-      repeat: Infinity,
-      duration: 5 + Math.random() * 5,
-      ease: 'easeInOut',
-      delay: i * 0.2,
-    },
-  }),
-};
-
-const ParticleBackground = React.memo(() => {
-  const particles = React.useRef(
-    Array.from({ length: 12 }, (_, i) => ({
-      id: i,
-      width: 4 + Math.random() * 6,
-      height: 4 + Math.random() * 6,
-      top: `${Math.random() * 100}%`,
-      left: `${Math.random() * 100}%`,
-      opacity: 0.15 + Math.random() * 0.2,
-      blur: Math.floor(Math.random() * 2) + 1,
-    }))
-  );
-
-  return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      {particles.current.map((p) => (
-        <motion.div
-          key={p.id}
-          custom={p.id}
-          variants={floatingParticle}
-          animate="animate"
-          className="absolute rounded-full bg-neon"
-          style={{
-            width: p.width,
-            height: p.height,
-            top: p.top,
-            left: p.left,
-            opacity: p.opacity,
-            filter: `blur(${p.blur}px)`,
-          }}
-        />
-      ))}
-    </div>
-  );
-});
+// ParticleBackground removed, using global BackgroundAesthetics
 ParticleBackground.displayName = 'ParticleBackground';
 
 const IntroOverlay = React.memo(({ onFinish }) => {
@@ -213,9 +166,8 @@ export default function Signup() {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex items-center justify-center overflow-hidden">
-      <ParticleBackground />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(34,197,94,0.12)_0%,transparent_60%)] pointer-events-none" />
+    <div className="relative min-h-screen text-white flex items-center justify-center overflow-hidden bg-transparent">
+      {/* Global backgrounds handle grid, blobs, spotlight, and particles */}
 
       <AnimatePresence>
         {showIntro && <IntroOverlay onFinish={handleIntroFinish} />}

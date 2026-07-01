@@ -2,7 +2,7 @@ import Post from '../models/Post.js';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 import mongoose from 'mongoose';
-import { emitNotification } from '../socket.js';
+import { emitNotification, emitPostLikeUpdate } from '../socket.js';
 
 // ============================================================================
 // Post Controller - Production-ready with proper error handling
@@ -348,6 +348,11 @@ export const reactToPost = async (req, res, next) => {
       });
       await notification.save();
       emitNotification(post.author, notification);
+    }
+    
+    // Broadcast realtime update to all connected clients
+    if (reactionType === 'like') {
+      emitPostLikeUpdate(post._id, post.reactions.likes || []);
     }
 
     res.json({

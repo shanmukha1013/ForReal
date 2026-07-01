@@ -30,4 +30,15 @@ export function emitNotification(userId, notification) {
   }
 }
 
-export default { setIO, getIO, emitRoomsNew, emitNotification };
+export function emitPostLikeUpdate(postId, likes) {
+  try {
+    if (!ioInstance) return false;
+    ioInstance.emit('post:likeUpdate', { postId, likes });
+    return true;
+  } catch (err) {
+    console.error('[socket] emitPostLikeUpdate error', err);
+    return false;
+  }
+}
+
+export default { setIO, getIO, emitRoomsNew, emitNotification, emitPostLikeUpdate };

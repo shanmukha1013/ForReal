@@ -7,58 +7,7 @@ import { useNotification } from '../components/Notification';
 // -----------------------------------------------------------------------------
 // Premium Background Components
 // -----------------------------------------------------------------------------
-const AnimatedGrid = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <div
-      className="absolute inset-[-100%] w-[300%] h-[300%] opacity-20"
-      style={{
-        backgroundImage: `
-          linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
-        `,
-        backgroundSize: '40px 40px',
-        transform: 'perspective(1000px) rotateX(60deg) translateY(-100px) translateZ(-200px)',
-        animation: 'gridMove 15s linear infinite',
-      }}
-    />
-    <style>{`
-      @keyframes gridMove {
-        0% { transform: perspective(1000px) rotateX(60deg) translateY(0) translateZ(-200px); }
-        100% { transform: perspective(1000px) rotateX(60deg) translateY(40px) translateZ(-200px); }
-      }
-    `}</style>
-  </div>
-);
-
-const GlowingBlobs = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40 mix-blend-screen">
-    <motion.div
-      animate={{
-        x: [0, 100, -50, 0],
-        y: [0, -100, 50, 0],
-        scale: [1, 1.2, 0.8, 1],
-      }}
-      transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
-      className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-green-600/30 rounded-full blur-[100px]"
-    />
-    <motion.div
-      animate={{
-        x: [0, -100, 80, 0],
-        y: [0, 80, -100, 0],
-        scale: [1, 1.5, 0.9, 1],
-      }}
-      transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-700/20 rounded-full blur-[120px]"
-    />
-    <motion.div
-      animate={{
-        opacity: [0.3, 0.6, 0.3],
-      }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-500/10 rounded-full blur-[150px]"
-    />
-  </div>
-);
+// Removed duplicated background components (AnimatedGrid, GlowingBlobs) as they are now globally handled.
 
 // -----------------------------------------------------------------------------
 // Form Animation Variants
@@ -130,18 +79,7 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen bg-[#050505] text-white flex items-center justify-center overflow-hidden">
-      {/* Background Layers */}
-      <AnimatedGrid />
-      <GlowingBlobs />
-      
-      {/* Moving Spotlight */}
-      <motion.div
-        animate={{
-          opacity: [0.1, 0.2, 0.1],
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.15)_0%,transparent_60%)] pointer-events-none"
-      />
+      {/* Global backgrounds handle grid, blobs, and spotlight */}
 
       <motion.div
         variants={containerVariants}

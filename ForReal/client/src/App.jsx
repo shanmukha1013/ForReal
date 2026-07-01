@@ -38,6 +38,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './components/Notification';
 import { ErrorBoundary, RouteErrorFallback } from './components/ErrorBoundary';
+import BackgroundAesthetics from './components/BackgroundAesthetics';
 
 // -----------------------------------------------------------------------------
 // Lazy‑loaded pages for code‑splitting (optional but production‑grade)
@@ -78,7 +79,7 @@ const PageTransition = ({ children }) => (
     exit="exit"
     variants={pageVariants}
     transition={pageTransition}
-    className="min-h-screen bg-black"
+    className="min-h-screen bg-transparent"
   >
     {children}
   </motion.div>
@@ -88,7 +89,7 @@ const PageTransition = ({ children }) => (
 // Loading fallback (full‑screen spinner)
 // -----------------------------------------------------------------------------
 const FullScreenLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-black">
+  <div className="min-h-screen flex items-center justify-center bg-transparent">
     <div className="relative">
       <div className="w-14 h-14 border-4 border-white/10 border-t-neon rounded-full animate-spin" />
       <div className="absolute inset-0 flex items-center justify-center">
@@ -144,7 +145,7 @@ const ScrollToTop = () => {
 // 404 Not Found Page
 // -----------------------------------------------------------------------------
 const NotFound = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center text-white bg-black">
+  <div className="min-h-screen flex flex-col items-center justify-center text-white bg-transparent">
     <h1 className="text-6xl font-black text-neon mb-4">404</h1>
     <p className="text-gray-400 text-lg mb-6">This page doesn’t exist.</p>
     <a
@@ -172,6 +173,7 @@ const AppRoutes = () => {
 
   return (
     <>
+      <BackgroundAesthetics />
       <ScrollToTop />
       <AnimatePresence mode="wait" initial={false}>
         <Routes location={location} key={location.pathname}>

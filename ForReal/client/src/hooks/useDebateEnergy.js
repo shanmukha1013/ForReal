@@ -23,10 +23,13 @@ export const useDebateEnergy = (room, liveChatMessages = null) => {
     const fiveMinsAgo = now - 5 * 60 * 1000;
 
     // 1. Participant Base (2 pts per debater, 1 pt per observer)
-    const proCount = room.pro?.participants?.length || 0;
-    const againstCount = room.against?.participants?.length || 0;
+    let debaterCount = 0;
+    room.customOptions?.forEach(opt => {
+      debaterCount += opt.participants?.length || 0;
+    });
+    
     const obsCount = room.observers?.length || 0;
-    let score = (proCount + againstCount) * 2 + obsCount;
+    let score = (debaterCount * 2) + obsCount;
 
     // 2. Chat & Reactions Momentum
     const chats = liveChatMessages || room.messages || room.chatMessages || [];
@@ -49,7 +52,10 @@ export const useDebateEnergy = (room, liveChatMessages = null) => {
     });
 
     // 3. Votes / Verdicts
-    const totalVotes = (room.votes?.pro || 0) + (room.votes?.against || 0) + (room.votes?.neutral || 0);
+    let totalVotes = 0;
+    room.customOptions?.forEach(opt => {
+       totalVotes += opt.votes || 0;
+    });
     score += totalVotes * 3;
 
     const finalScore = score + recentActivityScore;

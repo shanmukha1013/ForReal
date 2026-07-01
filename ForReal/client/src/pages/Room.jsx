@@ -1,11 +1,6 @@
 // -----------------------------------------------------------------------------
 // Debate Room – Realtime Immersive Experience
 // -----------------------------------------------------------------------------
-// Enterprise‑grade debate room with live chat, Pro/Against panels,
-// animated timer, voting, speaker indicators, typing notifications,
-// and premium glassmorphism design. Socket‑driven, fully reactive.
-// -----------------------------------------------------------------------------
-
 import React, {
   useState,
   useEffect,
@@ -43,7 +38,6 @@ import {
   ScaleIcon,
 } from '@heroicons/react/24/outline';
 
-// Heroicons aliases (stabilize production: remove lucide-react dependency)
 const Shield = ShieldCheckIcon;
 const Users = UserGroupIcon;
 const Eye = EyeIcon;
@@ -59,22 +53,20 @@ const Clock = ClockIcon;
 const Trophy = TrophyIcon;
 const Zap = SparklesIcon;
 const X = XMarkIcon;
-const MoreHorizontal = LinkIcon;
-const Smile = ClipboardIcon;
 const LinkIconAlias = LinkIcon;
 const AlertTriangle = ExclamationTriangleIcon;
-// Paperclip icon removed from imports for production compatibility
 const EyeSlash = EyeSlashIcon;
 const Flag = FlagIcon;
 const Star = StarIcon;
 const CpuChip = CpuChipIcon;
 const LightBulb = LightBulbIcon;
 const Scale = ScaleIcon;
+
 import Layout from '../components/Layout';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
 import axios from '../api/axios';
-import { getSocket } from '../realtime/socket'; // adjust path
+import { getSocket } from '../realtime/socket';
 import { useCredibility, updateCredibility } from '../hooks/useCredibility';
 import { useDebateEnergy } from '../hooks/useDebateEnergy';
 import { useDebateTimeline } from '../hooks/useDebateTimeline';
@@ -134,6 +126,18 @@ const profilePathFor = (user) => {
   return target ? `/profile/${encodeURIComponent(target)}` : null;
 };
 
+// Dynamic Color Palette for Custom Options
+const OPTION_COLORS = [
+  { text: 'text-neon', border: 'border-neon', bg: 'bg-neon/5', hover: 'hover:border-neon/50', buttonBg: 'bg-neon', buttonText: 'text-black' },
+  { text: 'text-blue-400', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-black' },
+  { text: 'text-purple-400', border: 'border-purple-400', bg: 'bg-purple-400/5', hover: 'hover:border-purple-400/50', buttonBg: 'bg-purple-400', buttonText: 'text-white' },
+  { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400/5', hover: 'hover:border-orange-400/50', buttonBg: 'bg-orange-400', buttonText: 'text-black' },
+  { text: 'text-pink-400', border: 'border-pink-400', bg: 'bg-pink-400/5', hover: 'hover:border-pink-400/50', buttonBg: 'bg-pink-400', buttonText: 'text-black' },
+  { text: 'text-yellow-400', border: 'border-yellow-400', bg: 'bg-yellow-400/5', hover: 'hover:border-yellow-400/50', buttonBg: 'bg-yellow-400', buttonText: 'text-black' },
+];
+
+const getOptionColor = (index) => OPTION_COLORS[index % OPTION_COLORS.length];
+
 // -----------------------------------------------------------------------------
 // Custom Hooks
 // -----------------------------------------------------------------------------
@@ -160,10 +164,6 @@ const arrayKeyMap = {
   validPoint: 'validPoints'
 };
 
-/**
- * useDebateRoom – connects to socket, fetches room data, listens for events.
- * Returns rich state for the whole room.
- */
 const useDebateRoom = (roomId) => {
   const { user } = useContext(AuthContext);
   const notify = useNotification();
@@ -172,17 +172,15 @@ const useDebateRoom = (roomId) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Derived state updated via socket
   const [timerSec, setTimerSec] = useState(0);
-  const [votes, setVotes] = useState({ pro: 0, against: 0, neutral: 0 });
-  const [score, setScore] = useState({ pro: 0, against: 0 });
-  const [speaker, setSpeaker] = useState({ pro: null, against: null });
+  const [votes, setVotes] = useState({});
+  const [score, setScore] = useState({});
+  const [speaker, setSpeaker] = useState({});
   const [chatMessages, setChatMessages] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
   const chatContainerRef = useRef(null);
 
   const socketRef = useRef(getSocket());
-  const roomRef = useRef(roomId);
   const userRef = useRef(user);
 
   const updateLocalRoom = useCallback((updates) => {
@@ -194,16 +192,15 @@ const useDebateRoom = (roomId) => {
     }
   }, [roomId]);
 
-  // Fetch initial room data
   const fetchRoom = useCallback(async () => {
-    if (!roomId) {return;}
+    if (!roomId) return;
     setLoading(true);
     let fetchedRoom = null;
     try {
       const result = await axios.get(`/rooms/${roomId}`);
       fetchedRoom = result.room || result;
     } catch (err) {
-      // Fallback to local storage 
+      // Fallback
     } finally {
       const localRooms = storageCache.getRooms();
       const localRoom = localRooms.find(r => r._id === roomId);
@@ -211,16 +208,21 @@ const useDebateRoom = (roomId) => {
 
       if (roomData) {
         setRoom(roomData);
-        setVotes(roomData.votes || { pro: 0, against: 0, neutral: 0 });
-        setScore({
-          pro: roomData.pro?.score || 0,
-          against: roomData.against?.score || 0,
+        
+        // Initialize dynamic maps for custom options
+        const vMap = {};
+        const sMap = {};
+        const spMap = {};
+        roomData.customOptions?.forEach(opt => {
+           vMap[opt.name] = opt.votes || 0;
+           sMap[opt.name] = opt.score || 0;
+           spMap[opt.name] = opt.activeSpeaker || null;
         });
-        setSpeaker({
-          pro: roomData.pro?.activeSpeaker || null,
-          against: roomData.against?.activeSpeaker || null,
-        });
-      setChatMessages(mergeChatMessages(roomData.messages || []));
+
+        setVotes(vMap);
+        setScore(sMap);
+        setSpeaker(spMap);
+        setChatMessages(mergeChatMessages(roomData.messages || []));
 
         if (roomData.status === 'active' && roomData.debateTimer?.startedAt) {
           const endsAt = new Date(
@@ -245,10 +247,9 @@ const useDebateRoom = (roomId) => {
     fetchRoom();
   }, [fetchRoom]);
 
-  // Socket event listeners
   useEffect(() => {
     const socket = socketRef.current;
-    if (!socket || !roomId) {return;}
+    if (!socket || !roomId) return;
 
     socket.emit('room:join', { roomId });
 
@@ -263,7 +264,6 @@ const useDebateRoom = (roomId) => {
             foundMatch = true;
             return { ...existing, ...message, _id: message._id || message.id };
           }
-          // Heuristic match if clientId missing but it's our optimistic message
           if (!incomingClientId && isMyMessage && existing.text === message.text && String(existing._id).startsWith('msg_')) {
             foundMatch = true;
             return { ...existing, ...message, _id: message._id || message.id };
@@ -274,66 +274,46 @@ const useDebateRoom = (roomId) => {
         if (foundMatch) return mergeChatMessages(updated);
         return mergeChatMessages([...updated, { ...message, _id: message._id || message.id }]);
       });
-      // Remove typing indicator for that user
       setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(message.author?.id || message.sender?._id)));
     };
 
-    const onTick = ({ remainingSec }) => {
-      setTimerSec(remainingSec);
-    };
-
-    const onVotes = ({ votes: newVotes }) => {
-      setVotes(newVotes);
-    };
-
-    const onScore = ({ pro, against }) => {
-      setScore({ pro, against });
-    };
-
-    const onSpeaker = ({ side: speakerSide, speakerId }) => {
-      setSpeaker((prev) => ({ ...prev, [speakerSide]: speakerId }));
-    };
-
-    const onStarted = () => {
-      // Re‑fetch entire room to sync everything
-      fetchRoom();
-    };
-
+    const onTick = ({ remainingSec }) => setTimerSec(remainingSec);
+    const onVotes = ({ votes: newVotes }) => setVotes(newVotes);
+    const onScore = ({ scores }) => setScore(scores);
+    const onSpeaker = ({ optionName, speakerId }) => setSpeaker(prev => ({ ...prev, [optionName]: speakerId }));
+    const onStarted = () => fetchRoom();
     const onEnded = ({ room: endedRoom } = {}) => {
       setRoom((prev) => ({ ...(prev || {}), ...(endedRoom || {}), status: 'ended' }));
       setTimerSec(0);
     };
-
     const onDeleted = () => {
       setRoom((prev) => prev ? { ...prev, status: 'deleted', isActive: false } : prev);
       setTimerSec(0);
       setError('This debate was deleted.');
     };
 
-    const onPresence = ({ proCount, againstCount, observerCount }) => {
-      setRoom((r) =>
-        r
-          ? {
-              ...r,
-              pro: { ...r.pro, participants: new Array(proCount).fill(0) },
-              against: {
-                ...r.against,
-                participants: new Array(againstCount).fill(0),
-              },
-              observers: new Array(observerCount).fill(0),
-            }
-          : r
-      );
+    const onPresence = ({ optionStats, observerCount }) => {
+      setRoom((r) => {
+        if (!r) return r;
+        const newOpts = r.customOptions.map(opt => ({
+           ...opt,
+           participants: new Array(optionStats?.[opt.name] || 0).fill(0)
+        }));
+        return {
+           ...r,
+           customOptions: newOpts,
+           observers: new Array(observerCount || 0).fill(0),
+        };
+      });
     };
 
     const onTyping = ({ userId, username } = {}) => {
       if (!userId) return;
       setTypingUsers((prev) => {
-        if (prev.find((u) => String(u._id) === String(userId))) {return prev;}
+        if (prev.find((u) => String(u._id) === String(userId))) return prev;
         return [...prev, { _id: userId, username }];
       });
     };
-
     const onStopTyping = ({ userId } = {}) => {
       if (!userId) return;
       setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(userId)));
@@ -367,7 +347,6 @@ const useDebateRoom = (roomId) => {
     };
   }, [roomId, fetchRoom]);
 
-  // Local visual timer tick
   useEffect(() => {
     let interval;
     if (room?.status === 'active') {
@@ -384,14 +363,12 @@ const useDebateRoom = (roomId) => {
     }
   }, [chatMessages]);
 
-  // Expose actions that mutate via socket
-  const joinSide = useCallback(
-    async (nextSide) => {
-      if (!user) {return;}
+  const joinSide = useCallback(async (optionName) => {
+      if (!user) return;
       try {
         const socket = socketRef.current;
-        if (socket) {socket.emit('debate:joinSide', { roomId, side: nextSide });}
-        await axios.post(`/rooms/${roomId}/join`, { side: nextSide });
+        if (socket) socket.emit('debate:joinSide', { roomId, optionName });
+        await axios.post(`/rooms/${roomId}/join`, { optionName });
       } catch(e) { console.warn('joinSide failed', e); }
       
       if (room && String(room.createdBy?._id || room.createdBy?.id || room.createdBy) !== String(user._id || user.id)) {
@@ -399,7 +376,7 @@ const useDebateRoom = (roomId) => {
           _id: `notif_join_${Date.now()}`,
           type: 'debate',
           actor: user || { username: 'User' },
-          text: `joined your debate as ${nextSide}`,
+          text: `joined your debate supporting ${optionName || 'observe'}`,
           targetId: roomId,
           read: false,
           createdAt: new Date().toISOString()
@@ -408,39 +385,39 @@ const useDebateRoom = (roomId) => {
       }
 
       setRoom((prev) => {
-        if (!prev) {return prev;}
-        const updated = { ...prev };
+        if (!prev) return prev;
+        const updated = { ...prev, customOptions: [...(prev.customOptions||[])] };
         
-        if (updated.pro?.participants) {updated.pro.participants = updated.pro.participants.filter(p => p._id !== user._id && p.username !== user.username);}
-        if (updated.against?.participants) {updated.against.participants = updated.against.participants.filter(p => p._id !== user._id && p.username !== user.username);}
+        // Remove from all
+        updated.customOptions.forEach(opt => {
+           if (opt.participants) opt.participants = opt.participants.filter(p => p._id !== user._id && p.username !== user.username);
+        });
         if (updated.observers) {updated.observers = updated.observers.filter(p => p._id !== user._id && p.username !== user.username);}
         
-        if (nextSide === 'pro') {
-          if (!updated.pro) {updated.pro = { participants: [] };}
-          if (!updated.pro.participants) {updated.pro.participants = [];}
-          updated.pro.participants.push(user);
-        } else if (nextSide === 'against') {
-          if (!updated.against) {updated.against = { participants: [] };}
-          if (!updated.against.participants) {updated.against.participants = [];}
-          updated.against.participants.push(user);
+        // Add to new
+        if (optionName && optionName !== 'observe') {
+           const target = updated.customOptions.find(o => o.name === optionName);
+           if (target) {
+              if (!target.participants) target.participants = [];
+              target.participants.push(user);
+           }
         } else {
-          if (!updated.observers) {updated.observers = [];}
-          updated.observers.push(user);
+           if (!updated.observers) updated.observers = [];
+           updated.observers.push(user);
         }
         
         updateLocalRoom(updated);
         return updated;
       });
-      notify.success(`Joined ${nextSide}`);
+      notify.success(`Joined ${optionName}`);
     },
     [roomId, user, updateLocalRoom, notify, room]
   );
 
-  const vote = useCallback(
-    (voteSide) => {
-      try { socketRef.current?.emit('reaction:send', { roomId, reaction: voteSide }); } catch(e) { console.warn('emit vote failed', e); }
+  const vote = useCallback((optionName) => {
+      try { socketRef.current?.emit('reaction:send', { roomId, reaction: optionName }); } catch(e) {}
       setVotes(prev => {
-        const updated = { ...prev, [voteSide]: (prev[voteSide] || 0) + 1 };
+        const updated = { ...prev, [optionName]: (prev[optionName] || 0) + 1 };
         updateLocalRoom({ votes: updated });
         return updated;
       });
@@ -449,9 +426,8 @@ const useDebateRoom = (roomId) => {
     [roomId, updateLocalRoom, notify]
   );
 
-  const startDebate = useCallback(
-    (durationSec = 3600) => {
-      try { socketRef.current?.emit('debate:start', { roomId, durationSec }); } catch(e) { console.warn('emit startDebate failed', e); }
+  const startDebate = useCallback((durationSec = 3600) => {
+      try { socketRef.current?.emit('debate:start', { roomId, durationSec }); } catch(e) {}
       setRoom(prev => {
         const updated = { ...prev, status: 'active', debateTimer: { startedAt: new Date().toISOString(), duration: durationSec } };
         updateLocalRoom(updated);
@@ -491,11 +467,10 @@ const useDebateRoom = (roomId) => {
     }
   }, [roomId, notify]);
 
-  const adjustScore = useCallback(
-    (team, delta) => {
-      try { socketRef.current?.emit('debate:score', { roomId, side: team, delta }); } catch(e) { console.warn('emit adjustScore failed', e); }
+  const adjustScore = useCallback((optionName, delta) => {
+      try { socketRef.current?.emit('debate:score', { roomId, optionName, delta }); } catch(e) {}
       setScore(prev => {
-        const updated = { ...prev, [team]: (prev[team] || 0) + delta };
+        const updated = { ...prev, [optionName]: (prev[optionName] || 0) + delta };
         updateLocalRoom({ score: updated });
         return updated;
       });
@@ -503,8 +478,7 @@ const useDebateRoom = (roomId) => {
     [roomId, updateLocalRoom]
   );
 
-  const sendChatMessage = useCallback(
-    (text, isAnon) => {
+  const sendChatMessage = useCallback((text, isAnon, associatedOption = null) => {
       const clientId = `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`;
       const newMsg = {
         _id: clientId,
@@ -512,6 +486,7 @@ const useDebateRoom = (roomId) => {
         text,
         author: user || { username: 'Guest' },
         isAnonymous: isAnon,
+        associatedOption,
         createdAt: new Date().toISOString(),
         likes: [],
         dislikes: [],
@@ -535,22 +510,22 @@ const useDebateRoom = (roomId) => {
           text,
           clientId,
           isAnonymous: isAnon,
+          associatedOption,
         });}
-      } catch(e) { console.warn('sendChatMessage emit failed', e); }
+      } catch(e) {}
     },
     [roomId, user, updateLocalRoom]
   );
 
   const reactToChatMessage = useCallback((messageId, reactionType) => {
     const myId = userRef.current?._id || userRef.current?.id;
-    if (!myId) {return;}
+    if (!myId) return;
 
     setChatMessages(prev => {
         const newMessages = prev.map(msg => {
-            if (msg._id !== messageId) {return msg;}
+            if (msg._id !== messageId) return msg;
 
             const updatedMsg = { ...msg };
-            
             Object.values(arrayKeyMap).forEach(arrKey => {
                 updatedMsg[arrKey] = updatedMsg[arrKey] || [];
             });
@@ -560,10 +535,9 @@ const useDebateRoom = (roomId) => {
             
             let oldReaction = null;
             Object.keys(arrayKeyMap).forEach(key => {
-                if (updatedMsg[arrayKeyMap[key]]?.includes(myId)) {oldReaction = key;}
+                if (updatedMsg[arrayKeyMap[key]]?.includes(myId)) oldReaction = key;
             });
 
-            // Remove user from all reaction lists (exclusive reactions)
             Object.values(arrayKeyMap).forEach(arrKey => {
                 if (updatedMsg[arrKey]) {
                    updatedMsg[arrKey] = updatedMsg[arrKey].filter(id => id !== myId);
@@ -574,12 +548,10 @@ const useDebateRoom = (roomId) => {
                updateCredibility(authorId, oldReaction, false);
             }
 
-            // Toggle logic
             if (!wasReacted && reactionType) {
                 updatedMsg[arrayKeyMap[reactionType]].push(myId);
                 updateCredibility(authorId, reactionType, true);
             }
-            
             return updatedMsg;
         });
         updateLocalRoom({ messages: newMessages });
@@ -587,13 +559,10 @@ const useDebateRoom = (roomId) => {
     });
   }, [updateLocalRoom, userRef]);
 
-  const emitTyping = useCallback(
-    (isTyping) => {
+  const emitTyping = useCallback((isTyping) => {
       try {
-        socketRef.current?.emit(isTyping ? 'typing:start' : 'typing:stop', {
-          roomId,
-        });
-      } catch(e) { console.warn('emitTyping failed', e); }
+        socketRef.current?.emit(isTyping ? 'typing:start' : 'typing:stop', { roomId });
+      } catch(e) {}
     },
     [roomId]
   );
@@ -626,7 +595,6 @@ const useDebateRoom = (roomId) => {
 // Subcomponents
 // -----------------------------------------------------------------------------
 
-// Animated Timer Ring with spring transition
 const TimerRing = React.memo(({ seconds }) => {
   const total = 3600;
   const percentage = Math.min(100, (seconds / total) * 100);
@@ -640,23 +608,10 @@ const TimerRing = React.memo(({ seconds }) => {
       transition={{ type: 'spring', stiffness: 300 }}
     >
       <svg className="w-full h-full transform -rotate-90">
-        <circle
-          cx="32"
-          cy="32"
-          r="28"
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth="4"
-          fill="none"
-        />
+        <circle cx="32" cy="32" r="28" stroke="rgba(255,255,255,0.1)" strokeWidth="4" fill="none" />
         <motion.circle
-          cx="32"
-          cy="32"
-          r="28"
-          stroke="#22c55e"
-          strokeWidth="4"
-          fill="none"
-          strokeDasharray={`${circumference * (percentage / 100)} ${circumference}`}
-          strokeLinecap="round"
+          cx="32" cy="32" r="28" stroke="#22c55e" strokeWidth="4" fill="none"
+          strokeDasharray={`${circumference * (percentage / 100)} ${circumference}`} strokeLinecap="round"
           initial={false}
           animate={{ strokeDasharray: `${circumference * (percentage / 100)} ${circumference}` }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
@@ -665,7 +620,7 @@ const TimerRing = React.memo(({ seconds }) => {
       <div className="absolute inset-0 flex items-center justify-center">
         <motion.span
           className="text-sm font-mono text-white"
-          key={seconds} // re‑animate number change
+          key={seconds}
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
@@ -683,8 +638,8 @@ const ChatMessageReactions = ({ message, onReact }) => {
   const myId = user?._id || user?.id;
 
   const [reaction, setReaction] = useState(() => {
-    if (message.likes?.includes(myId)) {return 'like';}
-    if (message.dislikes?.includes(myId)) {return 'dislike';}
+    if (message.likes?.includes(myId)) return 'like';
+    if (message.dislikes?.includes(myId)) return 'dislike';
     return null;
   });
 
@@ -706,86 +661,69 @@ const ChatMessageReactions = ({ message, onReact }) => {
   );
 };
 
-// Side panel (Pro / Against)
-const SidePanel = React.memo(
-  ({
-    side,
-    title,
-    description,
-    participantCount,
-    isActiveSpeaker,
-    score,
-    onJoin,
-    isJoined,
-    isLoading,
-  }) => {
-    const isProSide = side === 'pro';
+// Side Panel Card for Custom Options
+const SidePanel = React.memo(({ option, colorConfig, isActiveSpeaker, score, onJoin, isJoined, isLoading }) => {
+  const Icon = isActiveSpeaker ? Mic : Users;
 
-    // Avoid dynamic Tailwind class strings (production build safety)
-    const colorClass = isProSide ? 'text-neon border-neon' : 'text-red-400 border-red-400';
-    const bgClass = isProSide ? 'bg-neon/5' : 'bg-red-400/5';
-    const Icon = isActiveSpeaker ? Mic : X;
-
-    return (
-      <motion.div
-        variants={panelVariant}
-        className={`relative overflow-hidden rounded-2xl border backdrop-blur-xl transition-colors duration-300 ${
-          isActiveSpeaker
-            ? `shadow-glow-lg ${bgClass} ${isProSide ? 'border-neon' : 'border-red-400'}`
-            : isJoined
-            ? ` ${isProSide ? 'border-neon/50 bg-neon/5' : 'border-red-400/50 bg-red-400/5'}`
-            : 'border-white/10 bg-black/40 hover:border-white/20'
-        }`}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-neon/5 to-transparent pointer-events-none" />
-        <div className="p-5 flex flex-col h-full">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Icon className={`w-4 h-4 ${isActiveSpeaker ? 'animate-pulse' : 'text-gray-500'}`} />
-              <h3 className={`text-lg font-bold ${colorClass}`}>{title}</h3>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-gray-400">
-              <Users className="w-3.5 h-3.5" />
-              {participantCount}
-            </div>
+  return (
+    <motion.div
+      variants={panelVariant}
+      className={`relative min-w-[280px] max-w-[320px] shrink-0 overflow-hidden rounded-2xl border backdrop-blur-xl transition-colors duration-300 ${
+        isActiveSpeaker
+          ? `shadow-[0_0_15px_rgba(34,197,94,0.3)] ${colorConfig.bg} ${colorConfig.border}`
+          : isJoined
+          ? ` ${colorConfig.border} ${colorConfig.bg}`
+          : `border-white/10 bg-black/40 ${colorConfig.hover}`
+      }`}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none`} />
+      <div className="p-5 flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 max-w-[70%]">
+            <Icon className={`w-4 h-4 shrink-0 ${isActiveSpeaker ? `animate-pulse ${colorConfig.text}` : 'text-gray-500'}`} />
+            <h3 className={`text-lg font-bold truncate ${colorConfig.text}`}>{option.name}</h3>
           </div>
-
-          <div className="mb-4">
-            <div className="flex items-baseline gap-1">
-              <Trophy className={`w-4 h-4 ${colorClass}`} />
-              <span className="text-2xl font-bold text-white">{score}</span>
-              <span className="text-xs text-gray-400">points</span>
-            </div>
+          <div className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
+            <Users className="w-3.5 h-3.5" />
+            {option.participants?.length || 0}
           </div>
-
-          <p className="text-sm text-gray-300 mb-6 flex-1">{description}</p>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onJoin(side)}
-            disabled={isLoading}
-            className={`w-full py-2.5 rounded-xl font-medium text-sm transition-all ${
-              isJoined
-                ? 'bg-neon/20 border border-neon text-neon'
-                : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-neon/50'
-            }`}
-          >
-            {isJoined ? 'Joined' : `Join ${title}`}
-          </motion.button>
         </div>
-      </motion.div>
-    );
-  }
-);
+
+        <div className="mb-4">
+          <div className="flex items-baseline gap-1">
+            <Trophy className={`w-4 h-4 ${colorConfig.text}`} />
+            <span className="text-2xl font-bold text-white">{score || 0}</span>
+            <span className="text-xs text-gray-400">points</span>
+          </div>
+        </div>
+
+        <div className="flex-1" />
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onJoin(option.name)}
+          disabled={isLoading}
+          className={`w-full mt-4 py-2.5 rounded-xl font-medium text-sm transition-all ${
+            isJoined
+              ? `${colorConfig.bg} border ${colorConfig.border} ${colorConfig.text}`
+              : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+          }`}
+        >
+          {isJoined ? 'Joined' : `Join ${option.name}`}
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+});
 SidePanel.displayName = 'SidePanel';
 
-// Chat message with reactions placeholder
-const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode }) => {
+const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, colorMap }) => {
   const activeReactions = REACTION_TYPES.filter(rt => message[arrayKeyMap[rt.id]]?.length > 0);
   const isAnon = message.isAnonymous || anonymityMode === 'anonymous';
   const author = message.author || message.sender;
   const profilePath = !isAnon ? profilePathFor(author) : null;
+  const optColor = message.associatedOption && colorMap[message.associatedOption] ? colorMap[message.associatedOption].text : 'text-neon';
 
   return (
   <motion.div
@@ -804,23 +742,24 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode }) => 
         }`}
       >
         {!isMine && (
-          <div className="text-xs mb-1 font-mono flex items-center gap-1" style={{ color: isAnon ? '#a855f7' : 'rgba(34, 197, 94, 0.8)' }}>
-            {isAnon ? <EyeSlash className="w-3 h-3" /> : null}
-            {profilePath ? (
-              <Link to={profilePath} className="hover:underline">
-                @{author?.username || 'user'}
-              </Link>
-            ) : (
-              <>@{isAnon ? 'anonymous' : (author?.username || 'user')}</>
+          <div className={`text-xs mb-1 font-mono flex items-center justify-between gap-2`} style={{ color: isAnon ? '#a855f7' : 'rgba(34, 197, 94, 0.8)' }}>
+            <div className="flex items-center gap-1">
+              {isAnon ? <EyeSlash className="w-3 h-3" /> : null}
+              {profilePath ? (
+                <Link to={profilePath} className="hover:underline">@{author?.username || 'user'}</Link>
+              ) : (
+                <>@{isAnon ? 'anonymous' : (author?.username || 'user')}</>
+              )}
+            </div>
+            {message.associatedOption && (
+               <span className={`text-[9px] px-1.5 py-0.5 rounded-full border bg-black/20 ${colorMap[message.associatedOption]?.border} ${optColor}`}>
+                 {message.associatedOption}
+               </span>
             )}
           </div>
         )}
         <div className="text-sm break-words">{message.text}</div>
-        <div
-          className={`text-[9px] mt-1.5 flex flex-wrap items-center justify-between gap-2 ${
-            isMine ? 'text-black/60' : 'text-gray-400'
-          }`}
-        >
+        <div className={`text-[9px] mt-1.5 flex flex-wrap items-center justify-between gap-2 ${isMine ? 'text-black/60' : 'text-gray-400'}`}>
           <span>{new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           <div className="flex items-center gap-1.5 flex-wrap">
             {activeReactions.map(rt => (
@@ -839,21 +778,12 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode }) => 
 });
 ChatMessage.displayName = 'ChatMessage';
 
-// Typing indicator
 const TypingIndicator = React.memo(({ typingUsers, anonymityMode }) => {
-  if (!typingUsers.length) {return null;}
-  
+  if (!typingUsers.length) return null;
   let names = typingUsers.map((u) => u.username).join(', ');
-  if (anonymityMode === 'anonymous') {
-     names = `${typingUsers.length} debater${typingUsers.length > 1 ? 's' : ''}`;
-  }
-
+  if (anonymityMode === 'anonymous') names = `${typingUsers.length} debater${typingUsers.length > 1 ? 's' : ''}`;
   return (
-    <motion.div
-      variants={typingIndicatorVariant}
-      animate="animate"
-      className="text-xs text-gray-400 pl-4 py-1 flex items-center gap-1"
-    >
+    <motion.div variants={typingIndicatorVariant} animate="animate" className="text-xs text-gray-400 pl-4 py-1 flex items-center gap-1">
       <span className="inline-flex gap-0.5">
         <span className="w-1 h-1 bg-neon rounded-full animate-bounce" />
         <span className="w-1 h-1 bg-neon rounded-full animate-bounce delay-100" />
@@ -865,19 +795,18 @@ const TypingIndicator = React.memo(({ typingUsers, anonymityMode }) => {
 });
 TypingIndicator.displayName = 'TypingIndicator';
 
-// Chat input with typing emission
-const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled }) => {
+const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySide }) => {
   const [text, setText] = useState('');
   const [postAnon, setPostAnon] = useState(anonymityMode === 'anonymous');
   const typingTimeout = useRef(null);
 
   useEffect(() => {
-    if (anonymityMode === 'public') {setPostAnon(false);}
-    if (anonymityMode === 'anonymous') {setPostAnon(true);}
+    if (anonymityMode === 'public') setPostAnon(false);
+    if (anonymityMode === 'anonymous') setPostAnon(true);
   }, [anonymityMode]);
 
   const handleChange = (e) => {
-    if (disabled) {return;}
+    if (disabled) return;
     setText(e.target.value);
     if (onTyping) {
       onTyping(true);
@@ -888,10 +817,10 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled }) => 
 
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed || disabled) {return;}
-    onSend(trimmed, postAnon);
+    if (!trimmed || disabled) return;
+    onSend(trimmed, postAnon, mySide !== 'observe' ? mySide : null);
     setText('');
-    if (onTyping) {onTyping(false);}
+    if (onTyping) onTyping(false);
   };
 
   return (
@@ -934,7 +863,6 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled }) => 
 });
 ChatInput.displayName = 'ChatInput';
 
-// Timeline Event Node
 const TimelineEvent = React.memo(({ event, index }) => {
   let Icon = MessageCircle;
   let colorClass = 'text-gray-400';
@@ -977,7 +905,6 @@ const TimelineEvent = React.memo(({ event, index }) => {
 });
 TimelineEvent.displayName = 'TimelineEvent';
 
-// AI Summary Panel
 const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 max-w-4xl mx-auto">
@@ -1047,8 +974,7 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
 });
 AIDebateSummary.displayName = 'AIDebateSummary';
 
-// Debate Verdict & Community Evaluation Panel
-const DebateVerdictPanel = React.memo(({ verdictData, onCastVote, onGenerate, isHost, myId }) => {
+const DebateVerdictPanel = React.memo(({ verdictData, onCastVote, onGenerate, isHost, myId, customOptions, colorMap }) => {
   const { status, outcome, votes } = verdictData;
 
   const evalCategories = [
@@ -1067,16 +993,16 @@ const DebateVerdictPanel = React.memo(({ verdictData, onCastVote, onGenerate, is
            <h4 className="text-xs font-mono tracking-widest text-gray-400 uppercase mb-2">Final Debate Verdict</h4>
            <h2 className={`text-2xl md:text-4xl font-black mb-6 ${outcome.color}`}>{outcome.title}</h2>
            
-           <div className="flex items-center justify-center gap-8 relative z-10">
-              <div className="text-center">
-                 <div className="text-3xl font-bold text-neon">{outcome.proPoints.toFixed(1)}</div>
-                 <div className="text-xs text-gray-400 uppercase tracking-widest mt-1">Pro Points</div>
-              </div>
-              <div className="w-px h-12 bg-white/20" />
-              <div className="text-center">
-                 <div className="text-3xl font-bold text-red-400">{outcome.againstPoints.toFixed(1)}</div>
-                 <div className="text-xs text-gray-400 uppercase tracking-widest mt-1">Against Points</div>
-              </div>
+           <div className="flex items-center justify-center gap-8 relative z-10 flex-wrap">
+              {Object.entries(outcome.points || {}).map(([optName, pts]) => {
+                  const conf = colorMap[optName] || OPTION_COLORS[0];
+                  return (
+                    <div key={optName} className="text-center px-4 py-2 bg-black/40 rounded-xl border border-white/10">
+                       <div className={`text-2xl font-bold ${conf.text}`}>{pts.toFixed(1)}</div>
+                       <div className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 max-w-[100px] truncate">{optName} Points</div>
+                    </div>
+                  );
+              })}
            </div>
            <p className="mt-6 text-xs text-gray-500 font-mono">Verdict determined via credibility-weighted community evaluation.</p>
         </div>
@@ -1105,26 +1031,25 @@ const DebateVerdictPanel = React.memo(({ verdictData, onCastVote, onGenerate, is
          <p className="text-sm text-gray-400 mb-6">Cast your credibility-weighted votes to determine the final verdict of this debate.</p>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {evalCategories.map(cat => {
-               const myProVote = votes[cat.id].pro.some(v => v.userId === myId);
-               const myAgainstVote = votes[cat.id].against.some(v => v.userId === myId);
                return (
                  <div key={cat.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col justify-between">
                     <h4 className="text-sm font-semibold text-gray-200 mb-4 flex items-center gap-2">
                        <cat.icon className="w-4 h-4 text-gray-400" /> {cat.label}
                     </h4>
-                    <div className="flex gap-2">
-                       <button 
-                         onClick={() => onCastVote(cat.id, 'pro')}
-                         className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${myProVote ? 'bg-neon text-black shadow-glow-sm' : 'bg-black/50 border border-white/10 text-gray-400 hover:border-neon/50 hover:text-neon'}`}
-                       >
-                         Pro
-                       </button>
-                       <button 
-                         onClick={() => onCastVote(cat.id, 'against')}
-                         className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${myAgainstVote ? 'bg-red-400 text-black shadow-glow-sm' : 'bg-black/50 border border-white/10 text-gray-400 hover:border-red-400/50 hover:text-red-400'}`}
-                       >
-                         Against
-                       </button>
+                    <div className="flex flex-wrap gap-2">
+                       {customOptions.map(opt => {
+                          const myVote = votes[cat.id]?.[opt.name]?.some(v => v.userId === myId);
+                          const conf = colorMap[opt.name] || OPTION_COLORS[0];
+                          return (
+                            <button 
+                              key={opt.name}
+                              onClick={() => onCastVote(cat.id, opt.name)}
+                              className={`flex-1 min-w-[80px] py-1.5 px-2 rounded-lg text-xs font-bold transition-all truncate ${myVote ? `${conf.bg} border ${conf.border} ${conf.text} shadow-glow-sm` : `bg-black/50 border border-white/10 text-gray-400 hover:border-white/30`}`}
+                            >
+                              {opt.name}
+                            </button>
+                          );
+                       })}
                     </div>
                  </div>
                );
@@ -1166,27 +1091,26 @@ export default function Room() {
     sendChatMessage,
     emitTyping,
     reactToChatMessage,
-    refetch,
     chatContainerRef,
   } = useDebateRoom(roomId);
 
-  const [mySide, setMySide] = useState('observe'); // 'pro', 'against', 'observe'
+  const [mySide, setMySide] = useState('observe');
   const [joining, setJoining] = useState(false);
 
   const isHost = useMemo(() => {
-    if (!user || !room) {return false;}
+    if (!user || !room) return false;
     const ownerId = room.creator?._id || room.creator?.id || room.creator || room.createdBy?._id || room.createdBy?.id || room.createdBy;
-    return (
-      String(ownerId) === String(user._id || user.id) ||
-      user.role === 'admin'
-    );
-  }, [user, room]);
+    return String(ownerId) === String(myId) || user.role === 'admin';
+  }, [user, room, myId]);
 
-  const proCount = room?.pro?.participants?.length || 0;
-  const againstCount = room?.against?.participants?.length || 0;
+  const customOptions = room?.customOptions || [];
+  const colorMap = useMemo(() => {
+     const map = {};
+     customOptions.forEach((opt, idx) => { map[opt.name] = getOptionColor(idx); });
+     return map;
+  }, [customOptions]);
+
   const obsCount = room?.observers?.length || 0;
-  const isPro = mySide === 'pro';
-  const isAgainst = mySide === 'against';
   const isObserver = mySide === 'observe';
   const isClosed = room?.status === 'ended' || room?.status === 'deleted';
 
@@ -1196,32 +1120,30 @@ export default function Room() {
   const { summary, isAnalyzing, generateAnalysis } = useDebateSummary(roomId, chatMessages, timelineEvents, energy);
   const { verdictData, castEvaluationVote, generateVerdict } = useDebateVerdict(roomId, myId, myCredScore, room, summary);
 
-  const handleJoin = async (nextSide) => {
-    if (isClosed) {return;}
-    if (joining) {return;}
+  const handleJoin = async (optionName) => {
+    if (isClosed || joining) return;
     setJoining(true);
     try {
-      await joinSide(nextSide);
-      setMySide(nextSide);
+      await joinSide(optionName);
+      setMySide(optionName);
     } catch (err) {
-      notify.error('Failed to join side');
+      notify.error('Failed to join');
     } finally {
       setJoining(false);
     }
   };
 
   const handleEndDebate = async () => {
-    if (!window.confirm('End this debate now? The room stays readable, but chat closes.')) {return;}
+    if (!window.confirm('End this debate now? The room stays readable, but chat closes.')) return;
     await endDebate();
   };
 
   const handleDeleteDebate = async () => {
-    if (!window.confirm('Delete this debate? It will be removed from discovery.')) {return;}
+    if (!window.confirm('Delete this debate? It will be removed from discovery.')) return;
     await deleteDebate();
     navigate('/rooms');
   };
 
-  // Broadcast timeline event when verdict is finalized
   useEffect(() => {
     if (verdictData.status === 'resolved' && verdictData.outcome) {
       addEvent('milestone', 'Debate Concluded', `Verdict: ${verdictData.outcome.title}. The community has officially evaluated the arguments.`, 'verdict_finalized');
@@ -1234,10 +1156,9 @@ export default function Room() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
           <motion.div className="space-y-4" variants={containerEnter} initial="hidden" animate="visible">
             <motion.div variants={skeletonPulse} animate="animate" className="h-24 bg-white/5 rounded-2xl" />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <motion.div variants={skeletonPulse} animate="animate" className="h-[400px] bg-white/5 rounded-2xl" />
-              <motion.div variants={skeletonPulse} animate="animate" className="h-[400px] bg-white/5 rounded-2xl" />
-              <motion.div variants={skeletonPulse} animate="animate" className="h-[400px] bg-white/5 rounded-2xl" />
+            <div className="flex gap-4 overflow-x-hidden">
+              <motion.div variants={skeletonPulse} animate="animate" className="h-[400px] w-64 bg-white/5 rounded-2xl shrink-0" />
+              <motion.div variants={skeletonPulse} animate="animate" className="h-[400px] flex-1 bg-white/5 rounded-2xl" />
             </div>
           </motion.div>
         </div>
@@ -1251,9 +1172,7 @@ export default function Room() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center min-h-[50vh] text-center">
           <Shield className="w-12 h-12 text-red-400 mb-4" />
           <h2 className="text-xl font-bold text-white">Debate not available</h2>
-          <p className="text-gray-400 text-sm mt-2">
-            {error || 'This room may have ended or been removed.'}
-          </p>
+          <p className="text-gray-400 text-sm mt-2">{error || 'This room may have ended or been removed.'}</p>
         </div>
       </Layout>
     );
@@ -1261,8 +1180,7 @@ export default function Room() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-5">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1285,23 +1203,20 @@ export default function Room() {
                     <EyeSlash className="w-3 h-3" /> Fully Anonymous
                   </span>
                 )}
-                {room.anonymityMode === 'hybrid' && (
-                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider border-blue-400/30 bg-blue-400/10 text-blue-400">
-                    <EyeSlash className="w-3 h-3" /> Hybrid Mode
-                  </span>
-                )}
               </div>
               <h1 className="text-xl md:text-2xl font-bold text-white">{room.topic}</h1>
-              <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {proCount} Pro</span>
-                <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {againstCount} Against</span>
+              <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 flex-wrap">
+                {customOptions.map((opt, idx) => (
+                  <span key={opt.name} className={`flex items-center gap-1 ${getOptionColor(idx).text}`}>
+                    <Users className="w-3 h-3" /> {opt.participants?.length || 0} {opt.name}
+                  </span>
+                ))}
                 <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {obsCount} Watching</span>
               </div>
             </div>
             <TimerRing seconds={timerSec} />
           </div>
 
-          {/* Heat Meter */}
           <div className="mt-5 pt-4 border-t border-white/10">
             <div className="flex justify-between items-center mb-1 text-[10px] font-mono uppercase tracking-wider">
               <span className="text-gray-400">Debate Energy</span>
@@ -1314,44 +1229,27 @@ export default function Room() {
                 className={`h-full transition-all duration-500 ${energy.level === 'explosive' ? 'bg-red-500 shadow-glow-sm' : energy.level === 'heated' ? 'bg-orange-400' : energy.level === 'active' ? 'bg-yellow-400' : 'bg-blue-400'}`}
               />
             </div>
-            {energy.momentum > 15 && (
-              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className={`text-[10px] font-bold uppercase mt-2 flex items-center gap-1 ${energy.color}`}>
-                <Zap className="w-3.5 h-3.5" /> High Momentum Surge!
-              </motion.div>
-            )}
-          </div>
-
-          {/* Score & Controls */}
-          <div className="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-white/10">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-neon">{score.pro}</div>
-              <div className="text-xs text-gray-400">Pro Points</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-400">{score.against}</div>
-              <div className="text-xs text-gray-400">Against Points</div>
-            </div>
           </div>
 
           <div className="flex flex-wrap gap-2 mt-5">
-            <button
-              onClick={() => handleJoin('pro')}
-              disabled={joining || isClosed}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isPro ? 'bg-neon text-black' : 'bg-white/5 border border-white/10 hover:border-neon/50'}`}
-            >
-              {isPro ? 'Pro (joined)' : 'Join Pro'}
-            </button>
-            <button
-              onClick={() => handleJoin('against')}
-              disabled={joining || isClosed}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isAgainst ? 'bg-red-400 text-black' : 'bg-white/5 border border-white/10 hover:border-neon/50'}`}
-            >
-              {isAgainst ? 'Against (joined)' : 'Join Against'}
-            </button>
+            {customOptions.map(opt => {
+               const isThisSide = mySide === opt.name;
+               const conf = colorMap[opt.name] || OPTION_COLORS[0];
+               return (
+                 <button
+                   key={opt.name}
+                   onClick={() => handleJoin(opt.name)}
+                   disabled={joining || isClosed}
+                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isThisSide ? `${conf.buttonBg} ${conf.buttonText}` : 'bg-white/5 border border-white/10 hover:border-white/30 text-gray-300'}`}
+                 >
+                   {isThisSide ? `${opt.name} (joined)` : `Join ${opt.name}`}
+                 </button>
+               )
+            })}
             <button
               onClick={() => handleJoin('observe')}
               disabled={joining || isClosed}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isObserver ? 'bg-white/20 text-white' : 'bg-white/5 border border-white/10 hover:border-neon/50'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isObserver ? 'bg-white/20 text-white' : 'bg-white/5 border border-white/10 hover:border-white/30'}`}
             >
               Observe
             </button>
@@ -1359,12 +1257,6 @@ export default function Room() {
               <>
                 <button disabled={isClosed} onClick={() => startDebate()} className="px-4 py-2 rounded-xl bg-neon text-black font-bold text-sm flex items-center gap-1 disabled:opacity-50">
                   <Play className="w-3.5 h-3.5" /> Start
-                </button>
-                <button disabled={isClosed} onClick={() => adjustScore('pro', 1)} className="px-3 py-2 rounded-xl bg-neon/10 border border-neon/30 text-neon text-sm disabled:opacity-50">
-                  +Pro
-                </button>
-                <button disabled={isClosed} onClick={() => adjustScore('against', 1)} className="px-3 py-2 rounded-xl bg-red-400/10 border border-red-400/30 text-red-400 text-sm disabled:opacity-50">
-                  +Against
                 </button>
                 <button disabled={isClosed} onClick={handleEndDebate} className="px-3 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-sm disabled:opacity-50">
                   End
@@ -1374,46 +1266,40 @@ export default function Room() {
                 </button>
               </>
             )}
-            <div className="flex-1" />
-            <button disabled={isClosed} onClick={() => vote('pro')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1 disabled:opacity-50">
-              <ThumbsUp className="w-3.5 h-3.5 text-neon" /> Pro
-            </button>
-            <button disabled={isClosed} onClick={() => vote('against')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1 disabled:opacity-50">
-              <ThumbsDown className="w-3.5 h-3.5 text-red-400" /> Against
-            </button>
-            <button disabled={isClosed} onClick={() => vote('neutral')} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-neon/50 text-sm flex items-center gap-1 disabled:opacity-50">
-              <Minus className="w-3.5 h-3.5" /> Neutral
-            </button>
           </div>
         </motion.div>
 
-        {/* Three columns: Pro panel, Chat, Against panel */}
+        {/* Dynamic Multi-Option Layout */}
         <motion.div
           variants={containerEnter}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 lg:grid-cols-[1fr_400px_1fr] gap-5"
+          className="flex flex-col lg:flex-row gap-5"
         >
-          <SidePanel
-            side="pro"
-            title="Pro"
-            description={room.pro?.description || "Make the strongest case for the motion."}
-            participantCount={proCount}
-            isActiveSpeaker={!!speaker.pro}
-            score={score.pro}
-            onJoin={handleJoin}
-            isJoined={isPro}
-            isLoading={joining}
-          />
+          {/* Options List (Left Side) */}
+          <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-y-auto lg:max-h-[520px] scrollbar-thin scrollbar-thumb-white/10 pb-2 lg:pb-0 shrink-0">
+             {customOptions.map((opt) => (
+                <SidePanel
+                  key={opt.name}
+                  option={opt}
+                  colorConfig={colorMap[opt.name]}
+                  isActiveSpeaker={speaker[opt.name] !== null && speaker[opt.name] !== undefined}
+                  score={score[opt.name] || 0}
+                  onJoin={handleJoin}
+                  isJoined={mySide === opt.name}
+                  isLoading={joining}
+                />
+             ))}
+          </div>
 
-          {/* Chat Column */}
+          {/* Chat Column (Right Side / Expand) */}
           <motion.div
             variants={panelVariant}
-            className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col h-[520px]"
+            className="flex-1 min-w-[300px] bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col h-[520px]"
           >
             <div className="p-4 border-b border-white/10 flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-neon" />
-              <h3 className="text-white font-semibold">Live Chat</h3>
+              <h3 className="text-white font-semibold">Live Debate Chat</h3>
               <span className="text-xs text-gray-400 ml-auto">{chatMessages.length} messages</span>
             </div>
 
@@ -1428,9 +1314,10 @@ export default function Room() {
                     <ChatMessage
                       key={getMessageKey(msg) || idx}
                       message={msg}
-                    isMine={String(msg.author?._id || msg.author?.id || msg.sender?._id || msg.author?.username) === String(user?._id || user?.id || user?.username)}
+                      isMine={String(msg.author?._id || msg.author?.id || msg.sender?._id || msg.author?.username) === String(user?._id || user?.id || user?.username)}
                       onReact={reactToChatMessage}
                       anonymityMode={room?.anonymityMode}
+                      colorMap={colorMap}
                     />
                   ))
                 )}
@@ -1438,41 +1325,8 @@ export default function Room() {
               {!isClosed && <TypingIndicator typingUsers={typingUsers} anonymityMode={room?.anonymityMode} />}
             </div>
 
-            <ChatInput onSend={sendChatMessage} onTyping={emitTyping} anonymityMode={room?.anonymityMode} disabled={isClosed} />
+            <ChatInput onSend={sendChatMessage} onTyping={emitTyping} anonymityMode={room?.anonymityMode} disabled={isClosed} mySide={mySide} />
           </motion.div>
-
-          <SidePanel
-            side="against"
-            title="Against"
-            description={room.against?.description || "Challenge assumptions and refute arguments."}
-            participantCount={againstCount}
-            isActiveSpeaker={!!speaker.against}
-            score={score.against}
-            onJoin={handleJoin}
-            isJoined={isAgainst}
-            isLoading={joining}
-          />
-        </motion.div>
-
-        {/* Vote Summary */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white/5 rounded-2xl p-4 border border-white/10 text-center"
-        >
-          <span className="text-xs text-gray-400 uppercase tracking-widest">Audience Votes</span>
-          <div className="flex justify-center gap-6 mt-2 text-sm">
-            <span className="flex items-center gap-1 text-neon font-semibold">
-              <ThumbsUp className="w-3.5 h-3.5" /> Pro: {votes.pro}
-            </span>
-            <span className="flex items-center gap-1 text-red-400 font-semibold">
-              <ThumbsDown className="w-3.5 h-3.5" /> Against: {votes.against}
-            </span>
-            <span className="flex items-center gap-1 text-gray-400">
-              <Minus className="w-3.5 h-3.5" /> Neutral: {votes.neutral}
-            </span>
-          </div>
         </motion.div>
 
         {/* AI Insight Engine */}
@@ -1485,6 +1339,8 @@ export default function Room() {
           onGenerate={generateVerdict} 
           isHost={isHost} 
           myId={myId} 
+          customOptions={customOptions}
+          colorMap={colorMap}
         />
 
         {/* Debate Timeline Section */}

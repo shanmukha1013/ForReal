@@ -11,12 +11,19 @@ const NotificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['follow', 'mention', 'like', 'comment', 'system'],
+      enum: ['follow', 'mention', 'like', 'comment', 'reply', 'quote', 'invite', 'debate_ending', 'debate_finished', 'ai_analysis', 'system'],
       required: true,
     },
     actorId: {
       type: Types.ObjectId,
       ref: 'User',
+    },
+    actorIds: [{
+      type: Types.ObjectId,
+      ref: 'User',
+    }],
+    groupId: {
+      type: String, // e.g. "like_post_123" to group similar notifications
     },
     payload: {
       title: String,

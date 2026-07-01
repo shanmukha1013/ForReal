@@ -63,7 +63,7 @@ export const getRoom = async (req, res, next) => {
 export const createRoom = async (req, res, next) => {
   try {
     // Accept both `title` and legacy `topic` from the frontend.
-    const { title: rawTitle, topic, description, isPrivate, visibility, category } = req.body;
+    const { title: rawTitle, topic, description, isPrivate, visibility, category, customOptions, debateMode, tags, duration } = req.body;
     const title = (rawTitle || topic || '').trim();
     const privateFlag = typeof isPrivate === 'boolean' ? isPrivate : (visibility === 'private');
     const createdBy = req.user.id;
@@ -77,6 +77,12 @@ export const createRoom = async (req, res, next) => {
       return res.status(401).json({ message: 'User not found' });
     }
 
+    const formattedOptions = Array.isArray(customOptions) ? customOptions.map(opt => ({
+      name: opt,
+      participants: [],
+      score: 0
+    })) : [];
+
     const room = new Room({
       title: title,
       description: description?.trim() || '',
@@ -84,8 +90,11 @@ export const createRoom = async (req, res, next) => {
       participants: [createdBy],
       participantCount: 1,
       isPrivate: privateFlag || false,
-      // allow optional category for richer frontend experience
       category: category || undefined,
+      debateMode: debateMode || 'Open Discussion',
+      customOptions: formattedOptions,
+      tags: Array.isArray(tags) ? tags : [],
+      debateTimer: { startedAt: new Date(), duration: duration || 3600 }
     });
 
     await room.save();
@@ -116,7 +125,7 @@ export const createRoom = async (req, res, next) => {
 export const joinRoom = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { side } = req.body || {};
+    const { optionName } = req.body || {};
     const userId = req.user.id;
 
     const room = await Room.findOne({ _id: id, isActive: true });
@@ -125,14 +134,16 @@ export const joinRoom = async (req, res, next) => {
       return res.status(404).json({ message: 'Room not found' });
     }
 
-    if (side === 'pro') {
-      room.pro = room.pro || { position: 'Pro', participants: [] };
-      if (!room.pro.participants.includes(userId)) room.pro.participants.push(userId);
-      if (room.against) room.against.participants = room.against.participants.filter(pid => String(pid) !== String(userId));
-    } else if (side === 'against') {
-      room.against = room.against || { position: 'Against', participants: [] };
-      if (!room.against.participants.includes(userId)) room.against.participants.push(userId);
-      if (room.pro) room.pro.participants = room.pro.participants.filter(pid => String(pid) !== String(userId));
+    if (optionName && room.customOptions) {
+      // Remove user from all other options first
+      room.customOptions.forEach(opt => {
+        opt.participants = opt.participants.filter(pid => String(pid) !== String(userId));
+      });
+      // Add user to selected option
+      const targetOption = room.customOptions.find(opt => opt.name === optionName);
+      if (targetOption) {
+        targetOption.participants.push(userId);
+      }
     }
 
     if (!room.participants.includes(userId)) {
@@ -151,9 +162,14 @@ export const joinRoom = async (req, res, next) => {
     try {
       const io = getIO();
       if (io) {
+        const optionStats = {};
+        if (room.customOptions) {
+          room.customOptions.forEach(opt => {
+            optionStats[opt.name] = opt.participants.length;
+          });
+        }
         io.to(`room:${id}`).emit('debate:presence', {
-          proCount: room.pro?.participants?.length || 0,
-          againstCount: room.against?.participants?.length || 0,
+          optionStats,
           observerCount: room.participants?.length || 0
         });
       }

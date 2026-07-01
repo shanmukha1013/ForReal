@@ -37,11 +37,11 @@ import {
   BoltIcon,
   ChartBarIcon,
   FunnelIcon,
-  ChevronDownIcon,
   EyeSlashIcon,
 } from '@heroicons/react/24/outline';
 
 import Layout from '../components/Layout';
+import CreateDebateForm from '../components/CreateDebateForm';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification'; // adjust path
 import axios from '../api/axios';
@@ -367,191 +367,7 @@ const RoomCardSkeleton = React.memo(() => (
 ));
 RoomCardSkeleton.displayName = 'RoomCardSkeleton';
 
-// Create Room Panel
-const CreateRoomPanel = React.memo(({ onCreate, optimisticCreateRoom, confirmRoom, deleteRoom }) => {
-  const [topic, setTopic] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [visibility, setVisibility] = useState('public');
-  const [anonymityMode, setAnonymityMode] = useState('hybrid');
-  const [creating, setCreating] = useState(false);
-  const [error, setError] = useState('');
-  const { user } = useContext(AuthContext);
-  const notify = useNotification();
-
-  const canCreate = topic.trim().length >= 6;
-
-  const handleCreate = async () => {
-    if (!canCreate || creating) {return;}
-    setCreating(true);
-    setError('');
-    // Capture trimmed values before clearing UI state
-    const trimmedTopic = topic.trim();
-    const trimmedDescription = description.trim();
-
-    const newRoom = {
-      _id: `room_${Date.now()}`,
-      topic: trimmedTopic,
-      description: trimmedDescription,
-      category: category || 'Uncategorized',
-      visibility,
-      anonymityMode,
-      status: 'active',
-      creator: user || { username: 'Guest' },
-      participants: 1,
-      spectators: 0,
-      createdAt: new Date().toISOString(),
-      pro: { participants: [user || { username: 'Guest' }] },
-      against: { participants: [] },
-      observers: [],
-      chatMessages: [],
-      votes: { pro: 0, against: 0, neutral: 0 },
-      score: { pro: 0, against: 0 }
-    };
-    // OPTIMISTIC RENDER IMMEDIATELY using global rooms hook
-    let optimisticRoom = null;
-    try {
-      optimisticRoom = optimisticCreateRoom(newRoom);
-      if (onCreate) {onCreate(optimisticRoom);}
-      notify.success('Debate room created!');
-
-      // Send authoritative create request to backend and confirm using captured values
-      const payload = {
-        title: trimmedTopic,
-        description: trimmedDescription,
-        category: category || undefined,
-        visibility,
-        isPrivate: visibility === 'private',
-      };
-
-      const result = await axios.post('/rooms', payload);
-      const realRoom = result?.room || result?.room?.room || null;
-      if (realRoom) {
-        confirmRoom(optimisticRoom._id, realRoom);
-      } else {
-        // backend didn't return a room — remove optimistic and notify
-        deleteRoom(optimisticRoom._id);
-        notify.error('Failed to create room on server');
-      }
-    } catch (err) {
-      // network or server error — revert optimistic and show message
-      if (optimisticRoom) {
-        try { deleteRoom(optimisticRoom._id); } catch (e) { console.warn('revert deleteRoom failed', e); }
-      }
-      notify.error(err?.response?.data?.message || 'Unable to create room');
-    } finally {
-      // Reset UI inputs and creation state after attempt
-      setTopic('');
-      setDescription('');
-      setCategory('');
-      setVisibility('public');
-      setCreating(false);
-    }
-  };
-
-  return (
-    <motion.div
-      variants={createPanelVariant}
-      initial="hidden"
-      animate="visible"
-      exit="hidden"
-      className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden mb-6"
-    >
-      <div className="p-5">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-neon" /> Start a Debate
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-3 mb-3">
-          <input
-            type="text"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="Debate topic (min. 6 characters)"
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 transition text-sm"
-          />
-          <select
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value)}
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon/50 text-sm"
-          >
-            <option value="public">🌍 Public</option>
-            <option value="private">🔒 Private</option>
-          </select>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-3 mb-3">
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Brief description (optional)"
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 transition text-sm"
-          />
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon/50 text-sm"
-          >
-            <option value="">No category</option>
-            <option value="Politics">Politics</option>
-            <option value="Technology">Technology</option>
-            <option value="Sports">Sports</option>
-            <option value="Entertainment">Entertainment</option>
-            <option value="Gaming">Gaming</option>
-            <option value="Finance">Finance</option>
-            <option value="Science">Science</option>
-            <option value="Music">Music</option>
-            <option value="Health">Health</option>
-            <option value="Education">Education</option>
-          </select>
-        </div>
-        
-        <div className="mb-4">
-          <label className="block text-xs font-semibold text-gray-400 mb-1.5 ml-1">Identity Mode</label>
-          <select
-            value={anonymityMode}
-            onChange={(e) => setAnonymityMode(e.target.value)}
-            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon/50 text-sm"
-          >
-            <option value="public">Public Only (Identities visible)</option>
-            <option value="hybrid">Hybrid (Anonymous allowed)</option>
-            <option value="anonymous">Fully Anonymous</option>
-          </select>
-        </div>
-
-        {error && (
-          <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-xs mb-2">
-            {error}
-          </motion.p>
-        )}
-
-        <div className="flex justify-end mt-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={!canCreate || creating}
-            onClick={handleCreate}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-neon text-black font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-neon/20"
-          >
-            {creating ? (
-              <>
-                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Plus className="w-4 h-4" />
-                Create Room
-              </>
-            )}
-          </motion.button>
-        </div>
-      </div>
-    </motion.div>
-  );
-});
-CreateRoomPanel.displayName = 'CreateRoomPanel';
+// Create Room Panel is now imported from ../components/CreateDebateForm
 
 // -----------------------------------------------------------------------------
 // Main Rooms Component
@@ -657,7 +473,7 @@ export default function Rooms() {
         {/* Create panel (animated) */}
         <AnimatePresence>
           {showCreatePanel && (
-            <CreateRoomPanel
+            <CreateDebateForm
               onCreate={handleNewRoomCreated}
               optimisticCreateRoom={optimisticCreateRoom}
               confirmRoom={confirmRoom}

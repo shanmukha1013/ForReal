@@ -331,6 +331,25 @@ export const reactToPost = async (req, res, next) => {
     post.dislikesCount = (post.reactions.dislikes || []).length;
     await post.save();
 
+    // Notify author if a reaction was added and they are not reacting to their own post
+    if (action === 'added' && String(post.author) !== String(userId)) {
+      const user = await User.findById(userId).select('username');
+      const actorName = user ? user.username : 'Someone';
+      const notification = new Notification({
+        userId: post.author,
+        type: reactionType === 'like' ? 'like' : 'system',
+        actorId: userId,
+        groupId: `${reactionType}_post_${post._id}`,
+        payload: {
+          title: `New ${reactionType}`,
+          body: `${actorName} reacted to your post.`,
+          link: `/posts/${post._id}`
+        }
+      });
+      await notification.save();
+      emitNotification(post.author, notification);
+    }
+
     res.json({
       post: {
         _id: post._id,

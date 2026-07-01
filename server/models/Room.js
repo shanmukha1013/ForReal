@@ -50,13 +50,25 @@ const RoomSchema = new Schema(
       type: Array,
       default: []
     },
-    pro: {
-      type: Object,
-      default: { position: 'Pro', participants: [], score: 0 }
+    debateMode: {
+      type: String,
+      default: 'Open Discussion',
     },
-    against: {
-      type: Object,
-      default: { position: 'Against', participants: [], score: 0 }
+    customOptions: {
+      type: [{
+        name: String,
+        participants: [{ type: Types.ObjectId, ref: 'User' }],
+        score: { type: Number, default: 0 }
+      }],
+      default: [],
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
+    timeline: {
+      type: Array,
+      default: [],
     },
     maxParticipants: {
       type: Number,

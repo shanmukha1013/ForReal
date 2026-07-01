@@ -56,10 +56,23 @@ const UserSchema = new Schema(
       maxlength: 100,
       default: '',
     },
-    credibility: {
-      type: Number,
-      default: 0,
-      index: true,
+    reputation: {
+      credibilityScore: { type: Number, default: 1000 },
+      logicScore: { type: Number, default: 1000 },
+      evidenceScore: { type: Number, default: 1000 }
+    },
+    badges: {
+      type: [{
+        name: String,
+        icon: String,
+        awardedAt: { type: Date, default: Date.now }
+      }],
+      default: []
+    },
+    expertStatus: {
+      isExpert: { type: Boolean, default: false },
+      domain: { type: String, default: '' },
+      verifiedAt: { type: Date }
     },
     stats: {
       posts: { type: Number, default: 0 },

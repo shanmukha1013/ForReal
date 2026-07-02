@@ -60,7 +60,7 @@ import { useCredibility } from '../hooks/useCredibility';
 // -----------------------------------------------------------------------------
 const pageEnter = {
   hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } },
 };
 
 const staggerContainer = {
@@ -70,12 +70,12 @@ const staggerContainer = {
 
 const cardVariant = {
   hidden: { opacity: 0, y: 20, scale: 0.98 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3 } },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2 } },
 };
 
 const itemVariant = {
   hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.25 } },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.15 } },
 };
 
 const skeletonPulse = {
@@ -538,7 +538,7 @@ export default function Explore() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.2 }}
           className="relative mb-10"
         >
           <div className="relative max-w-2xl mx-auto">

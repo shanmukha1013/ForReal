@@ -64,7 +64,7 @@ const pageVariants = {
 };
 
 const pageTransition = {
-  duration: 0.28,
+  duration: 0.15,
   ease: [0.16, 1, 0.3, 1],
 };
 
@@ -89,11 +89,22 @@ const PageTransition = ({ children }) => (
 // -----------------------------------------------------------------------------
 const FullScreenLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-transparent">
-    <div className="relative">
-      <div className="w-14 h-14 border-4 border-white/10 border-t-neon rounded-full animate-spin" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-3 h-3 bg-neon rounded-full animate-pulse" />
-      </div>
+    <div className="relative flex items-center justify-center">
+      <motion.div 
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        className="absolute w-20 h-20 border-4 border-white/10 border-t-indigo-500 rounded-full"
+      />
+      <motion.div 
+        animate={{ rotate: -360 }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+        className="absolute w-14 h-14 border-4 border-white/10 border-b-fuchsia-500 rounded-full"
+      />
+      <motion.div 
+        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+        className="w-4 h-4 bg-indigo-400 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.8)]"
+      />
     </div>
   </div>
 );

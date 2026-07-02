@@ -210,7 +210,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: -14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
           className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
         >
           <div>
@@ -318,7 +318,7 @@ export default function Home() {
                 key={post._id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.1 }}
               >
                 <PostCard post={post} onDelete={deleteTalk} />
               </motion.div>

@@ -175,31 +175,29 @@ const EASE_EXPO = [0.16, 1, 0.3, 1];
 const EASE_BACK = [0.34, 1.56, 0.64, 1];
 
 const sidebarVariants = {
-  hidden:  { opacity: 0, x: -20 },
+  hidden:  { opacity: 0 },
   visible: {
     opacity: 1,
-    x: 0,
-    transition: { duration: 0.55, ease: EASE_EXPO, staggerChildren: 0.065, delayChildren: 0.05 },
+    transition: { duration: 0.25, ease: EASE_EXPO, staggerChildren: 0.03, delayChildren: 0.02 },
   },
 };
 
 const rightSidebarVariants = {
-  hidden:  { opacity: 0, x: 20 },
+  hidden:  { opacity: 0 },
   visible: {
     opacity: 1,
-    x: 0,
-    transition: { duration: 0.55, ease: EASE_EXPO, staggerChildren: 0.08, delayChildren: 0.1 },
+    transition: { duration: 0.25, ease: EASE_EXPO, staggerChildren: 0.03, delayChildren: 0.02 },
   },
 };
 
 const navItemVariants = {
-  hidden:   { opacity: 0, x: -14 },
-  visible:  { opacity: 1, x: 0, transition: { duration: 0.42, ease: EASE_EXPO } },
+  hidden:   { opacity: 0, x: -12 },
+  visible:  { opacity: 1, x: 0, transition: { duration: 0.25, ease: EASE_EXPO } },
 };
 
 const cardVariants = {
-  hidden:   { opacity: 0, y: 14 },
-  visible:  { opacity: 1, y: 0, transition: { duration: 0.48, ease: EASE_EXPO } },
+  hidden:   { opacity: 0, y: 12 },
+  visible:  { opacity: 1, y: 0, transition: { duration: 0.25, ease: EASE_EXPO } },
 };
 
 const badgeVariants = {
@@ -213,8 +211,7 @@ const mainContentVariants = {
   hidden:   { opacity: 0, y: 10 },
   visible:  {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: EASE_EXPO },
+    transition: { duration: 0.25, ease: EASE_EXPO },
   },
 };
 
@@ -833,7 +830,7 @@ const TrendingRoomRow = memo(function TrendingRoomRow({ room, index }) {
       role="listitem"
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.055, duration: 0.4, ease: EASE_EXPO }}
+      transition={{ delay: index * 0.02, duration: 0.2, ease: EASE_EXPO }}
     >
       <Link
         to={`/rooms/${room._id}`}
@@ -978,7 +975,7 @@ const SuggestionUserRow = memo(function SuggestionUserRow({ user, index, followi
       role="listitem"
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.065, duration: 0.4, ease: EASE_EXPO }}
+      transition={{ delay: index * 0.02, duration: 0.2, ease: EASE_EXPO }}
       className="flex items-center gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200"
       onMouseEnter={(e) => {
         e.currentTarget.style.background  = TOKEN.surfaceHover;

@@ -15,9 +15,9 @@ export default function DebateReplay({ argumentsList }) {
       className="bg-black/40 border border-white/10 rounded-2xl p-4 mt-6"
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-semibold">Debate Timeline Replay</h3>
+        <h3 className="text-brand font-semibold">Debate Timeline Replay</h3>
         <div className="flex items-center gap-2 bg-white/5 rounded-full p-1 border border-white/10">
-          <button className="p-2 text-gray-400 hover:text-white transition">
+          <button className="p-2 text-gray-400 hover:text-brand transition">
             <BackwardIcon className="w-4 h-4" />
           </button>
           <button 
@@ -26,7 +26,7 @@ export default function DebateReplay({ argumentsList }) {
           >
             {isPlaying ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
           </button>
-          <button className="p-2 text-gray-400 hover:text-white transition">
+          <button className="p-2 text-gray-400 hover:text-brand transition">
             <ForwardIcon className="w-4 h-4" />
           </button>
         </div>

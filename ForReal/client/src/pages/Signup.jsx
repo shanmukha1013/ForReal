@@ -84,7 +84,7 @@ const IntroOverlay = React.memo(({ onFinish }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
         >
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">Create</h1>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-brand tracking-tight">Create</h1>
           <p className="text-lg sm:text-xl font-medium text-gray-400">Start debating responsibly.</p>
           <p className="text-sm sm:text-base text-gray-500 max-w-sm mx-auto">We Don’t Talk Shit. Spread truth.</p>
         </motion.div>
@@ -103,7 +103,7 @@ const IntroOverlay = React.memo(({ onFinish }) => {
 IntroOverlay.displayName = 'IntroOverlay';
 
 const ButtonSpinner = () => (
-  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+  <svg className="animate-spin h-5 w-5 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
   </svg>
@@ -167,7 +167,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="relative min-h-screen text-white flex items-center justify-center overflow-hidden bg-transparent">
+    <div className="relative min-h-screen text-brand flex items-center justify-center overflow-hidden bg-transparent">
       {/* Global backgrounds handle grid, blobs, spotlight, and particles */}
 
       <AnimatePresence>
@@ -186,7 +186,7 @@ export default function Signup() {
               <motion.div variants={staggerChildren} initial="hidden" animate="visible" className="text-center mb-8">
                 <motion.div
                   variants={fieldVariant}
-                  className="text-4xl sm:text-5xl font-black tracking-tighter text-white select-none"
+                  className="text-4xl sm:text-5xl font-black tracking-tighter text-brand select-none"
                 >
                   Sign up
                 </motion.div>
@@ -228,7 +228,7 @@ export default function Signup() {
                       required
                       value={formData.username}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-brand placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="Pick a username"
                     />
                     <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
@@ -248,7 +248,7 @@ export default function Signup() {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-brand placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="Enter your email"
                     />
                     <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
@@ -267,7 +267,7 @@ export default function Signup() {
                       required
                       value={formData.displayName}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-brand placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="How should we call you?"
                     />
                     <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
@@ -287,7 +287,7 @@ export default function Signup() {
                       required
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-brand placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="Create a password"
                     />
                     <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />

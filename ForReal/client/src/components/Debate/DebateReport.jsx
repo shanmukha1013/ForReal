@@ -12,7 +12,7 @@ export default function DebateReport({ report, room }) {
     >
       <div className="flex items-center gap-2 mb-4">
         <SparklesIcon className="w-6 h-6 text-brand" />
-        <h2 className="text-xl font-bold text-white">AI Final Verdict</h2>
+        <h2 className="text-xl font-bold text-brand">AI Final Verdict</h2>
       </div>
 
       <p className="text-gray-300 text-sm leading-relaxed mb-6">
@@ -24,14 +24,14 @@ export default function DebateReport({ report, room }) {
           <TrophyIcon className="w-5 h-5 text-yellow-400 mt-0.5" />
           <div>
             <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Winning Argument</h4>
-            <p className="text-white font-medium mt-1">{report.winningOption || 'N/A'}</p>
+            <p className="text-brand font-medium mt-1">{report.winningOption || 'N/A'}</p>
           </div>
         </div>
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-start gap-3">
-          <ChartBarIcon className="w-5 h-5 text-white mt-0.5" />
+          <ChartBarIcon className="w-5 h-5 text-brand mt-0.5" />
           <div>
             <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Most Logical User</h4>
-            <p className="text-white font-medium mt-1">@{report.mostLogicalUser || 'N/A'}</p>
+            <p className="text-brand font-medium mt-1">@{report.mostLogicalUser || 'N/A'}</p>
           </div>
         </div>
       </div>

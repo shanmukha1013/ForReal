@@ -24,7 +24,7 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-brand/50"
+          className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-brand text-xs focus:outline-none focus:border-brand/50"
         >
           <option value="website">URL</option>
           <option value="pdf">PDF</option>
@@ -36,7 +36,7 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Paste link here..."
-          className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-brand/50"
+          className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-brand text-xs focus:outline-none focus:border-brand/50"
         />
         <button
           onClick={handleAdd}
@@ -60,7 +60,7 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
                 {ev.type === 'pdf' ? (
                   <DocumentTextIcon className="w-4 h-4 text-red-400" />
                 ) : ev.type === 'image' || ev.type === 'video' ? (
-                  <PhotoIcon className="w-4 h-4 text-white" />
+                  <PhotoIcon className="w-4 h-4 text-brand" />
                 ) : (
                   <LinkIcon className="w-4 h-4 text-green-400" />
                 )}

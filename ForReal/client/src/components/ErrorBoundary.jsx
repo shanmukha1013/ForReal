@@ -109,7 +109,7 @@ export class ErrorBoundary extends React.Component {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-900/20 border border-red-700/50 mb-6">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C1121F" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-brand mb-2">
                 Unexpected Error
               </h1>
               <p className="text-gray-300 text-lg">
@@ -154,11 +154,11 @@ export class ErrorBoundary extends React.Component {
             >
               <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
                 <p className="text-gray-400 mb-1">Error Count</p>
-                <p className="text-white font-semibold">{this.state.errorCount}</p>
+                <p className="text-brand font-semibold">{this.state.errorCount}</p>
               </div>
               <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
                 <p className="text-gray-400 mb-1">Timestamp</p>
-                <p className="text-white font-semibold text-xs">
+                <p className="text-brand font-semibold text-xs">
                   {this.state.timestamp?.split('T')[1]?.substring(0, 8) || 'Unknown'}
                 </p>
               </div>
@@ -173,7 +173,7 @@ export class ErrorBoundary extends React.Component {
             >
               <button
                 onClick={this.handleReset}
-                className="flex-1 px-6 py-3 bg-[#141414] hover:bg-[#1a1a1a] text-white border border-white/10 font-semibold rounded-lg transition-colors"
+                className="flex-1 px-6 py-3 bg-[#141414] hover:bg-[#1a1a1a] text-brand border border-white/10 font-semibold rounded-lg transition-colors"
               >
                 Try Again
               </button>
@@ -223,7 +223,7 @@ export function RouteErrorFallback({ error, resetErrorBoundary }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Page Error</h1>
+        <h1 className="text-2xl font-bold text-brand mb-2">Page Error</h1>
         <p className="text-gray-400 mb-6 text-sm">
           Failed to load this page. Please try again or return home.
         </p>
@@ -236,7 +236,7 @@ export function RouteErrorFallback({ error, resetErrorBoundary }) {
           </button>
           <a
             href="/"
-            className="flex-1 px-4 py-3 bg-[#141414] hover:bg-[#1a1a1a] border border-white/10 text-white font-semibold rounded-lg transition-colors text-center"
+            className="flex-1 px-4 py-3 bg-[#141414] hover:bg-[#1a1a1a] border border-white/10 text-brand font-semibold rounded-lg transition-colors text-center"
           >
             Home
           </a>

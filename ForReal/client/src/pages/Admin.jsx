@@ -324,7 +324,7 @@ const AdminTabs = React.memo(({ tabs, active, onChange }) => (
         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
           active === key
             ? 'bg-brand/10 border-brand/30 text-brand shadow-glow-sm'
-            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-brand'
         }`}
       >
         <Icon className="w-4 h-4" />
@@ -420,7 +420,7 @@ const UserRow = React.memo(({ user, onAction }) => (
         className="w-10 h-10 rounded-full border border-white/20"
       />
       <div>
-        <p className="text-white text-sm font-medium">{user.displayName || user.username}</p>
+        <p className="text-brand text-sm font-medium">{user.displayName || user.username}</p>
         <p className="text-gray-400 text-xs">@{user.username}</p>
         <p className="text-[10px] text-gray-500">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
       </div>
@@ -594,7 +594,7 @@ export default function Admin() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
             <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+            <h1 className="text-2xl font-bold text-brand mb-2">Access Denied</h1>
             <p className="text-gray-400">You need administrator privileges.</p>
           </motion.div>
         </div>
@@ -612,7 +612,7 @@ export default function Admin() {
               <Shield className="w-7 h-7 text-brand" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Admin Command Center</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-brand">Admin Command Center</h1>
               <p className="text-gray-400 text-sm">ForReal platform moderation & insights.</p>
             </div>
           </div>
@@ -650,15 +650,15 @@ export default function Admin() {
 
                 {/* Additional quick stats */}
                 <motion.div variants={cardVariant} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                  <h2 className="text-white font-semibold text-lg mb-3 flex items-center gap-2">
+                  <h2 className="text-brand font-semibold text-lg mb-3 flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-brand" /> Activity Overview
                   </h2>
                   {statsLoading ? <SectionSkeleton /> : (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div><span className="text-gray-400">Talks today:</span> <span className="text-white">{stats?.talksToday || 0}</span></div>
-                      <div><span className="text-gray-400">New users:</span> <span className="text-white">{stats?.newUsersToday || 0}</span></div>
-                      <div><span className="text-gray-400">Reports resolved:</span> <span className="text-white">{stats?.resolvedReports || 0}</span></div>
-                      <div><span className="text-gray-400">Active debates:</span> <span className="text-white">{stats?.activeRooms || 0}</span></div>
+                      <div><span className="text-gray-400">Talks today:</span> <span className="text-brand">{stats?.talksToday || 0}</span></div>
+                      <div><span className="text-gray-400">New users:</span> <span className="text-brand">{stats?.newUsersToday || 0}</span></div>
+                      <div><span className="text-gray-400">Reports resolved:</span> <span className="text-brand">{stats?.resolvedReports || 0}</span></div>
+                      <div><span className="text-gray-400">Active debates:</span> <span className="text-brand">{stats?.activeRooms || 0}</span></div>
                     </div>
                   )}
                 </motion.div>
@@ -669,7 +669,7 @@ export default function Admin() {
             {activeTab === 'reports' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-white font-semibold text-lg flex items-center gap-2">
+                  <h2 className="text-brand font-semibold text-lg flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-brand" /> Moderation Queue
                   </h2>
                   <span className="text-xs text-gray-400">{reports.length} items</span>
@@ -706,7 +706,7 @@ export default function Admin() {
             {activeTab === 'users' && (
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <h2 className="text-white font-semibold text-lg flex items-center gap-2">
+                  <h2 className="text-brand font-semibold text-lg flex items-center gap-2">
                     <Users className="w-5 h-5 text-brand" /> User Management
                   </h2>
                   <div className="relative">
@@ -716,7 +716,7 @@ export default function Admin() {
                       placeholder="Search users..."
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
-                      className="pl-9 pr-4 py-2 bg-black/30 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 text-sm"
+                      className="pl-9 pr-4 py-2 bg-black/30 border border-white/10 rounded-xl text-brand placeholder-gray-500 focus:outline-none focus:border-brand/50 text-sm"
                     />
                   </div>
                 </div>
@@ -737,7 +737,7 @@ export default function Admin() {
             {/* Rooms Tab */}
             {activeTab === 'rooms' && (
               <div className="space-y-4">
-                <h2 className="text-white font-semibold text-lg flex items-center gap-2">
+                <h2 className="text-brand font-semibold text-lg flex items-center gap-2">
                   <Monitor className="w-5 h-5 text-brand" /> Active Debate Rooms
                 </h2>
                 {roomsLoading ? (
@@ -750,7 +750,7 @@ export default function Admin() {
                       <motion.div key={room._id} variants={cardVariant} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-4 hover:border-brand/40">
                         <div className="flex justify-between">
                           <div>
-                            <h3 className="text-white font-medium">{room.topic || room.title}</h3>
+                            <h3 className="text-brand font-medium">{room.topic || room.title}</h3>
                           <p className="text-xs text-gray-400 mt-1">{room.status} · {Array.isArray(room.participants) ? room.participants.length : (room.participantCount || 0)} debaters</p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -774,7 +774,7 @@ export default function Admin() {
             {/* Audit Log Tab */}
             {activeTab === 'audit' && (
               <div className="space-y-4">
-                <h2 className="text-white font-semibold text-lg flex items-center gap-2">
+                <h2 className="text-brand font-semibold text-lg flex items-center gap-2">
                   <History className="w-5 h-5 text-brand" /> Recent Audit Logs
                 </h2>
                 {logsLoading ? (

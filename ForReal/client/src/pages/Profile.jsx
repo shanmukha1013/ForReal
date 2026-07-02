@@ -465,7 +465,7 @@ const StatsBar = React.memo(({ stats, onOpenFollowers, onOpenFollowing }) => (
         className={`text-center ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
         onClick={onClick}
       >
-        <span className="font-bold text-white">{Number(value || 0).toLocaleString()}</span>
+        <span className="font-bold text-brand">{Number(value || 0).toLocaleString()}</span>
         <span className="text-gray-400 ml-1">{label}</span>
       </motion.div>
     ))}
@@ -545,7 +545,7 @@ const ProfileTabs = React.memo(({ activeTab, onChange }) => {
           className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
             activeTab === key
               ? 'text-brand border-b-2 border-brand'
-              : 'text-gray-400 hover:text-white'
+              : 'text-gray-400 hover:text-brand'
           }`}
           whileTap={{ scale: 0.97 }}
         >
@@ -703,7 +703,7 @@ export default function Profile() {
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
           <ShieldCheck className="w-16 h-16 text-red-400 mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">User not found</h2>
+          <h2 className="text-xl font-bold text-brand mb-2">User not found</h2>
           <p className="text-gray-400 text-sm mb-4">This account doesn’t exist or may have been removed.</p>
           <button
             onClick={() => navigate(-1)}
@@ -743,7 +743,7 @@ export default function Profile() {
             <div className="flex flex-col md:flex-row items-center md:items-start md:justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <h1 className="text-2xl md:text-3xl font-bold text-white">
+                  <h1 className="text-2xl md:text-3xl font-bold text-brand">
                     {displayProfile?.displayName || displayProfile?.username}
                   </h1>
                   {displayProfile?.verified && (

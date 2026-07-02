@@ -341,11 +341,11 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete, isAnonymous }) =>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             {profilePath ? (
-              <Link to={profilePath} className="text-sm font-bold text-white truncate hover:text-brand transition-colors">
+              <Link to={profilePath} className="text-sm font-bold text-brand truncate hover:text-brand transition-colors">
                 {displayName}
               </Link>
             ) : (
-              <span className="text-sm font-bold text-white truncate">{displayName}</span>
+              <span className="text-sm font-bold text-brand truncate">{displayName}</span>
             )}
             {!isAnonymous && (
               <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full border ${rank.color} ${rank.bg} ${rank.border}`}>
@@ -355,7 +355,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete, isAnonymous }) =>
               </span>
             )}
             {isAnonymous && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full border border-purple-400/30 bg-purple-400/10 text-white">
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full border border-purple-400/30 bg-purple-400/10 text-brand">
                 <EyeSlashIcon className="w-3 h-3" />
                 <span className="uppercase">Anonymous</span>
               </span>
@@ -458,7 +458,7 @@ const FactCheckBar = ({ sourceUrl, verifications, disputes, onVerify, onDispute,
       StatusIcon = CheckBadgeIcon;
     } else if (verifyScore > disputeScore) {
       status = 'Community Verified';
-      statusColor = 'text-white border-emerald-400/30 bg-emerald-400/10';
+      statusColor = 'text-brand border-emerald-400/30 bg-emerald-400/10';
       StatusIcon = ShieldCheckIcon;
     } else if (disputeScore > verifyScore * 2) {
       status = 'Misleading';
@@ -480,7 +480,7 @@ const FactCheckBar = ({ sourceUrl, verifications, disputes, onVerify, onDispute,
   return (
     <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-3">
       {sourceUrl && (
-        <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-white hover:text-blue-300 hover:underline w-fit">
+        <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-brand hover:text-blue-300 hover:underline w-fit">
           <LinkIcon className="w-3.5 h-3.5" />
           {domain}
         </a>
@@ -520,13 +520,13 @@ const EngagementStats = ({ counts, commentsCount }) => {
       {activeReactions.map(rt => (
          <div key={rt.id} className="flex items-center gap-1.5" title={rt.label}>
             <span className="text-sm leading-none">{rt.icon}</span>
-            <span className="font-medium text-white">{formatCount(counts[rt.id])}</span>
+            <span className="font-medium text-brand">{formatCount(counts[rt.id])}</span>
          </div>
       ))}
       {commentsCount > 0 && (
         <div className="flex items-center gap-1.5 ml-auto">
           <ChatBubbleLeftIcon className="h-3.5 w-3.5 text-brand" />
-          <span className="font-medium text-white">{formatCount(commentsCount)}</span>
+          <span className="font-medium text-brand">{formatCount(commentsCount)}</span>
           <span className="hidden sm:inline">responses</span>
         </div>
       )}
@@ -668,7 +668,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
                         e.preventDefault();
                       }
                     }}
-                    className={`font-semibold text-xs ${isAnon ? 'text-white cursor-default' : 'text-brand hover:underline'}`}
+                    className={`font-semibold text-xs ${isAnon ? 'text-brand cursor-default' : 'text-brand hover:underline'}`}
                   >
                     {isAnon ? <EyeSlashIcon className="w-3 h-3 inline mr-1 -mt-0.5" /> : null}
                     @{isAnon ? 'anonymous' : (comment.author?.username || 'anonymous')}
@@ -704,7 +704,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
           >
             <button
               onClick={() => setCommentAnon(!commentAnon)}
-              className={`p-2.5 rounded-xl transition-colors ${commentAnon ? 'bg-purple-500/20 text-white' : 'bg-white/5 text-gray-500 hover:text-gray-300'}`}
+              className={`p-2.5 rounded-xl transition-colors ${commentAnon ? 'bg-purple-500/20 text-brand' : 'bg-white/5 text-gray-500 hover:text-gray-300'}`}
               title={commentAnon ? "Commenting Anonymously" : "Comment Publicly"}
             >
               <EyeSlashIcon className="w-4 h-4" />
@@ -714,7 +714,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Write a response..."
-              className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 transition-colors"
+              className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-brand placeholder-gray-500 focus:outline-none focus:border-brand/50 transition-colors"
               onKeyPress={(e) => e.key === 'Enter' && submitCommentWrapper()}
               autoFocus
             />

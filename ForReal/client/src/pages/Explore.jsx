@@ -304,7 +304,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
       >
         <div className="flex items-center gap-2 mb-4">
           <Icon className="w-5 h-5 text-brand" />
-          <h3 className="text-white font-semibold">{title}</h3>
+          <h3 className="text-brand font-semibold">{title}</h3>
         </div>
         <p className="text-gray-400 text-sm">{emptyMessage}</p>
       </motion.div>
@@ -318,7 +318,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
     >
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
         <Icon className="w-5 h-5 text-brand" />
-        <h3 className="text-white font-semibold">{title}</h3>
+        <h3 className="text-brand font-semibold">{title}</h3>
         <span className="ml-auto text-xs text-gray-400">{items.length}</span>
       </div>
       <motion.div
@@ -431,7 +431,7 @@ const CreatorCard = React.memo(({ creator }) => {
           className="w-10 h-10 rounded-full border border-brand/30 object-cover"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-white font-medium text-sm truncate">{safeCreator.displayName || safeCreator.username}</p>
+          <p className="text-brand font-medium text-sm truncate">{safeCreator.displayName || safeCreator.username}</p>
           <p className="text-gray-400 text-xs">@{safeCreator.username}</p>
           {score !== undefined && (
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
@@ -470,7 +470,7 @@ const RoomCard = React.memo(({ room }) => (
       <div className="relative">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h4 className="text-white font-semibold text-sm line-clamp-1">{room.topic}</h4>
+            <h4 className="text-brand font-semibold text-sm line-clamp-1">{room.topic}</h4>
             <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
               <span className="flex items-center gap-1">
                 <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'active' ? 'bg-brand animate-pulse' : 'bg-gray-500'}`} />
@@ -503,7 +503,7 @@ const TopicPill = React.memo(({ topic, onClick }) => (
     className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/5 hover:border-brand/30 transition-all cursor-pointer"
   >
     <Hash className="w-4 h-4 text-brand" />
-    <span className="text-sm font-medium text-white">{topic.tag}</span>
+    <span className="text-sm font-medium text-brand">{topic.tag}</span>
     <span className="text-[10px] text-gray-400">{topic.count} posts</span>
   </motion.div>
 ));
@@ -550,12 +550,12 @@ export default function Explore() {
                 value={query}
                 onChange={handleChange}
                 placeholder="Search for talks, users, rooms..."
-                className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-brand/50 focus:shadow-glow-sm transition-all duration-300"
+                className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-brand placeholder-gray-400 focus:outline-none focus:border-brand/50 focus:shadow-glow-sm transition-all duration-300"
               />
               {hasSearch && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white transition"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-brand transition"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -612,7 +612,7 @@ export default function Explore() {
                         to={`/rooms/${room._id}`}
                         className="block p-4 hover:bg-white/5 transition-colors"
                       >
-                        <p className="text-white font-medium text-sm">{room.topic}</p>
+                        <p className="text-brand font-medium text-sm">{room.topic}</p>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                           <span className="flex items-center gap-1">
                             <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'active' ? 'bg-brand' : 'bg-gray-500'}`} />
@@ -661,7 +661,7 @@ export default function Explore() {
                     <div className="p-1.5 rounded-lg bg-brand/10 border border-brand/30">
                       <Zap className="w-4 h-4 text-brand" />
                     </div>
-                    <h2 className="text-xl font-bold text-white">Trending Debates</h2>
+                    <h2 className="text-xl font-bold text-brand">Trending Debates</h2>
                   </div>
                   <Link to="/rooms" className="text-brand text-sm hover:underline flex items-center gap-1">
                     All Rooms <ArrowRight className="w-3 h-3" />
@@ -692,7 +692,7 @@ export default function Explore() {
                     <div className="p-1.5 rounded-lg bg-brand/10 border border-brand/30">
                       <Award className="w-4 h-4 text-brand" />
                     </div>
-                    <h2 className="text-xl font-bold text-white">Top Creators</h2>
+                    <h2 className="text-xl font-bold text-brand">Top Creators</h2>
                   </div>
                   <Link to="/creators" className="text-brand text-sm hover:underline flex items-center gap-1">
                     Discover <ArrowRight className="w-3 h-3" />
@@ -731,7 +731,7 @@ export default function Explore() {
                     <div className="p-1.5 rounded-lg bg-brand/10 border border-brand/30">
                       <Sparkles className="w-4 h-4 text-brand" />
                     </div>
-                    <h2 className="text-xl font-bold text-white">Hot Topics</h2>
+                    <h2 className="text-xl font-bold text-brand">Hot Topics</h2>
                   </div>
                 </div>
                 {trendingLoading ? (

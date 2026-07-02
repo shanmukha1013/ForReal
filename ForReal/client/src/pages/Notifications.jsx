@@ -500,7 +500,7 @@ const FilterTabs = React.memo(({ activeFilter, onChange, unreadCount }) => {
           className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
             activeFilter === key
               ? 'bg-brand/10 border-brand/30 text-brand shadow-glow-sm'
-              : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+              : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-brand'
           }`}
         >
           {label}
@@ -526,7 +526,7 @@ const EmptyState = React.memo(() => (
     <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
       <Bell className="w-10 h-10 text-gray-500" />
     </div>
-    <h3 className="text-xl font-semibold text-white mb-1">All caught up</h3>
+    <h3 className="text-xl font-semibold text-brand mb-1">All caught up</h3>
     <p className="text-gray-400 text-sm">When people interact with your content, you'll see it here.</p>
   </motion.div>
 ));
@@ -627,7 +627,7 @@ export default function Notifications() {
                 <Bell className="w-6 h-6 text-brand" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Notifications</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-brand">Notifications</h1>
                 <p className="text-gray-400 text-xs sm:text-sm mt-0.5">
                   Stay updated on talks, debates, and connections
                 </p>

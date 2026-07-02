@@ -215,7 +215,7 @@ const CategoryPill = React.memo(({ category, active, onClick }) => (
     className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
       active
         ? 'bg-brand/15 border border-brand/40 text-brand shadow-glow-sm'
-        : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+        : 'bg-white/5 border border-white/10 text-gray-400 hover:text-brand hover:border-white/20'
     }`}
   >
     {category === 'All' ? <Activity className="w-3.5 h-3.5" /> : <Hash className="w-3.5 h-3.5" />}
@@ -292,19 +292,19 @@ const RoomCard = React.memo(({ room, index }) => {
                 </span>
               )}
               {anonymityMode === 'anonymous' && (
-                <span className="text-[10px] text-white bg-purple-400/10 px-2 py-0.5 rounded-full border border-purple-400/20 flex items-center gap-1">
+                <span className="text-[10px] text-brand bg-purple-400/10 px-2 py-0.5 rounded-full border border-purple-400/20 flex items-center gap-1">
                   <EyeSlash className="w-3 h-3" /> Anonymous
                 </span>
               )}
               {anonymityMode === 'hybrid' && (
-                <span className="text-[10px] text-white bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1">
+                <span className="text-[10px] text-brand bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1">
                   <EyeSlash className="w-3 h-3" /> Hybrid
                 </span>
               )}
             </div>
 
             {/* Topic */}
-            <h3 className="text-white font-bold text-base sm:text-lg mb-2 line-clamp-2 group-hover:text-brand transition-colors">
+            <h3 className="text-brand font-bold text-base sm:text-lg mb-2 line-clamp-2 group-hover:text-brand transition-colors">
               {topic}
             </h3>
             {description && (
@@ -315,11 +315,11 @@ const RoomCard = React.memo(({ room, index }) => {
             <div className="mt-auto pt-3 border-t border-white/5 flex items-center gap-4 text-xs text-gray-400">
               <div className="flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-[#C1121F]" />
-                <span className="font-medium text-white">{proCount}</span> Pro
+                <span className="font-medium text-brand">{proCount}</span> Pro
               </div>
               <div className="flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-red-400" />
-                <span className="font-medium text-white">{againstCount}</span> Against
+                <span className="font-medium text-brand">{againstCount}</span> Against
               </div>
               <div className="flex items-center gap-1">
                 <Eye className="w-3.5 h-3.5" />
@@ -443,7 +443,7 @@ export default function Rooms() {
           className="flex items-center justify-between mb-6"
         >
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white flex items-center gap-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-brand flex items-center gap-2">
               <Zap className="w-7 h-7 text-brand" />
               Debate Rooms
             </h1>
@@ -492,12 +492,12 @@ export default function Rooms() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search debates..."
-              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 transition text-sm"
+              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-brand placeholder-gray-500 focus:outline-none focus:border-brand/50 transition text-sm"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-brand"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -511,7 +511,7 @@ export default function Rooms() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-brand/50"
+              className="bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-sm text-brand focus:outline-none focus:border-brand/50"
             >
               <option value="trending">Trending</option>
               <option value="newest">🕒 Newest</option>
@@ -569,7 +569,7 @@ export default function Rooms() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
               <MessageCircle className="w-8 h-8 text-gray-500" />
             </div>
-            <h3 className="text-white font-semibold text-lg">No rooms found</h3>
+            <h3 className="text-brand font-semibold text-lg">No rooms found</h3>
             <p className="text-gray-400 text-sm mt-1">
               {searchTerm
                 ? 'Try adjusting your search or filters'

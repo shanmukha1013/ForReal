@@ -257,7 +257,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
         />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white truncate">{displayName}</span>
+            <span className="text-sm font-bold text-brand truncate">{displayName}</span>
             <span className="hidden sm:inline-block text-[10px] font-mono font-bold tracking-wider text-brand border border-brand/30 px-1.5 py-0.5 rounded-full bg-brand/5">
               TALK
             </span>
@@ -349,21 +349,21 @@ const EngagementStats = ({ likesCount, dislikesCount, commentsCount }) => {
       {likesCount > 0 && (
         <div className="flex items-center gap-1.5">
           <HeartIcon className="h-3.5 w-3.5 text-brand" />
-          <span className="font-medium text-white">{formatCount(likesCount)}</span>
+          <span className="font-medium text-brand">{formatCount(likesCount)}</span>
           <span className="hidden sm:inline">likes</span>
         </div>
       )}
       {dislikesCount > 0 && (
         <div className="flex items-center gap-1.5">
           <HandThumbDownIcon className="h-3.5 w-3.5 text-red-400" />
-          <span className="font-medium text-white">{formatCount(dislikesCount)}</span>
+          <span className="font-medium text-brand">{formatCount(dislikesCount)}</span>
           <span className="hidden sm:inline">dislikes</span>
         </div>
       )}
       {commentsCount > 0 && (
         <div className="flex items-center gap-1.5">
           <ChatBubbleLeftIcon className="h-3.5 w-3.5 text-brand" />
-          <span className="font-medium text-white">{formatCount(commentsCount)}</span>
+          <span className="font-medium text-brand">{formatCount(commentsCount)}</span>
           <span className="hidden sm:inline">responses</span>
         </div>
       )}
@@ -518,7 +518,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Write a response..."
-              className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 transition-colors"
+              className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-brand placeholder-gray-500 focus:outline-none focus:border-brand/50 transition-colors"
               onKeyPress={(e) => e.key === 'Enter' && onSubmitComment()}
               autoFocus
             />

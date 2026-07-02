@@ -754,7 +754,7 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
                   />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[12px] font-bold text-white truncate max-w-[120px]">
+                    <span className="text-[12px] font-bold text-brand truncate max-w-[120px]">
                           {user?.displayName || "User"}
                         </span>
                         {user?.verified && (
@@ -1005,7 +1005,7 @@ const MobileDrawer = memo(function MobileDrawer({
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[13px] font-bold text-white truncate">{user.displayName || "User"}</span>
+                      <span className="text-[13px] font-bold text-brand truncate">{user.displayName || "User"}</span>
                       {user.verified && <Icons.Verified className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.brand }} />}
                     </div>
                     <span

@@ -113,10 +113,10 @@ export default function UserListModal({ isOpen, onClose, title, fetchType, userI
             className="relative w-full max-w-md bg-[#0F0F0F] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]"
           >
             <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <h3 className="text-lg font-bold text-white">{title}</h3>
+              <h3 className="text-lg font-bold text-brand">{title}</h3>
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/5"
+                className="p-2 text-gray-400 hover:text-brand transition-colors rounded-full hover:bg-white/5"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -151,7 +151,7 @@ export default function UserListModal({ isOpen, onClose, title, fetchType, userI
                         className="w-12 h-12 rounded-full border border-brand/30 object-cover"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium text-sm truncate group-hover:text-brand transition-colors">
+                        <p className="text-brand font-medium text-sm truncate group-hover:text-brand transition-colors">
                           {user.displayName || user.username}
                         </p>
                         <p className="text-gray-400 text-xs truncate">@{user.username}</p>

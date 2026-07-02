@@ -51,7 +51,7 @@ export default function DebateCoach({ argumentText, optionName }) {
             <SparklesIcon className="w-4 h-4" />
             AI Coach
           </div>
-          <button onClick={() => setDismissed(true)} className="text-gray-400 hover:text-white">
+          <button onClick={() => setDismissed(true)} className="text-gray-400 hover:text-brand">
             <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
@@ -68,7 +68,7 @@ export default function DebateCoach({ argumentText, optionName }) {
                 {sug.type === 'logic' ? (
                   <LightBulbIcon className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
                 ) : (
-                  <ShieldExclamationIcon className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  <ShieldExclamationIcon className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
                 )}
                 <span>{sug.text}</span>
               </div>

@@ -128,11 +128,11 @@ const profilePathFor = (user) => {
 // Dynamic Color Palette for Custom Options
 const OPTION_COLORS = [
   { text: 'text-brand', border: 'border-brand', bg: 'bg-brand/5', hover: 'hover:border-brand/50', buttonBg: 'bg-brand', buttonText: 'text-white' },
-  { text: 'text-white', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-white' },
-  { text: 'text-ai', border: 'border-ai', bg: 'bg-ai/5', hover: 'hover:border-ai/50', buttonBg: 'bg-ai', buttonText: 'text-white' },
-  { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400/5', hover: 'hover:border-orange-400/50', buttonBg: 'bg-orange-400', buttonText: 'text-white' },
-  { text: 'text-pink-400', border: 'border-pink-400', bg: 'bg-pink-400/5', hover: 'hover:border-pink-400/50', buttonBg: 'bg-pink-400', buttonText: 'text-white' },
-  { text: 'text-yellow-400', border: 'border-yellow-400', bg: 'bg-yellow-400/5', hover: 'hover:border-yellow-400/50', buttonBg: 'bg-yellow-400', buttonText: 'text-white' },
+  { text: 'text-brand', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-brand' },
+  { text: 'text-ai', border: 'border-ai', bg: 'bg-ai/5', hover: 'hover:border-ai/50', buttonBg: 'bg-ai', buttonText: 'text-brand' },
+  { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400/5', hover: 'hover:border-orange-400/50', buttonBg: 'bg-orange-400', buttonText: 'text-brand' },
+  { text: 'text-pink-400', border: 'border-pink-400', bg: 'bg-pink-400/5', hover: 'hover:border-pink-400/50', buttonBg: 'bg-pink-400', buttonText: 'text-brand' },
+  { text: 'text-yellow-400', border: 'border-yellow-400', bg: 'bg-yellow-400/5', hover: 'hover:border-yellow-400/50', buttonBg: 'bg-yellow-400', buttonText: 'text-brand' },
 ];
 
 const getOptionColor = (index) => OPTION_COLORS[index % OPTION_COLORS.length];
@@ -618,7 +618,7 @@ const TimerRing = React.memo(({ seconds }) => {
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <motion.span
-          className="text-sm font-mono text-white"
+          className="text-sm font-mono text-brand"
           key={seconds}
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
@@ -691,7 +691,7 @@ const SidePanel = React.memo(({ option, colorConfig, isActiveSpeaker, score, onJ
         <div className="mb-4">
           <div className="flex items-baseline gap-1">
             <Trophy className={`w-4 h-4 ${colorConfig.text}`} />
-            <span className="text-2xl font-bold text-white">{score || 0}</span>
+            <span className="text-2xl font-bold text-brand">{score || 0}</span>
             <span className="text-xs text-gray-400">points</span>
           </div>
         </div>
@@ -737,7 +737,7 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, color
         className={`rounded-2xl px-4 py-2.5 shadow-lg ${
           isMine
             ? 'bg-brand text-white'
-            : 'bg-white/10 backdrop-blur-sm border border-white/10 text-white'
+            : 'bg-white/10 backdrop-blur-sm border border-white/10 text-brand'
         }`}
       >
         {!isMine && (
@@ -758,7 +758,7 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, color
           </div>
         )}
         <div className="text-sm break-words">{message.text}</div>
-        <div className={`text-[9px] mt-1.5 flex flex-wrap items-center justify-between gap-2 ${isMine ? 'text-white/60' : 'text-gray-400'}`}>
+        <div className={`text-[9px] mt-1.5 flex flex-wrap items-center justify-between gap-2 ${isMine ? 'text-brand/60' : 'text-gray-400'}`}>
           <span>{new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           <div className="flex items-center gap-1.5 flex-wrap">
             {activeReactions.map(rt => (
@@ -827,7 +827,7 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySid
       {anonymityMode === 'hybrid' && !disabled && (
          <div className="flex items-center gap-3 px-4 pt-3 pb-1">
            <span className="text-xs text-gray-500">Identity:</span>
-           <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer hover:text-white transition">
+           <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer hover:text-brand transition">
              <input type="radio" checked={!postAnon} onChange={() => setPostAnon(false)} className="text-brand focus:ring-brand/50 bg-black/60 border-white/20" />
              Public
            </label>
@@ -845,7 +845,7 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySid
         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
         placeholder={disabled ? 'This debate is closed.' : 'Type your argument...'}
         disabled={disabled}
-        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 text-sm disabled:opacity-60"
+        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-brand placeholder-gray-500 focus:outline-none focus:border-brand/50 text-sm disabled:opacity-60"
       />
       <motion.button
         whileHover={{ scale: 1.02 }}
@@ -870,7 +870,7 @@ const TimelineEvent = React.memo(({ event, index }) => {
 
   switch(event.type) {
      case 'milestone':
-       Icon = Flag; colorClass = 'text-white'; borderClass = 'border-blue-400/30'; bgClass = 'bg-blue-400/10'; break;
+       Icon = Flag; colorClass = 'text-brand'; borderClass = 'border-blue-400/30'; bgClass = 'bg-blue-400/10'; break;
      case 'heat_spike':
        Icon = Flame; colorClass = 'text-red-500'; borderClass = 'border-red-500/30'; bgClass = 'bg-red-500/10'; break;
      case 'key_argument':
@@ -910,7 +910,7 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
       <div className="flex items-center justify-between mb-5 px-2">
         <div className="flex items-center gap-2">
           <CpuChip className="w-5 h-5 text-ai" />
-          <h2 className="text-lg md:text-xl font-bold text-white">ForReal AI Analysis</h2>
+          <h2 className="text-lg md:text-xl font-bold text-brand">ForReal AI Analysis</h2>
         </div>
         <button
           onClick={onGenerate}
@@ -1018,13 +1018,13 @@ const DebateVerdictPanel = React.memo(({ verdictData, onCastVote, onGenerate, is
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-5 px-2">
         <div className="flex items-center gap-2">
-          <Scale className="w-5 h-5 text-white" />
-          <h2 className="text-lg md:text-xl font-bold text-white">Community Evaluation</h2>
+          <Scale className="w-5 h-5 text-brand" />
+          <h2 className="text-lg md:text-xl font-bold text-brand">Community Evaluation</h2>
         </div>
         {isHost && (
           <button
             onClick={onGenerate}
-            className="px-4 py-2 rounded-xl bg-white/5 border border-blue-500/30 text-white text-xs font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-all shadow-glow-sm"
+            className="px-4 py-2 rounded-xl bg-white/5 border border-blue-500/30 text-brand text-xs font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-all shadow-glow-sm"
           >
             Conclude & Generate Verdict
           </button>
@@ -1175,7 +1175,7 @@ export default function Room() {
       <Layout>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center min-h-[50vh] text-center">
           <Shield className="w-12 h-12 text-red-400 mb-4" />
-          <h2 className="text-xl font-bold text-white">Debate not available</h2>
+          <h2 className="text-xl font-bold text-brand">Debate not available</h2>
           <p className="text-gray-400 text-sm mt-2">{error || 'This room may have ended or been removed.'}</p>
         </div>
       </Layout>
@@ -1208,7 +1208,7 @@ export default function Room() {
                   </span>
                 )}
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-white">{room.topic}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-brand">{room.topic}</h1>
               <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 flex-wrap">
                 {customOptions.map((opt, idx) => (
                   <span key={opt.name} className={`flex items-center gap-1 ${getOptionColor(idx).text}`}>
@@ -1253,7 +1253,7 @@ export default function Room() {
             <button
               onClick={() => handleJoin('observe')}
               disabled={joining || isClosed}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isObserver ? 'bg-white/20 text-white' : 'bg-white/5 border border-white/10 hover:border-white/30'}`}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isObserver ? 'bg-white/20 text-brand' : 'bg-white/5 border border-white/10 hover:border-white/30'}`}
             >
               Observe
             </button>
@@ -1303,7 +1303,7 @@ export default function Room() {
           >
             <div className="p-4 border-b border-white/10 flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-brand" />
-              <h3 className="text-white font-semibold">Live Debate Chat</h3>
+              <h3 className="text-brand font-semibold">Live Debate Chat</h3>
               <span className="text-xs text-gray-400 ml-auto">{chatMessages.length} messages</span>
             </div>
 
@@ -1351,7 +1351,7 @@ export default function Room() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 mb-10 max-w-4xl mx-auto">
            <div className="flex items-center gap-2 mb-5 px-2">
               <Clock className="w-5 h-5 text-brand" />
-              <h2 className="text-lg md:text-xl font-bold text-white">Debate Timeline</h2>
+              <h2 className="text-lg md:text-xl font-bold text-brand">Debate Timeline</h2>
            </div>
            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
               {timelineEvents.length === 0 ? (

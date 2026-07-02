@@ -136,7 +136,7 @@ const ScrollToTop = () => {
 // 404 Not Found Page
 // -----------------------------------------------------------------------------
 const NotFound = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center text-white bg-transparent">
+  <div className="min-h-screen flex flex-col items-center justify-center text-brand bg-transparent">
     <h1 className="text-6xl font-black text-brand mb-4">404</h1>
     <p className="text-gray-400 text-lg mb-6">This page doesn’t exist.</p>
     <a

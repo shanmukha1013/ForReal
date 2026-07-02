@@ -218,7 +218,7 @@ export default function Home() {
               <div className="p-2 rounded-xl bg-brand/10 border border-brand/30">
                 <Zap className="w-6 h-6 text-brand" />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-brand">
                 Raw Debates
               </h1>
             </div>
@@ -270,7 +270,7 @@ export default function Home() {
                   value={composeText}
                   onChange={(e) => setComposeText(e.target.value)}
                   placeholder="What's your take? Speak your truth..."
-                  className="w-full bg-transparent border-none text-white placeholder-gray-500 focus:outline-none focus:ring-0 resize-none text-sm sm:text-base min-h-[80px]"
+                  className="w-full bg-transparent border-none text-brand placeholder-gray-500 focus:outline-none focus:ring-0 resize-none text-sm sm:text-base min-h-[80px]"
                 />
                 <div className="flex justify-between items-center mt-2 pt-3 border-t border-white/10">
                   <div className="text-xs text-gray-500 flex items-center gap-1">
@@ -298,7 +298,7 @@ export default function Home() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
               <MessageSquare className="w-8 h-8 text-gray-500" />
             </div>
-            <h3 className="text-white font-semibold text-lg">{emptyState.title}</h3>
+            <h3 className="text-brand font-semibold text-lg">{emptyState.title}</h3>
             <p className="text-gray-400 text-sm mt-1">{emptyState.detail}</p>
             {!isAuthenticated ? (
               <div className="mt-5">

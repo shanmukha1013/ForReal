@@ -82,7 +82,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
       <div className="flex flex-col flex-1 min-h-0 bg-black/40 backdrop-blur-2xl border-r border-white/10 shadow-2xl">
         {/* Branding */}
         <div className="flex items-center h-16 px-6 mt-2 mb-6">
-          <div className="text-2xl font-black tracking-tighter text-white">
+          <div className="text-2xl font-black tracking-tighter text-brand">
             ForReal
           </div>
           <div className="ml-2 w-1.5 h-1.5 rounded-full bg-brand shadow-glow-sm" />
@@ -129,7 +129,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
                       `flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-brand/50 ${
                         isActive
                           ? 'bg-brand/10 text-brand border border-brand/30 shadow-glow-sm'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+                          : 'text-gray-400 hover:text-brand hover:bg-white/5 border border-transparent'
                       }`
                     }
                   >
@@ -178,7 +178,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
             <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-white/5 backdrop-blur-sm">
               <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName || user.username || 'U'}&background=0F0F0F&color=22c55e&bold=true`} alt="Avatar" className="w-8 h-8 rounded-full border border-brand/30 object-cover bg-black" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white truncate">{user.displayName}</p>
+                <p className="text-xs font-medium text-brand truncate">{user.displayName}</p>
                 <p className="text-[10px] text-gray-400 truncate">@{user.username}</p>
               </div>
               <div className="w-2 h-2 rounded-full bg-brand shadow-glow-sm" />
@@ -223,7 +223,7 @@ const MobileBottomBar = React.memo(({ user, isLoading }) => {
                     `relative flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50 ${
                       isActive
                         ? 'text-brand bg-brand/10'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        : 'text-gray-400 hover:text-brand hover:bg-white/5'
                     }`
                   }
                 >

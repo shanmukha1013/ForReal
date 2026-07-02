@@ -636,7 +636,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
           {/* Names */}
           <div className="min-w-0 flex-1">
             <div
-              className="text-[13px] font-bold text-white truncate leading-snug"
+              className="text-[13px] font-bold text-brand truncate leading-snug"
               title={user?.displayName}
             >
               {user?.displayName || "New User"}
@@ -658,7 +658,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
           >
             <Link to={`/profile/${meId}/followers`} className="text-center group outline-none">
-              <div className="text-[13px] font-bold text-white group-hover:text-[#C1121F] transition-colors">
+              <div className="text-[13px] font-bold text-brand group-hover:text-[#C1121F] transition-colors">
                 {(user?.followersCount || 0).toLocaleString()}
               </div>
               <div className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5" style={{ fontFamily: "'Space Mono', monospace" }}>
@@ -667,7 +667,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             </Link>
             <div className="w-px h-6" style={{ background: "rgba(255,255,255,0.08)" }} />
             <Link to={`/profile/${meId}/following`} className="text-center group outline-none">
-              <div className="text-[13px] font-bold text-white group-hover:text-[#C1121F] transition-colors">
+              <div className="text-[13px] font-bold text-brand group-hover:text-[#C1121F] transition-colors">
                 {(user?.followingCount || 0).toLocaleString()}
               </div>
               <div className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5" style={{ fontFamily: "'Space Mono', monospace" }}>
@@ -676,7 +676,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             </Link>
             <div className="w-px h-6" style={{ background: "rgba(255,255,255,0.08)" }} />
             <Link to={`/profile/${meId}/debates`} className="text-center group outline-none">
-              <div className="text-[13px] font-bold text-white group-hover:text-[#C1121F] transition-colors">
+              <div className="text-[13px] font-bold text-brand group-hover:text-[#C1121F] transition-colors">
                 {(user?.debatesCount || 0).toLocaleString()}
               </div>
               <div className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5" style={{ fontFamily: "'Space Mono', monospace" }}>
@@ -764,7 +764,7 @@ const TrendingCard = memo(function TrendingCard({ rooms, loading }) {
               style={{ color: TOKEN.brand }}
             />
             <span
-              className="text-[11px] font-bold text-white tracking-[0.15em] uppercase select-none"
+              className="text-[11px] font-bold text-brand tracking-[0.15em] uppercase select-none"
               style={{ fontFamily: "'Space Mono', monospace" }}
             >
               Trending
@@ -904,7 +904,7 @@ const SuggestionsCard = memo(function SuggestionsCard({ users, loading }) {
               style={{ color: TOKEN.brand }}
             />
             <span
-              className="text-[11px] font-bold text-white tracking-[0.15em] uppercase select-none"
+              className="text-[11px] font-bold text-brand tracking-[0.15em] uppercase select-none"
               style={{ fontFamily: "'Space Mono', monospace" }}
             >
               Who to Follow
@@ -1000,7 +1000,7 @@ const SuggestionUserRow = memo(function SuggestionUserRow({ user, index, followi
         tabIndex={-1}
         aria-hidden="true"
       >
-        <div className="text-[12px] font-semibold truncate group-hover:text-white transition-colors" style={{ color: TOKEN.text }}>
+        <div className="text-[12px] font-semibold truncate group-hover:text-brand transition-colors" style={{ color: TOKEN.text }}>
           {user.displayName || user.username || "User"}
         </div>
         <div

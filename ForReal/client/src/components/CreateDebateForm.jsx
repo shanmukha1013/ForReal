@@ -118,7 +118,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
       className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden mb-6"
     >
       <div className="p-5">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-bold text-brand mb-4 flex items-center gap-2">
           <Zap className="w-5 h-5 text-[#C1121F]" /> Start a Debate
         </h2>
 
@@ -128,12 +128,12 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="Debate topic (min. 6 characters)"
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 transition text-sm"
+            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-brand placeholder-gray-500 focus:outline-none focus:border-green-500/50 transition text-sm"
           />
           <select
             value={debateMode}
             onChange={(e) => setDebateMode(e.target.value)}
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500/50 text-sm"
+            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-brand focus:outline-none focus:border-green-500/50 text-sm"
           >
             <option value="Open Discussion">Open Discussion</option>
             <option value="Multiple Choice">Multiple Choice Debate</option>
@@ -153,7 +153,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
                     value={opt}
                     onChange={(e) => handleOptionChange(idx, e.target.value)}
                     placeholder={`Option ${idx + 1}`}
-                    className="flex-1 bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 text-sm"
+                    className="flex-1 bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-brand placeholder-gray-500 focus:outline-none focus:border-green-500/50 text-sm"
                   />
                   {customOptions.length > 2 && (
                     <button onClick={() => handleRemoveOption(idx)} className="text-red-400 hover:text-red-300 p-2">
@@ -173,7 +173,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500/50 text-sm"
+            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-brand focus:outline-none focus:border-green-500/50 text-sm"
           >
             <option value="">No category</option>
             <option value="Politics">Politics</option>
@@ -184,7 +184,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
           <select
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500/50 text-sm"
+            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-brand focus:outline-none focus:border-green-500/50 text-sm"
           >
             <option value="600">10 Minutes</option>
             <option value="3600">1 Hour</option>
@@ -194,7 +194,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
           <select
             value={visibility}
             onChange={(e) => setVisibility(e.target.value)}
-            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500/50 text-sm"
+            className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-brand focus:outline-none focus:border-green-500/50 text-sm"
           >
             <option value="public">Public</option>
             <option value="private">Private</option>
@@ -213,7 +213,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
             whileTap={{ scale: 0.98 }}
             disabled={!canCreate || creating}
             onClick={handleCreate}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-500 text-white font-bold text-sm disabled:opacity-50 transition shadow-lg shadow-green-500/20"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-500 text-brand font-bold text-sm disabled:opacity-50 transition shadow-lg shadow-green-500/20"
           >
             {creating ? 'Creating...' : 'Create Debate'}
           </motion.button>

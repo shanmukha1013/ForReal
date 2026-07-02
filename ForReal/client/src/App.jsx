@@ -64,7 +64,7 @@ const pageVariants = {
 };
 
 const pageTransition = {
-  duration: 0.15,
+  duration: 0.6,
   ease: [0.16, 1, 0.3, 1],
 };
 
@@ -85,27 +85,31 @@ const PageTransition = ({ children }) => (
 );
 
 // -----------------------------------------------------------------------------
-// Loading fallback (full‑screen spinner)
+// Loading fallback (minimalist Vercel/Linear style logo reveal)
 // -----------------------------------------------------------------------------
 const FullScreenLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-transparent">
-    <div className="relative flex items-center justify-center">
-      <motion.div 
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        className="absolute w-20 h-20 border-4 border-white/10 border-t-indigo-500 rounded-full"
-      />
-      <motion.div 
-        animate={{ rotate: -360 }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-        className="absolute w-14 h-14 border-4 border-white/10 border-b-fuchsia-500 rounded-full"
-      />
-      <motion.div 
-        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
-        className="w-4 h-4 bg-indigo-400 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.8)]"
-      />
-    </div>
+  <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      className="flex flex-col items-center gap-4"
+    >
+      <div className="w-12 h-12 bg-gradient-to-br from-[#22C55E] to-green-900 rounded-2xl shadow-[0_0_40px_rgba(34,197,94,0.3)] flex items-center justify-center overflow-hidden">
+        <motion.div 
+          animate={{ scale: [1, 1.05, 1], opacity: [0.8, 1, 0.8] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="w-6 h-6 bg-white rounded-full"
+        />
+      </div>
+      <motion.p
+        animate={{ opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="text-xs font-semibold tracking-[0.2em] text-gray-400 uppercase"
+      >
+        ForReal
+      </motion.p>
+    </motion.div>
   </div>
 );
 

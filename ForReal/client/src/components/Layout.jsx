@@ -155,12 +155,12 @@ const Icon = {
 // ─────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { to: "/",              label: "Home",          Icon: Icon.Home,         IconFilled: Icon.HomeFilled,       badgeKey: null },
-  { to: "/explore",       label: "Explore",       Icon: Icon.Explore,      IconFilled: Icon.ExploreFilled,    badgeKey: null },
-  { to: "/rooms",         label: "Debates",       Icon: Icon.Debates,      IconFilled: Icon.DebatesFilled,    badgeKey: "rooms" },
-  { to: "/messages",      label: "Messages",      Icon: Icon.Messages,     IconFilled: Icon.MessagesFilled,   badgeKey: "messages" },
-  { to: "/notifications", label: "Notifications", Icon: Icon.Bell,         IconFilled: Icon.BellFilled,       badgeKey: "notifications" },
-  { to: "/settings",      label: "Settings",      Icon: Icon.Settings,     IconFilled: Icon.Settings,         badgeKey: null },
+  { to: "/",              label: "Home 🏠",          Icon: Icon.Home,         IconFilled: Icon.HomeFilled,       badgeKey: null },
+  { to: "/explore",       label: "Explore 🔍",       Icon: Icon.Explore,      IconFilled: Icon.ExploreFilled,    badgeKey: null },
+  { to: "/rooms",         label: "Debates 💬",       Icon: Icon.Debates,      IconFilled: Icon.DebatesFilled,    badgeKey: "rooms" },
+  { to: "/messages",      label: "Messages ✉️",      Icon: Icon.Messages,     IconFilled: Icon.MessagesFilled,   badgeKey: "messages" },
+  { to: "/notifications", label: "Notifications 🔔", Icon: Icon.Bell,         IconFilled: Icon.BellFilled,       badgeKey: "notifications" },
+  { to: "/settings",      label: "Settings ⚙️",      Icon: Icon.Settings,     IconFilled: Icon.Settings,         badgeKey: null },
 ];
 
 const ADMIN_NAV_ITEM = { to: "/admin", label: "Admin Panel", Icon: Icon.Shield, IconFilled: Icon.Shield, badgeKey: null };
@@ -192,12 +192,12 @@ const rightSidebarVariants = {
 
 const navItemVariants = {
   hidden:   { opacity: 0, x: -12 },
-  visible:  { opacity: 1, x: 0, transition: { duration: 0.25, ease: EASE_EXPO } },
+  visible:  { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
 };
 
 const cardVariants = {
   hidden:   { opacity: 0, y: 12 },
-  visible:  { opacity: 1, y: 0, transition: { duration: 0.25, ease: EASE_EXPO } },
+  visible:  { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
 };
 
 const badgeVariants = {
@@ -211,7 +211,7 @@ const mainContentVariants = {
   hidden:   { opacity: 0, y: 10 },
   visible:  {
     opacity: 1,
-    transition: { duration: 0.25, ease: EASE_EXPO },
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
@@ -830,7 +830,7 @@ const TrendingRoomRow = memo(function TrendingRoomRow({ room, index }) {
       role="listitem"
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.02, duration: 0.2, ease: EASE_EXPO }}
+      transition={{ delay: index * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link
         to={`/rooms/${room._id}`}
@@ -975,7 +975,7 @@ const SuggestionUserRow = memo(function SuggestionUserRow({ user, index, followi
       role="listitem"
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.02, duration: 0.2, ease: EASE_EXPO }}
+      transition={{ delay: index * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className="flex items-center gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200"
       onMouseEnter={(e) => {
         e.currentTarget.style.background  = TOKEN.surfaceHover;

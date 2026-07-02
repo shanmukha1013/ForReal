@@ -615,7 +615,11 @@ const UserFeed = React.memo(({ userId, activeTab }) => {
 
       {loading && posts.length > 0 && (
         <div className="flex justify-center py-4">
-          <div className="w-6 h-6 border-2 border-white/10 border-t-neon rounded-full animate-spin" />
+          <motion.div 
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="w-2 h-2 bg-[#22C55E] rounded-full"
+          />
         </div>
       )}
 

@@ -933,9 +933,14 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
          )}
 
          {isAnalyzing && !summary && (
-            <div className="flex flex-col items-center justify-center py-10">
-               <div className="w-10 h-10 border-4 border-purple-500/20 border-t-purple-400 rounded-full animate-spin mb-4" />
-               <p className="text-purple-400 text-sm font-mono animate-pulse">Running semantic analysis on debate data...</p>
+            <div className="space-y-4 py-4 animate-pulse">
+               <div className="h-4 w-1/3 bg-purple-500/20 rounded"></div>
+               <div className="h-20 bg-purple-500/10 rounded-xl"></div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="h-16 bg-purple-500/10 rounded-xl"></div>
+                  <div className="h-16 bg-purple-500/10 rounded-xl"></div>
+               </div>
+               <p className="text-purple-400/50 text-xs font-mono text-center pt-2">Running semantic analysis on debate data...</p>
             </div>
          )}
 

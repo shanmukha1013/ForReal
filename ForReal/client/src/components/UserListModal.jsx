@@ -146,7 +146,7 @@ export default function UserListModal({ isOpen, onClose, title, fetchType, userI
                       className="flex items-center gap-3 flex-1 overflow-hidden"
                     >
                       <img
-                        src={user.avatar || `https://ui-avatars.com/api/?name=${user.username || 'user'}&background=0F0F0F&color=22c55e`}
+                        src={user.avatar || `https://ui-avatars.com/api/?name=${user.username || 'user'}&background=0F0F0F&color=C1121F`}
                         alt={user.username}
                         className="w-12 h-12 rounded-full border border-brand/30 object-cover"
                       />

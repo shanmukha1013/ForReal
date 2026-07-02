@@ -241,7 +241,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
   const username = author?.username || 'user';
   const avatarSrc =
     author?.avatar ||
-    `https://ui-avatars.com/api/?name=${displayName}&background=0F0F0F&color=00FF88&bold=true`;
+    `https://ui-avatars.com/api/?name=${displayName}&background=0F0F0F&color=C1121F&bold=true`;
 
   return (
     <div className="flex items-center justify-between">

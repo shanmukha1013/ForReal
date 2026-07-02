@@ -152,11 +152,20 @@ const useUserProfile = (username, currentUser) => {
   const fetchProfile = useCallback(async () => {
     if (!username) { setLoading(false); return; }
     
+    const isMe = currentUser && (String(username) === String(currentUser.username) || String(username) === String(currentUser._id) || String(username) === String(currentUser.id));
+    
     // Optimistic Cache Return (SWR Pattern)
     const cacheKey = `forreal_profile_cache_${username}`;
     const cachedData = sessionStorage.getItem(cacheKey);
     
-    if (cachedData && !profile) {
+    // INSTANT LOAD FOR CURRENT USER
+    if (isMe && !profile) {
+      setProfile({
+        ...currentUser,
+        stats: currentUser.stats || { followersCount: 0, followingCount: 0, postsCount: 0 }
+      });
+      setLoading(false);
+    } else if (cachedData && !profile) {
       try {
         const parsed = JSON.parse(cachedData);
         setProfile(parsed);
@@ -167,8 +176,6 @@ const useUserProfile = (username, currentUser) => {
     } else if (!profile) {
       setLoading(true);
     }
-
-    const isMe = currentUser && (String(username) === String(currentUser.username) || String(username) === String(currentUser._id) || String(username) === String(currentUser.id));
 
     try {
       const data = await axios.get(`/users/${encodeURIComponent(username)}`);
@@ -428,7 +435,7 @@ const ProfileCover = React.memo(({ profile }) => (
 ProfileCover.displayName = 'ProfileCover';
 
 const ProfileAvatar = React.memo(({ profile }) => {
-  const avatarSrc = profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.displayName || 'U'}&background=0F0F0F&color=22c55e&bold=true`;
+  const avatarSrc = profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.displayName || 'U'}&background=0F0F0F&color=C1121F&bold=true`;
   return (
     <div className="relative -mt-16 md:-mt-20 mb-4 flex justify-center md:justify-start md:pl-4">
       <motion.div

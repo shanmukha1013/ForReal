@@ -407,7 +407,7 @@ const ForRealLogo = memo(function ForRealLogo() {
           className="font-black select-none"
           style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "20px", letterSpacing: "-0.04em", lineHeight: "1" }}
         >
-          <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>FOR</span><span style={{ color: TOKEN.brand }}>REAL</span>
+          <span style={{ color: "#ffffff" }}>FOR</span><span style={{ color: TOKEN.brand }}>REAL</span>
         </div>
         <div
           className="text-[9px] tracking-[0.2em] uppercase mt-[4px] select-none"
@@ -1255,6 +1255,7 @@ const AmbientBackground = memo(function AmbientBackground() {
 export default function Layout({ children }) {
   const { user, logout }   = useContext(AuthContext) || { user: null, logout: () => {} };
   const navigate           = useNavigate();
+  const location           = useLocation();
   const shouldReduceMotion = useReducedMotion();
 
   // Badge counts — keyed by NAV_ITEMS[*].badgeKey
@@ -1372,24 +1373,26 @@ export default function Layout({ children }) {
           </main>
 
           {/* ══════════════════════════════════════════════
-              RIGHT SIDEBAR
+              RIGHT SIDEBAR (ONLY ON EXPLORE)
           ══════════════════════════════════════════════ */}
-          <aside
-            className="hidden lg:block"
-            aria-label="Trending debates and suggestions"
-          >
-            <motion.div
-              className="sticky space-y-3"
-              style={{ top: "16px" }}
-              variants={rightSidebarVariants}
-              initial={shouldReduceMotion ? "visible" : "hidden"}
-              animate="visible"
+          {location.pathname === "/explore" && (
+            <aside
+              className="hidden lg:block"
+              aria-label="Trending debates and suggestions"
             >
-              <TrendingCard   rooms={trending}    loading={sidebarLoading} />
-              <SuggestionsCard users={suggestions} loading={sidebarLoading} />
-              <SidebarFooter />
-            </motion.div>
-          </aside>
+              <motion.div
+                className="sticky space-y-3"
+                style={{ top: "16px" }}
+                variants={rightSidebarVariants}
+                initial={shouldReduceMotion ? "visible" : "hidden"}
+                animate="visible"
+              >
+                <TrendingCard   rooms={trending}    loading={sidebarLoading} />
+                <SuggestionsCard users={suggestions} loading={sidebarLoading} />
+                <SidebarFooter />
+              </motion.div>
+            </aside>
+          )}
 
         </div>
       </div>

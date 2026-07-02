@@ -176,7 +176,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
             </div>
           ) : user ? (
             <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-white/5 backdrop-blur-sm">
-              <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName || user.username || 'U'}&background=0F0F0F&color=22c55e&bold=true`} alt="Avatar" className="w-8 h-8 rounded-full border border-brand/30 object-cover bg-black" />
+              <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName || user.username || 'U'}&background=0F0F0F&color=C1121F&bold=true`} alt="Avatar" className="w-8 h-8 rounded-full border border-brand/30 object-cover bg-black" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-brand truncate">{user.displayName}</p>
                 <p className="text-[10px] text-gray-400 truncate">@{user.username}</p>

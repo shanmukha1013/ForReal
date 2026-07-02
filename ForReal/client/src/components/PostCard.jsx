@@ -309,8 +309,8 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete, isAnonymous }) =>
   const displayName = isAnonymous ? 'Anonymous Voice' : (author?.displayName || author?.username || 'Anonymous');
   const username = isAnonymous ? 'anonymous' : (author?.username || 'user');
   const avatarSrc = isAnonymous
-    ? `https://ui-avatars.com/api/?name=A&background=0F0F0F&color=a855f7&bold=true`
-    : (author?.avatar || `https://ui-avatars.com/api/?name=${displayName}&background=0F0F0F&color=00FF88&bold=true`);
+    ? `https://ui-avatars.com/api/?name=A&background=0F0F0F&color=C1121F&bold=true`
+    : (author?.avatar || `https://ui-avatars.com/api/?name=${displayName}&background=0F0F0F&color=C1121F&bold=true`);
   const { score, rank } = useCredibility(author?._id || author?.username);
   const profilePath = !isAnonymous ? getProfilePath(author) : null;
 
@@ -643,7 +643,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
       <AnimatePresence initial={false}>
         {visibleComments.map((comment, idx) => {
           const isAnon = comment.isAnonymous;
-          const cAvatar = isAnon ? 'https://ui-avatars.com/api/?name=A&background=0F0F0F&color=a855f7&bold=true' : (comment.author?.avatar || `https://ui-avatars.com/api/?name=${comment.author?.username || 'U'}&background=0F0F0F&color=22c55e&bold=true`);
+          const cAvatar = isAnon ? 'https://ui-avatars.com/api/?name=A&background=0F0F0F&color=C1121F&bold=true' : (comment.author?.avatar || `https://ui-avatars.com/api/?name=${comment.author?.username || 'U'}&background=0F0F0F&color=C1121F&bold=true`);
           
           return (
           <motion.div

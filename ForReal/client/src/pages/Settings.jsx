@@ -515,7 +515,7 @@ export default function Settings() {
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="relative group w-16 h-16 flex-shrink-0">
                       <img 
-                        src={avatar || `https://ui-avatars.com/api/?name=${displayName || username}&background=0F0F0F&color=22c55e&bold=true`} 
+                        src={avatar || `https://ui-avatars.com/api/?name=${displayName || username}&background=0F0F0F&color=C1121F&bold=true`} 
                         alt="Avatar" 
                         className="w-16 h-16 rounded-full object-cover border-2 border-brand/30 bg-black/40" 
                       />

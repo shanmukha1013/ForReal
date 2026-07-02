@@ -77,7 +77,7 @@ const MessageBubble = ({ message, isMine, senderUsername, time, onReact }) => (
 const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, unreadCount }) => {
   const otherParticipant = conversation.participants?.find(p => String(p._id || p.id || p) !== String(myId)) || conversation.otherUser || {};
   const title = otherParticipant.displayName || otherParticipant.username || 'Unknown User';
-  const avatar = otherParticipant.avatar || `https://ui-avatars.com/api/?name=${title}&background=0F0F0F&color=22c55e`;
+  const avatar = otherParticipant.avatar || `https://ui-avatars.com/api/?name=${title}&background=0F0F0F&color=C1121F`;
   const isOnline = otherParticipant.status === 'online' || ['smarty', 'test'].includes(otherParticipant.username?.toLowerCase());
   const profilePath = profilePathFor(otherParticipant);
 
@@ -167,6 +167,8 @@ export default function Messages() {
   const [recipientId, setRecipientId] = useState(initialRecipient);
   const [text, setText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchedUsers, setSearchedUsers] = useState([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
   const [loading, setLoading] = useState({ conversations: true, messages: false });
   const [error, setError] = useState({ conversations: null, messages: null });
   const [unreadMap, setUnreadMap] = useState({});
@@ -512,6 +514,30 @@ export default function Messages() {
     return d.toLocaleDateString();
   };
 
+  useEffect(() => {
+    if (!searchQuery) { setSearchedUsers([]); return; }
+    const timer = setTimeout(async () => {
+      setSearchingUsers(true);
+      try {
+        const res = await axios.get('/explore/search', { params: { q: searchQuery } });
+        // Filter out me and existing conversations
+        const newUsers = (res?.users || []).filter(u => 
+          String(u._id || u.id) !== String(myId) && 
+          !conversations.some(c => {
+             const p = c.participants?.find(part => String(part._id || part) !== String(myId)) || c.otherUser || {};
+             return String(p._id || p.id) === String(u._id || u.id);
+          })
+        );
+        setSearchedUsers(newUsers);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setSearchingUsers(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery, myId, conversations]);
+
   const filteredConversations = conversations.filter(c => {
     if (!searchQuery) {return true;}
     const otherParticipant = c.participants?.find(p => String(p._id || p) !== String(myId)) || c.otherUser || {};
@@ -574,8 +600,9 @@ export default function Messages() {
                   <p className="text-gray-500 text-xs mt-1">Start a new message above</p>
                 </div>
               ) : (
-                filteredConversations.map((conv) => (
-                  <ConversationItem
+                <>
+                  {filteredConversations.map((conv) => (
+                    <ConversationItem
                     key={conv._id}
                     conversation={conv}
                     isActive={activeConversationId === conv._id}
@@ -584,7 +611,26 @@ export default function Messages() {
                     myId={myId}
                     unreadCount={unreadMap[conv._id] || 0}
                   />
-                ))
+                  ))}
+                  {searchedUsers.length > 0 && (
+                    <div className="px-4 py-2 mt-2 border-t border-white/10">
+                      <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Start New Conversation</p>
+                      {searchedUsers.map(u => (
+                         <div 
+                           key={u._id} 
+                           onClick={() => { setRecipientId(u._id || u.id || u.username); setActiveConversationId(null); localStorage.removeItem('forreal_active_conv'); setSearchQuery(''); }}
+                           className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer transition-colors"
+                         >
+                           <img src={u.avatar || `https://ui-avatars.com/api/?name=${u.displayName || u.username || 'U'}&background=0F0F0F&color=C1121F`} className="w-10 h-10 rounded-full object-cover" />
+                           <div>
+                             <p className="text-brand font-bold text-sm">{u.displayName || u.username}</p>
+                             <p className="text-gray-500 text-xs">@{u.username}</p>
+                           </div>
+                         </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </motion.div>

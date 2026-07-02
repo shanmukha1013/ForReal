@@ -503,7 +503,7 @@ const NavLogo = memo(function NavLogo({ compact = false }) {
           className="hidden sm:block font-black select-none"
           style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "18px", letterSpacing: "-0.04em", lineHeight: "1" }}
         >
-          <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>FOR</span><span style={{ color: T.brand }}>REAL</span>
+          <span style={{ color: "#ffffff" }}>FOR</span><span style={{ color: T.brand }}>REAL</span>
         </span>
       )}
     </Link>

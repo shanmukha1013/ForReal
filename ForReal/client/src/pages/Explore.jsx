@@ -241,10 +241,7 @@ function useTrendingData() {
           activeRooms.sort((a,b) => (b.participants || 0) - (a.participants || 0));
           setRooms(activeRooms.length > 0 ? activeRooms : localRooms);
           
-          setCreators([
-            { _id: '1', username: 'smarty', displayName: 'Smarty', credibilityScore: 2500 },
-            { _id: '2', username: 'test', displayName: 'TestUser', credibilityScore: 1200 }
-          ]);
+          setCreators([]);
 
           const localPosts = storageCache.getPosts();
           const tagMap = {};
@@ -426,7 +423,7 @@ const CreatorCard = React.memo(({ creator }) => {
     <Link to={`/profile/${encodeURIComponent(safeCreator.username)}`} className="block p-4 hover:bg-white/5 transition-colors group">
       <div className="flex items-center gap-3">
         <img
-          src={safeCreator.avatar || `https://ui-avatars.com/api/?name=${safeCreator.username || 'user'}&background=0F0F0F&color=22c55e`}
+          src={safeCreator.avatar || `https://ui-avatars.com/api/?name=${safeCreator.username || 'user'}&background=0F0F0F&color=C1121F`}
           alt={safeCreator.username}
           className="w-10 h-10 rounded-full border border-brand/30 object-cover"
         />
@@ -724,37 +721,7 @@ export default function Explore() {
                 )}
               </section>
 
-              {/* Hot Topics */}
-              <section>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-brand/10 border border-brand/30">
-                      <Sparkles className="w-4 h-4 text-brand" />
-                    </div>
-                    <h2 className="text-xl font-bold text-brand">Hot Topics</h2>
-                  </div>
-                </div>
-                {trendingLoading ? (
-                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                    {[...Array(5)].map((_, i) => (
-                      <motion.div key={i} variants={skeletonPulse} animate="animate" className="h-10 w-28 bg-white/5 rounded-full flex-shrink-0" />
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
-                  >
-                    {topics.map((topic) => (
-                      <motion.div key={topic.tag} variants={cardVariant} className="flex-shrink-0">
-                          <TopicPill topic={topic} onClick={handleTagClick} />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </section>
+              
             </motion.div>
           )}
         </AnimatePresence>

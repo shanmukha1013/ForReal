@@ -355,7 +355,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete, isAnonymous }) =>
               </span>
             )}
             {isAnonymous && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full border border-purple-400/30 bg-purple-400/10 text-purple-400">
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full border border-purple-400/30 bg-purple-400/10 text-white">
                 <EyeSlashIcon className="w-3 h-3" />
                 <span className="uppercase">Anonymous</span>
               </span>
@@ -458,7 +458,7 @@ const FactCheckBar = ({ sourceUrl, verifications, disputes, onVerify, onDispute,
       StatusIcon = CheckBadgeIcon;
     } else if (verifyScore > disputeScore) {
       status = 'Community Verified';
-      statusColor = 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10';
+      statusColor = 'text-white border-emerald-400/30 bg-emerald-400/10';
       StatusIcon = ShieldCheckIcon;
     } else if (disputeScore > verifyScore * 2) {
       status = 'Misleading';
@@ -480,7 +480,7 @@ const FactCheckBar = ({ sourceUrl, verifications, disputes, onVerify, onDispute,
   return (
     <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-3">
       {sourceUrl && (
-        <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 hover:underline w-fit">
+        <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-white hover:text-blue-300 hover:underline w-fit">
           <LinkIcon className="w-3.5 h-3.5" />
           {domain}
         </a>
@@ -668,7 +668,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
                         e.preventDefault();
                       }
                     }}
-                    className={`font-semibold text-xs ${isAnon ? 'text-purple-400 cursor-default' : 'text-brand hover:underline'}`}
+                    className={`font-semibold text-xs ${isAnon ? 'text-white cursor-default' : 'text-brand hover:underline'}`}
                   >
                     {isAnon ? <EyeSlashIcon className="w-3 h-3 inline mr-1 -mt-0.5" /> : null}
                     @{isAnon ? 'anonymous' : (comment.author?.username || 'anonymous')}
@@ -704,7 +704,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
           >
             <button
               onClick={() => setCommentAnon(!commentAnon)}
-              className={`p-2.5 rounded-xl transition-colors ${commentAnon ? 'bg-purple-500/20 text-purple-400' : 'bg-white/5 text-gray-500 hover:text-gray-300'}`}
+              className={`p-2.5 rounded-xl transition-colors ${commentAnon ? 'bg-purple-500/20 text-white' : 'bg-white/5 text-gray-500 hover:text-gray-300'}`}
               title={commentAnon ? "Commenting Anonymously" : "Comment Publicly"}
             >
               <EyeSlashIcon className="w-4 h-4" />

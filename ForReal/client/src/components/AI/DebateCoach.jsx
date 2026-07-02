@@ -68,7 +68,7 @@ export default function DebateCoach({ argumentText, optionName }) {
                 {sug.type === 'logic' ? (
                   <LightBulbIcon className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
                 ) : (
-                  <ShieldExclamationIcon className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <ShieldExclamationIcon className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <span>{sug.text}</span>
               </div>

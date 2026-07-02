@@ -128,7 +128,7 @@ const profilePathFor = (user) => {
 // Dynamic Color Palette for Custom Options
 const OPTION_COLORS = [
   { text: 'text-brand', border: 'border-brand', bg: 'bg-brand/5', hover: 'hover:border-brand/50', buttonBg: 'bg-brand', buttonText: 'text-white' },
-  { text: 'text-blue-400', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-white' },
+  { text: 'text-white', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-white' },
   { text: 'text-ai', border: 'border-ai', bg: 'bg-ai/5', hover: 'hover:border-ai/50', buttonBg: 'bg-ai', buttonText: 'text-white' },
   { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400/5', hover: 'hover:border-orange-400/50', buttonBg: 'bg-orange-400', buttonText: 'text-white' },
   { text: 'text-pink-400', border: 'border-pink-400', bg: 'bg-pink-400/5', hover: 'hover:border-pink-400/50', buttonBg: 'bg-pink-400', buttonText: 'text-white' },
@@ -870,7 +870,7 @@ const TimelineEvent = React.memo(({ event, index }) => {
 
   switch(event.type) {
      case 'milestone':
-       Icon = Flag; colorClass = 'text-blue-400'; borderClass = 'border-blue-400/30'; bgClass = 'bg-blue-400/10'; break;
+       Icon = Flag; colorClass = 'text-white'; borderClass = 'border-blue-400/30'; bgClass = 'bg-blue-400/10'; break;
      case 'heat_spike':
        Icon = Flame; colorClass = 'text-red-500'; borderClass = 'border-red-500/30'; bgClass = 'bg-red-500/10'; break;
      case 'key_argument':
@@ -1018,13 +1018,13 @@ const DebateVerdictPanel = React.memo(({ verdictData, onCastVote, onGenerate, is
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-5 px-2">
         <div className="flex items-center gap-2">
-          <Scale className="w-5 h-5 text-blue-400" />
+          <Scale className="w-5 h-5 text-white" />
           <h2 className="text-lg md:text-xl font-bold text-white">Community Evaluation</h2>
         </div>
         {isHost && (
           <button
             onClick={onGenerate}
-            className="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-all shadow-glow-sm"
+            className="px-4 py-2 rounded-xl bg-white/5 border border-blue-500/30 text-white text-xs font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-all shadow-glow-sm"
           >
             Conclude & Generate Verdict
           </button>

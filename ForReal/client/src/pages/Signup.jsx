@@ -186,7 +186,7 @@ export default function Signup() {
               <motion.div variants={staggerChildren} initial="hidden" animate="visible" className="text-center mb-8">
                 <motion.div
                   variants={fieldVariant}
-                  className="text-4xl sm:text-5xl font-black tracking-tighter bg-gradient-to-r from-white to-green-400 bg-clip-text text-transparent select-none"
+                  className="text-4xl sm:text-5xl font-black tracking-tighter text-white select-none"
                 >
                   Sign up
                 </motion.div>

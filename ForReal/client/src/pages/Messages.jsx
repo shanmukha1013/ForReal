@@ -47,7 +47,7 @@ const MessageBubble = ({ message, isMine, senderUsername, time, onReact }) => (
       <div
         className={`rounded-2xl px-4 py-2.5 shadow-lg cursor-pointer transition-transform active:scale-95 ${
           isMine
-            ? 'bg-gradient-to-r from-neon to-neon/80 text-white'
+            ? 'bg-[#C1121F]/80 text-white'
             : 'bg-white/10 backdrop-blur-sm border border-white/10 text-white'
         }`}
         title="Double click to like"

@@ -28,7 +28,7 @@ export default function DebateReport({ report, room }) {
           </div>
         </div>
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-start gap-3">
-          <ChartBarIcon className="w-5 h-5 text-blue-400 mt-0.5" />
+          <ChartBarIcon className="w-5 h-5 text-white mt-0.5" />
           <div>
             <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Most Logical User</h4>
             <p className="text-white font-medium mt-1">@{report.mostLogicalUser || 'N/A'}</p>

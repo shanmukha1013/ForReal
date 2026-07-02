@@ -60,7 +60,7 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
                 {ev.type === 'pdf' ? (
                   <DocumentTextIcon className="w-4 h-4 text-red-400" />
                 ) : ev.type === 'image' || ev.type === 'video' ? (
-                  <PhotoIcon className="w-4 h-4 text-blue-400" />
+                  <PhotoIcon className="w-4 h-4 text-white" />
                 ) : (
                   <LinkIcon className="w-4 h-4 text-green-400" />
                 )}

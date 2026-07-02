@@ -292,12 +292,12 @@ const RoomCard = React.memo(({ room, index }) => {
                 </span>
               )}
               {anonymityMode === 'anonymous' && (
-                <span className="text-[10px] text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full border border-purple-400/20 flex items-center gap-1">
+                <span className="text-[10px] text-white bg-purple-400/10 px-2 py-0.5 rounded-full border border-purple-400/20 flex items-center gap-1">
                   <EyeSlash className="w-3 h-3" /> Anonymous
                 </span>
               )}
               {anonymityMode === 'hybrid' && (
-                <span className="text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1">
+                <span className="text-[10px] text-white bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1">
                   <EyeSlash className="w-3 h-3" /> Hybrid
                 </span>
               )}

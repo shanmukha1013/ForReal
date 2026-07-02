@@ -119,7 +119,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
     >
       <div className="p-5">
         <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-green-500" /> Start a Debate
+          <Zap className="w-5 h-5 text-[#C1121F]" /> Start a Debate
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">

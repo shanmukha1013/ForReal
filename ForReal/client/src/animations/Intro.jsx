@@ -1,69 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import CinematicOverlay from './CinematicOverlay';
-import ParticleBackground from './ParticleBackground';
-import GlitchText from './GlitchText';
-
-// ─── Configuration ────────────────────────────────────────────────────────
-const FAKE_TEXTS = [
-  "FAKE NEWS", "FAKE GURUS", "TOXIC COMMENTS", "LIES",
-  "FAKE MOTIVATION", "FAKE PEOPLE", "NOISE", "CLOUT",
-  "MANIPULATION", "DRAMA", "PROPAGANDA", "ILLUSIONS",
-];
 
 // Premium Apple-grade easing curve
 const EASE = [0.16, 1, 0.3, 1];
 
 const PHASES = {
-  CHAOS:   0,   // Fake text chaos everywhere
-  FOCUS:   1,   // Texts blur out, short "Fr." logo appears
-  REVEAL:  2,   // "FORREAL" logo blasts in
-  TAGLINE: 3,   // Tagline + Glitch effect
-  LOADER:  4,   // Final truth statement + Loading bar
-  EXIT:    5,   // Full app reveal
+  START:    0,
+  GLOW:     1,
+  SWEEP:    2,
+  LOGO:     3,
+  TRUTH:    4,
+  SHIT:     5,
+  LINE:     6,
+  EXIT:     7,
 };
 
-// ─── Framer Variants ──────────────────────────────────────────────────────
-const fakeTextVariants = (i) => ({
-  initial: {
-    opacity: 0,
-    scale: 0.6,
-    x: Math.random() * 800 - 400,
-    y: Math.random() * 600 - 300,
-    rotate: Math.random() * 40 - 20,
-    filter: "blur(12px)",
-  },
-  animate: {
-    opacity: [0, 0.3, 0.05],
-    scale: [0.6, 1.1, 0.9],
-    filter: ["blur(12px)", "blur(2px)", "blur(16px)"],
-    transition: {
-      duration: 3,
-      delay: i * 0.12,
-      ease: "easeInOut",
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: 1.2,
-    filter: "blur(24px)",
-    transition: { duration: 1, ease: "easeIn" },
-  },
-});
-
-// ─── Main Component ───────────────────────────────────────────────────────
 export default function Intro({ onFinish }) {
-  const [phase, setPhase] = useState(PHASES.CHAOS);
+  const [phase, setPhase] = useState(PHASES.START);
   const timersRef = useRef([]);
 
   useEffect(() => {
-    // Enterprise Timeline Orchestration
+    // Cinematic Timeline Orchestration
     const schedule = [
-      [PHASES.FOCUS,   1800],
-      [PHASES.REVEAL,  3200],
-      [PHASES.TAGLINE, 4600],
-      [PHASES.LOADER,  5800],
-      [PHASES.EXIT,    8500],
+      [PHASES.GLOW,    500],
+      [PHASES.SWEEP,   1200],
+      [PHASES.LOGO,    2000],
+      [PHASES.TRUTH,   2800],
+      [PHASES.SHIT,    4000], // 1 second after TRUTH
+      [PHASES.LINE,    4600],
+      [PHASES.EXIT,    6500],
     ];
 
     timersRef.current = schedule.map(([nextPhase, delay]) =>
@@ -71,7 +36,7 @@ export default function Intro({ onFinish }) {
         if (nextPhase === PHASES.EXIT) {
           setPhase(PHASES.EXIT);
           // Wait for exit animation to finish before unmounting via parent
-          setTimeout(() => onFinish?.(), 1200);
+          setTimeout(() => onFinish?.(), 1000);
         } else {
           setPhase(nextPhase);
         }
@@ -87,155 +52,98 @@ export default function Intro({ onFinish }) {
     <AnimatePresence>
       {!isExiting && (
         <motion.div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-zinc-950 font-sans"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-black font-sans"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, filter: "blur(16px)", scale: 1.05 }}
-          transition={{ duration: 1.2, ease: "easeInOut" }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 1, ease: EASE }}
         >
-          {/* 1. Deep Interactive Background Layers */}
-          <CinematicOverlay interactive={true} opacity={1} />
-          <ParticleBackground />
-
-          {/* 2. Phase 0: Chaos (The "Shit" we don't talk) */}
+          {/* Subtle Crimson Glow */}
           <AnimatePresence>
-            {phase < PHASES.REVEAL && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
-                {FAKE_TEXTS.map((text, i) => (
-                  <motion.div
-                    key={text}
-                    className="absolute text-xl sm:text-3xl font-bold tracking-widest text-zinc-500/20 uppercase whitespace-nowrap"
-                    variants={fakeTextVariants(i)}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                  >
-                    {text}
-                  </motion.div>
-                ))}
-              </div>
+            {phase >= PHASES.GLOW && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.15 }}
+                transition={{ duration: 2, ease: "easeOut" }}
+                className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
+              >
+                <div className="w-[80vw] h-[80vw] sm:w-[600px] sm:h-[600px] rounded-full bg-[#C1121F] blur-[100px] mix-blend-screen" />
+              </motion.div>
             )}
           </AnimatePresence>
 
-          {/* 3. Foreground Brand Sequence */}
-          <div className="relative z-10 flex flex-col items-center justify-center text-center w-full max-w-2xl px-6">
-            
-            {/* Status Indicator */}
+          {/* Thin red light sweep */}
+          <AnimatePresence>
+            {phase === PHASES.SWEEP && (
+              <motion.div
+                initial={{ left: "-100%" }}
+                animate={{ left: "200%" }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+                className="absolute top-1/2 -translate-y-1/2 w-[2px] h-[300px] bg-[#C1121F] z-10 shadow-[0_0_20px_#C1121F] rotate-12 blur-[1px]"
+              />
+            )}
+          </AnimatePresence>
+
+          <div className="relative z-20 flex flex-col items-center justify-center text-center">
+            {/* Logo */}
             <AnimatePresence>
-              {phase >= PHASES.REVEAL && (
+              {phase >= PHASES.LOGO && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.6, ease: EASE }}
-                  className="mb-6 flex items-center gap-2 rounded-full border border-white/[0.08] bg-zinc-900/60 backdrop-blur-md px-3 py-1.5 shadow-xl"
-                >
-                  <span className="status-dot-wrapper">
-                    <span className="status-dot-ping" />
-                    <span className="status-dot-core" />
-                  </span>
-                  <span className="text-[10px] font-bold tracking-[0.2em] text-zinc-300">
-                    SYSTEM SECURE · V1.0
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Logo Sequence */}
-            <AnimatePresence mode="wait">
-              {phase === PHASES.FOCUS && (
-                <motion.div
-                  key="short-logo"
-                  initial={{ opacity: 0, scale: 0.8, filter: "blur(12px)" }}
-                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scale: 1.1, filter: "blur(12px)" }}
-                  transition={{ duration: 1, ease: EASE }}
-                  className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/80"
-                >
-                  <svg
-                    viewBox="0 0 512 512"
-                    className="h-24 w-24 block"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect width="512" height="512" rx="128" fill="#0A0A0A"/>
-                    <g fill="#FFFFFF">
-                      <rect x="231" y="140" width="25" height="232" rx="0"/>
-                      <rect x="131" y="140" width="100" height="50" rx="0"/>
-                      <rect x="151" y="231" width="80" height="50" rx="0"/>
-                    </g>
-                    <g fill="none" stroke="#C1121F" strokeWidth="50" strokeLinecap="square" strokeLinejoin="miter">
-                      <path d="M 256 165 H 331 A 33 33 0 0 1 331 231 H 256"/>
-                      <line x1="266" y1="231" x2="336" y2="347"/>
-                    </g>
-                    <g fill="#C1121F">
-                      <rect x="256" y="347" width="25" height="25" rx="0"/>
-                      <polygon points="316,347 341,347 361,372 336,372"/>
-                    </g>
-                  </svg>
-                </motion.div>
-              )}
-
-              {phase >= PHASES.REVEAL && (
-                <motion.h1
-                  key="full-logo"
-                  initial={{ opacity: 0, y: 20, filter: "blur(12px)", letterSpacing: "12px" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)", letterSpacing: "-2px" }}
+                  initial={{ opacity: 0, y: 10, scale: 0.95, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                   transition={{ duration: 1.2, ease: EASE }}
-                  className="text-6xl sm:text-8xl font-black text-white drop-shadow-2xl"
-                  style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+                  className="mb-8"
                 >
-                  FOR<span style={{ color: "#C1121F" }}>REAL</span>
-                </motion.h1>
+                  <h1 
+                    className="text-5xl sm:text-7xl font-black select-none tracking-tight"
+                    style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+                  >
+                    <span style={{ color: "#000000", WebkitTextStroke: "1.5px #ffffff" }}>FOR</span>
+                    <span style={{ color: "#C1121F" }}>REAL</span>
+                  </h1>
+                </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Tagline & Glitch Effect */}
+            {/* TRUTH. LOGIC. DEBATE. */}
             <AnimatePresence>
-              {phase >= PHASES.TAGLINE && (
-                <motion.div 
+              {phase >= PHASES.TRUTH && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, ease: EASE }}
+                  className="mb-12"
+                >
+                  <p className="text-[#FFFFFF] text-sm sm:text-base font-bold tracking-[0.3em]">
+                    TRUTH. LOGIC. DEBATE.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* We Don't Talk Shit & Line */}
+            <AnimatePresence>
+              {phase >= PHASES.SHIT && (
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="mt-6 flex flex-col items-center gap-8 w-full"
+                  transition={{ duration: 0.8, ease: EASE }}
+                  className="relative flex flex-col items-center"
                 >
-                  <GlitchText 
-                    text="WE DON'T TALK SHIT." 
-                    as="h2"
-                    trigger="mount"
-                    delay={0.2}
-                    className="text-sm sm:text-base font-semibold tracking-[0.4em] text-zinc-400"
-                  />
-
-                  {/* Final Loader Sequence */}
-                  <AnimatePresence>
-                    {phase >= PHASES.LOADER && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 15, filter: "blur(8px)" }}
-                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        transition={{ duration: 0.8, ease: EASE }}
-                        className="flex flex-col items-center w-full"
-                      >
-                        <div className="flex items-center gap-3 overflow-hidden rounded-full border border-emerald-500/20 bg-emerald-500/10 px-5 py-2.5 backdrop-blur-md shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                          <span className="text-xs sm:text-sm font-bold tracking-[0.15em] text-emerald-400">
-                            SPREAD TRUTH. DEBATE HONESTLY.
-                          </span>
-                        </div>
-
-                        {/* Premium Cinematic Loading Track */}
-                        <div className="mt-8 h-[2px] w-64 overflow-hidden rounded-full bg-zinc-800 relative">
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-loader" />
-                          <motion.div
-                            className="absolute top-0 left-0 h-full bg-emerald-500 shadow-[0_0_10px_#10b981]"
-                            initial={{ width: "0%" }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 2.2, ease: [0.76, 0, 0.24, 1] }} // Fast start, slow finish
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <p className="text-[#A1A1AA] text-xs sm:text-sm font-semibold tracking-[0.1em] uppercase mb-3">
+                    We Don't Talk Shit.
+                  </p>
+                  
+                  {phase >= PHASES.LINE && (
+                    <motion.div
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: "100%", opacity: 1 }}
+                      transition={{ duration: 1, ease: EASE }}
+                      className="h-[1px] bg-[#C1121F] shadow-[0_0_8px_#C1121F]"
+                    />
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
-
           </div>
         </motion.div>
       )}

@@ -82,7 +82,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
       <div className="flex flex-col flex-1 min-h-0 bg-black/40 backdrop-blur-2xl border-r border-white/10 shadow-2xl">
         {/* Branding */}
         <div className="flex items-center h-16 px-6 mt-2 mb-6">
-          <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-neon to-white bg-clip-text text-transparent">
+          <div className="text-2xl font-black tracking-tighter text-white">
             ForReal
           </div>
           <div className="ml-2 w-1.5 h-1.5 rounded-full bg-brand shadow-glow-sm" />

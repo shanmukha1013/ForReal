@@ -29,8 +29,7 @@ export const Noise = () => (
 export default function BackgroundAesthetics() {
   return (
     <>
-      <div className="fixed inset-0 bg-bg-primary z-[-3] pointer-events-none" />
-      <AnimatedGrid />
+      <div className="fixed inset-0 bg-[#000000] z-[-3] pointer-events-none" />
       <AmbientGlow />
       <Spotlight />
       <Noise />

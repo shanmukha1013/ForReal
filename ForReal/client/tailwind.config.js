@@ -4,33 +4,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#16a34a',
-        secondary: '#22c55e',
-        neon: '#22c55e',
-        'neon-soft': '#4ade80',
-        'neon-bright': '#00ff88',
-        bg: '#ffffff',
-        surface: '#f9fafb',
-        text: '#111827',
+        neon: {
+          DEFAULT: '#22c55e', // text-neon
+          soft: '#4ade80',
+          bright: '#00ff88',
+          dim: 'rgba(34,197,94,0.15)',
+        },
+        dark: {
+          root: '#000000',
+          base: '#050505',
+          raised: '#0a0a0a',
+          card: '#121212',
+          border: 'rgba(255,255,255,0.08)'
+        }
       },
-      borderRadius: {
-        card: '14px',
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        mono: ['Space Mono', 'monospace'],
       },
       boxShadow: {
-        soft: '0 1px 2px rgba(16,24,39,0.06), 0 6px 18px rgba(16,24,39,0.06)',
+        glow: '0 0 20px rgba(34, 197, 94, 0.25)',
+        'glow-lg': '0 0 40px rgba(34, 197, 94, 0.35)',
       },
-      transitionDuration: {
-        200: '200ms',
-      },
-      keyframes: {
-        shimmer: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' },
-        },
-      },
-      animation: {
-        shimmer: 'shimmer 1.4s ease-in-out infinite',
-      },
+      backgroundImage: {
+        'glass-gradient': 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%)',
+      }
     },
   },
   plugins: [],

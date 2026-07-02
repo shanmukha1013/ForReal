@@ -281,7 +281,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
     return (
       <motion.div
         variants={cardVariant}
-        className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-5"
+        className="rounded-2xl p-5 glass-panel"
       >
         <div className="flex items-center gap-2 mb-4">
           <Icon className="w-5 h-5 text-neon" />
@@ -300,7 +300,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
     return (
       <motion.div
         variants={cardVariant}
-        className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-5"
+        className="rounded-2xl p-5 glass-panel"
       >
         <div className="flex items-center gap-2 mb-4">
           <Icon className="w-5 h-5 text-neon" />
@@ -314,7 +314,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
   return (
     <motion.div
       variants={cardVariant}
-      className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden"
+      className="rounded-2xl overflow-hidden glass-panel"
     >
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
         <Icon className="w-5 h-5 text-neon" />
@@ -464,7 +464,7 @@ const RoomCard = React.memo(({ room }) => (
   <Link to={`/rooms/${room._id}`}>
     <motion.div
       whileHover={{ scale: 1.02, borderColor: 'rgba(34,197,94,0.5)' }}
-      className="group relative overflow-hidden bg-black/40 backdrop-blur-sm rounded-xl border border-white/10 p-4 transition-all duration-300"
+      className="group relative overflow-hidden rounded-xl p-4 transition-all duration-300 glass-card"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-neon/0 via-neon/5 to-neon/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative">
@@ -550,7 +550,7 @@ export default function Explore() {
                 value={query}
                 onChange={handleChange}
                 placeholder="Search for talks, users, rooms..."
-                className="w-full pl-12 pr-12 py-4 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-neon/50 focus:shadow-glow-sm transition-all duration-300"
+                className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-neon/50 focus:shadow-glow-sm transition-all duration-300"
               />
               {hasSearch && (
                 <button
@@ -715,7 +715,7 @@ export default function Explore() {
                       <motion.div
                         key={creator._id}
                         variants={cardVariant}
-                        className="bg-black/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:border-neon/40 transition-all"
+                        className="rounded-xl p-4 hover:border-neon/40 transition-all glass-card"
                       >
                         <CreatorCard creator={creator} />
                       </motion.div>

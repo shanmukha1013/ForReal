@@ -155,7 +155,7 @@ const FeedSkeleton = () => (
     {Array.from({ length: 5 }).map((_, i) => (
       <div
         key={i}
-        className="h-[180px] rounded-2xl bg-white/5 border border-white/10 animate-pulse"
+        className="h-[180px] rounded-2xl animate-pulse glass-panel"
       />
     ))}
   </div>
@@ -257,7 +257,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-5 shadow-lg mb-6"
+            className="p-4 sm:p-5 mb-6 rounded-2xl overflow-hidden glass-panel"
           >
             <div className="flex gap-4">
               <img
@@ -294,7 +294,7 @@ export default function Home() {
         {loading ? (
           <FeedSkeleton />
         ) : talks.length === 0 ? (
-          <div className="text-center py-16 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10">
+          <div className="text-center py-16 rounded-2xl overflow-hidden glass-panel">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
               <MessageSquare className="w-8 h-8 text-gray-500" />
             </div>

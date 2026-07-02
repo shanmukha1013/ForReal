@@ -380,13 +380,7 @@ const TOKEN = {
   blur:         "blur(24px)",
 };
 
-// Shared panel style used by all sidebar cards
-const PANEL_STYLE = {
-  background: `linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
-  border:     `1px solid ${TOKEN.border}`,
-  backdropFilter: TOKEN.blur,
-  WebkitBackdropFilter: TOKEN.blur,
-};
+
 
 // ─────────────────────────────────────────────────────────────────
 // SECTION 6 — SUB-COMPONENTS
@@ -615,8 +609,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
   return (
     <motion.div
       variants={cardVariants}
-      className="rounded-2xl overflow-hidden"
-      style={PANEL_STYLE}
+      className="rounded-2xl overflow-hidden glass-panel"
     >
       {/* Top accent line */}
       <div
@@ -768,8 +761,7 @@ const TrendingCard = memo(function TrendingCard({ rooms, loading }) {
   return (
     <motion.div
       variants={cardVariants}
-      className="rounded-2xl overflow-hidden"
-      style={PANEL_STYLE}
+      className="rounded-2xl overflow-hidden glass-panel"
     >
       <div
         className="h-px w-full"
@@ -909,8 +901,7 @@ const SuggestionsCard = memo(function SuggestionsCard({ users, loading }) {
   return (
     <motion.div
       variants={cardVariants}
-      className="rounded-2xl overflow-hidden"
-      style={PANEL_STYLE}
+      className="rounded-2xl overflow-hidden glass-panel"
     >
       <div
         className="h-px w-full"
@@ -1265,31 +1256,7 @@ const MobileTopBar = memo(function MobileTopBar({ badges, user }) {
 // ── Ambient Background ─────────────────────────────────────────────
 const AmbientBackground = memo(function AmbientBackground() {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-      {/* Primary glow — top-left */}
-      <motion.div
-        className="absolute -top-[200px] -left-[100px] w-[600px] h-[600px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(34,197,94,0.04) 0%, transparent 65%)", filter: "blur(40px)" }}
-        animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-      {/* Secondary glow — bottom-right */}
-      <motion.div
-        className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(34,197,94,0.025) 0%, transparent 65%)", filter: "blur(50px)" }}
-        animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-      />
-      {/* Subtle noise texture overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
-          backgroundRepeat: "repeat",
-          backgroundSize: "200px 200px",
-        }}
-      />
-    </div>
+    <BackgroundAesthetics />
   );
 });
 
@@ -1368,8 +1335,7 @@ export default function Layout({ children }) {
               <motion.nav
                 variants={cardVariants}
                 aria-label="Primary navigation"
-                className="rounded-2xl overflow-hidden p-2 space-y-0.5"
-                style={PANEL_STYLE}
+                className="rounded-2xl overflow-hidden p-2 space-y-0.5 glass-panel"
               >
                 {NAV_ITEMS.map((item) => (
                   <NavItem

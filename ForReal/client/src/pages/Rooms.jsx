@@ -260,8 +260,8 @@ const RoomCard = React.memo(({ room, index }) => {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Link to={`/rooms/${_id}`}>
-        <div className="group relative overflow-hidden bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:border-neon/40 transition-all duration-300 h-full flex flex-col">
+      <Link to={`/rooms/${_id}`} className="block h-full outline-none">
+        <div className="group relative overflow-hidden rounded-2xl p-5 hover:border-neon/40 transition-all duration-300 h-full flex flex-col glass-card">
           {/* Glow overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-neon/0 via-neon/5 to-neon/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
@@ -349,7 +349,7 @@ RoomCard.displayName = 'RoomCard';
 
 // Skeleton for room card
 const RoomCardSkeleton = React.memo(() => (
-  <motion.div variants={cardVariant} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-5 min-h-[200px]">
+  <motion.div variants={cardVariant} className="rounded-2xl p-5 min-h-[200px] glass-panel">
     <motion.div variants={skeletonPulse} animate="animate" className="space-y-3">
       <div className="flex gap-2">
         <div className="h-5 w-12 bg-white/5 rounded-full" />
@@ -491,8 +491,8 @@ export default function Rooms() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search rooms..."
-              className="w-full pl-10 pr-4 py-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 transition text-sm"
+              placeholder="Search debates..."
+              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 transition text-sm"
             />
             {searchTerm && (
               <button
@@ -562,9 +562,9 @@ export default function Rooms() {
           </motion.div>
         ) : rooms.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-16 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16 rounded-2xl glass-panel"
           >
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
               <MessageCircle className="w-8 h-8 text-gray-500" />

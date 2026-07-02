@@ -161,7 +161,7 @@ export default function Login() {
                 disabled={loading || authLoading}
                 whileHover={{ scale: loading || authLoading ? 1 : 1.01 }}
                 whileTap={{ scale: loading || authLoading ? 1 : 0.99 }}
-                className="w-full relative overflow-hidden group bg-gradient-to-r from-[#C1121F] to-[#16a34a] text-brand py-3.5 rounded-xl text-sm font-bold transition-all duration-500 hover:shadow-[0_0_20px_rgba(193,18,31,0.3)] disabled:opacity-50"
+                className="w-full relative overflow-hidden group bg-gradient-to-r from-[#C1121F] to-[#DC2626] text-brand py-3.5 rounded-xl text-sm font-bold transition-all duration-500 hover:shadow-[0_0_20px_rgba(193,18,31,0.3)] disabled:opacity-50"
               >
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 {loading || authLoading ? (

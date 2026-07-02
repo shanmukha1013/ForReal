@@ -572,7 +572,7 @@ const CreateDebateButton = memo(function CreateDebateButton() {
       <Link
         to="/rooms"
         aria-label="Start a new debate"
-        className="group relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 bg-brand text-brand transition-colors duration-300 hover:bg-brand-hover shadow-md hover:shadow-glow-sm"
+        className="group relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 bg-brand text-white hover:bg-brand-hover shadow-md hover:shadow-glow-sm"
       >
         <Icon.Plus className="relative w-4 h-4" />
         <span className="relative" style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", letterSpacing: "1px" }}>

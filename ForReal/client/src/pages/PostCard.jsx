@@ -525,7 +525,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
             <button
               onClick={onSubmitComment}
               disabled={!commentText.trim()}
-              className="px-3 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 text-sm font-bold disabled:opacity-50 transition-opacity"
+              className="px-3 py-2 rounded-xl bg-brand text-white text-sm font-bold disabled:opacity-50 transition-opacity"
             >
               Post
             </button>

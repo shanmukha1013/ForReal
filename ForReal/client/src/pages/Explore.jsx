@@ -577,7 +577,7 @@ export default function Explore() {
                   <button
                     key={tab.id}
                     onClick={() => setSearchTab(tab.id)}
-                    className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-all ${searchTab === tab.id ? 'text-brand border-b-2 border-brand bg-brand/5' : 'text-gray-400 hover:text-brand transition-colors duration-300 hover:bg-white/5'}`}
+                    className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-all ${searchTab === tab.id ? 'text-brand border-b-2 border-brand bg-brand/5' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                   >
                     {tab.label}
                   </button>

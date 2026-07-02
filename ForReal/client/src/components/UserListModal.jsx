@@ -54,7 +54,7 @@ const InlineFollowButton = ({ user }) => {
       className={`ml-4 flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 border ${
         following
           ? 'bg-brand/10 border-brand/40 text-brand hover:bg-brand/20'
-          : 'bg-brand text-brand transition-colors duration-300 border-brand hover:bg-brand/90'
+          : 'bg-brand text-white border-brand hover:bg-brand/90'
       } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {loading ? (

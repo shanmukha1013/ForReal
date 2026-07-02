@@ -303,7 +303,7 @@ export default function Signup() {
                     className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50 shadow-lg ${
                       loading || authLoading
                         ? 'bg-brand/50 text-gray-800 cursor-not-allowed'
-                        : 'bg-brand text-brand transition-colors duration-300 hover:bg-brand-soft active:scale-[0.98] shadow-neon/30'
+                        : 'bg-brand text-white hover:bg-brand-soft active:scale-[0.98] shadow-neon/30'
                     }`}
                   >
                     {loading || authLoading ? (

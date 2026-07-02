@@ -11,31 +11,7 @@ import React, {
 } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ShieldCheckIcon,
-  UserGroupIcon,
-  EyeIcon,
-  ClockIcon,
-  MicrophoneIcon,
-  PaperAirplaneIcon,
-  MinusIcon,
-  PlayIcon,
-  ChatBubbleLeftRightIcon,
-  TrophyIcon,
-  SparklesIcon,
-  XMarkIcon,
-  LinkIcon,
-  ExclamationTriangleIcon,
-  HandThumbUpIcon,
-  HandThumbDownIcon,
-  FireIcon,
-  EyeSlashIcon,
-  FlagIcon,
-  StarIcon,
-  CpuChipIcon,
-  LightBulbIcon,
-  ScaleIcon,
-} from '@heroicons/react/24/outline';
+import { ShieldCheckIcon, UserGroupIcon, EyeIcon, ClockIcon, MicrophoneIcon, PaperAirplaneIcon, MinusIcon, PlayIcon, ChatBubbleLeftRightIcon, TrophyIcon, SparklesIcon, XMarkIcon, LinkIcon, ExclamationTriangleIcon, HandThumbUpIcon, HandThumbDownIcon, FireIcon, EyeSlashIcon, XCircleIcon, StarIcon, FlagIcon, CpuChipIcon, LightBulbIcon, ScaleIcon } from "@heroicons/react/24/outline";
 
 const Shield = ShieldCheckIcon;
 const Users = UserGroupIcon;
@@ -127,7 +103,7 @@ const profilePathFor = (user) => {
 
 // Dynamic Color Palette for Custom Options
 const OPTION_COLORS = [
-  { text: 'text-brand', border: 'border-brand', bg: 'bg-brand/5', hover: 'hover:border-brand/50', buttonBg: 'bg-brand', buttonText: 'text-brand transition-colors duration-300' },
+  { text: 'text-brand', border: 'border-brand', bg: 'bg-brand/5', hover: 'hover:border-brand/50', buttonBg: 'bg-brand', buttonText: 'text-white' },
   { text: 'text-brand', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-brand' },
   { text: 'text-ai', border: 'border-ai', bg: 'bg-ai/5', hover: 'hover:border-ai/50', buttonBg: 'bg-ai', buttonText: 'text-brand' },
   { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400/5', hover: 'hover:border-orange-400/50', buttonBg: 'bg-orange-400', buttonText: 'text-brand' },
@@ -736,7 +712,7 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, color
       <div
         className={`rounded-2xl px-4 py-2.5 shadow-lg ${
           isMine
-            ? 'bg-brand text-brand transition-colors duration-300'
+            ? 'bg-brand text-white'
             : 'bg-white/10 backdrop-blur-sm border border-white/10 text-brand'
         }`}
       >
@@ -852,7 +828,7 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySid
         whileTap={{ scale: 0.98 }}
         onClick={handleSend}
         disabled={disabled || !text.trim()}
-        className="px-4 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold flex items-center gap-1 disabled:opacity-50"
+        className="px-4 py-2 rounded-xl bg-brand text-white font-bold flex items-center gap-1 disabled:opacity-50"
       >
         <Send className="w-4 h-4" />
       </motion.button>
@@ -1259,7 +1235,7 @@ export default function Room() {
             </button>
             {isHost && (
               <>
-                <button disabled={isClosed} onClick={() => startDebate()} className="px-4 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold text-sm flex items-center gap-1 disabled:opacity-50">
+                <button disabled={isClosed} onClick={() => startDebate()} className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-sm flex items-center gap-1 disabled:opacity-50">
                   <Play className="w-3.5 h-3.5" /> Start
                 </button>
                 <button disabled={isClosed} onClick={handleEndDebate} className="px-3 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-sm disabled:opacity-50">

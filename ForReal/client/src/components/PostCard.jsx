@@ -9,18 +9,7 @@ import React, {
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  HeartIcon,
-  ChatBubbleLeftIcon,
-  TrashIcon,
-  ShareIcon,
-  BookmarkIcon,
-  ShieldCheckIcon,
-  CheckBadgeIcon,
-  ExclamationTriangleIcon,
-  LinkIcon,
-  EyeSlashIcon,
-} from '@heroicons/react/24/outline';
+import { HeartIcon, ChatBubbleLeftIcon, TrashIcon, ShareIcon, BookmarkIcon, ShieldCheckIcon, CheckBadgeIcon, ExclamationTriangleIcon, LinkIcon, EyeSlashIcon, HandThumbUpIcon, HandThumbDownIcon, XCircleIcon, StarIcon } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { useSocket } from '../realtime/socket';
 import { AuthContext } from '../context/AuthContext';
@@ -551,7 +540,7 @@ const TalkActions = ({ reaction, onReact, isLoading, saved, onSave, onShare }) =
               initial={{ opacity: 0, y: 10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.9 }}
-              className="absolute bottom-full left-0 mb-2 p-2 bg-black/90 border border-white/10 rounded-full shadow-xl flex gap-1 z-50 backdrop-blur-xl"
+              className="absolute bottom-full left-0 mb-2 p-2 bg-black/90 border border-white/10 rounded-xl shadow-xl grid grid-cols-4 gap-2 w-64 z-50 backdrop-blur-xl"
             >
               {REACTION_TYPES.map(rt => (
                 <button
@@ -721,7 +710,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
             <button
               onClick={submitCommentWrapper}
               disabled={!commentText.trim()}
-              className="px-3 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 text-sm font-bold disabled:opacity-50 transition-opacity"
+              className="px-3 py-2 rounded-xl bg-brand text-white text-sm font-bold disabled:opacity-50 transition-opacity"
             >
               Post
             </button>

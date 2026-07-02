@@ -141,7 +141,7 @@ const NotFound = () => (
     <p className="text-gray-400 text-lg mb-6">This page doesn’t exist.</p>
     <a
       href="/"
-      className="px-6 py-2.5 rounded-full bg-brand text-brand transition-colors duration-300 font-bold hover:bg-brand/90 transition"
+      className="px-6 py-2.5 rounded-full bg-brand text-white font-bold hover:bg-brand/90 transition"
     >
       Go Home
     </a>

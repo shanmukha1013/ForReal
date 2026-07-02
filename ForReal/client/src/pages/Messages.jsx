@@ -47,7 +47,7 @@ const MessageBubble = ({ message, isMine, senderUsername, time, onReact }) => (
       <div
         className={`rounded-2xl px-4 py-2.5 shadow-lg cursor-pointer transition-transform active:scale-95 ${
           isMine
-            ? 'bg-[#C1121F]/80 text-brand transition-colors duration-300'
+            ? 'bg-[#C1121F]/80 text-white'
             : 'bg-white/10 backdrop-blur-sm border border-white/10 text-brand'
         }`}
         title="Double click to like"
@@ -122,7 +122,7 @@ const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, 
               <p className="text-sm text-brand font-medium truncate">{title}</p>
             )}
             {unreadCount > 0 && (
-              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-brand text-brand transition-colors duration-300 text-[10px] font-bold rounded-full">
+              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-brand text-white text-[10px] font-bold rounded-full">
                 {unreadCount}
               </span>
             )}
@@ -731,7 +731,7 @@ export default function Messages() {
                   whileTap={{ scale: 0.98 }}
                   onClick={sendMessage}
                   disabled={!text.trim() || (!activeConversationId && !recipientId.trim())}
-                  className="px-5 py-3 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold flex items-center gap-2 hover:bg-brand/90 transition disabled:opacity-50"
+                  className="px-5 py-3 rounded-xl bg-brand text-white font-bold flex items-center gap-2 hover:bg-brand/90 transition disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                   <span className="hidden sm:inline">Send</span>

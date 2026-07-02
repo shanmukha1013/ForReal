@@ -93,7 +93,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
           <button
             type="button"
             onClick={onNewDebate}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand text-brand transition-colors duration-300 font-semibold text-sm hover:bg-brand/90 active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:bg-brand/90 active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50"
             aria-label="Start a new debate"
           >
             <PlusCircle className="w-5 h-5" />
@@ -146,7 +146,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
 
                         {/* Badge for messages / notifications */}
                         {!isLoading && item.badgeKey && user?.[item.badgeKey] > 0 && (
-                          <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-brand text-brand transition-colors duration-300 rounded-full shadow-glow-sm">
+                          <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-brand text-white rounded-full shadow-glow-sm">
                             {user[item.badgeKey]}
                           </span>
                         )}
@@ -240,7 +240,7 @@ const MobileBottomBar = React.memo(({ user, isLoading }) => {
 
                       {/* Badge for messages / notifications */}
                       {item.badgeKey && user?.[item.badgeKey] > 0 && (
-                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 text-[9px] font-bold bg-brand text-brand transition-colors duration-300 rounded-full shadow-glow-sm">
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 text-[9px] font-bold bg-brand text-white rounded-full shadow-glow-sm">
                           {user[item.badgeKey]}
                         </span>
                       )}

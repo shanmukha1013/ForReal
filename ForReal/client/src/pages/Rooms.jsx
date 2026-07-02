@@ -463,7 +463,7 @@ export default function Rooms() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowCreatePanel((prev) => !prev)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold text-sm shadow-lg shadow-neon/20"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand text-white font-bold text-sm shadow-lg shadow-neon/20"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Create</span>
@@ -520,22 +520,7 @@ export default function Rooms() {
           </div>
         </div>
 
-        {/* Category pills */}
-        <motion.div
-          variants={containerVariant}
-          initial="hidden"
-          animate="visible"
-          className="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide"
-        >
-          {categories.map((cat) => (
-            <CategoryPill
-              key={cat}
-              category={cat}
-              active={cat === 'All' ? !selectedCategory : selectedCategory === cat}
-              onClick={handleCategoryChange}
-            />
-          ))}
-        </motion.div>
+        
 
         {/* Rooms Grid */}
         {error && !loading && (

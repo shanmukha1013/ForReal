@@ -22,7 +22,7 @@ export default function DebateReplay({ argumentsList }) {
           </button>
           <button 
             onClick={() => setIsPlaying(!isPlaying)}
-            className="p-2 bg-brand text-brand transition-colors duration-300 rounded-full hover:bg-brand/90 transition shadow-glow-sm"
+            className="p-2 bg-brand text-white rounded-full hover:bg-brand/90 transition shadow-glow-sm"
           >
             {isPlaying ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
           </button>

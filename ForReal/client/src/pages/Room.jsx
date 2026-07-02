@@ -127,12 +127,12 @@ const profilePathFor = (user) => {
 
 // Dynamic Color Palette for Custom Options
 const OPTION_COLORS = [
-  { text: 'text-neon', border: 'border-neon', bg: 'bg-neon/5', hover: 'hover:border-neon/50', buttonBg: 'bg-neon', buttonText: 'text-black' },
-  { text: 'text-blue-400', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-black' },
-  { text: 'text-purple-400', border: 'border-purple-400', bg: 'bg-purple-400/5', hover: 'hover:border-purple-400/50', buttonBg: 'bg-purple-400', buttonText: 'text-white' },
-  { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400/5', hover: 'hover:border-orange-400/50', buttonBg: 'bg-orange-400', buttonText: 'text-black' },
-  { text: 'text-pink-400', border: 'border-pink-400', bg: 'bg-pink-400/5', hover: 'hover:border-pink-400/50', buttonBg: 'bg-pink-400', buttonText: 'text-black' },
-  { text: 'text-yellow-400', border: 'border-yellow-400', bg: 'bg-yellow-400/5', hover: 'hover:border-yellow-400/50', buttonBg: 'bg-yellow-400', buttonText: 'text-black' },
+  { text: 'text-brand', border: 'border-brand', bg: 'bg-brand/5', hover: 'hover:border-brand/50', buttonBg: 'bg-brand', buttonText: 'text-white' },
+  { text: 'text-blue-400', border: 'border-blue-400', bg: 'bg-blue-400/5', hover: 'hover:border-blue-400/50', buttonBg: 'bg-blue-400', buttonText: 'text-white' },
+  { text: 'text-ai', border: 'border-ai', bg: 'bg-ai/5', hover: 'hover:border-ai/50', buttonBg: 'bg-ai', buttonText: 'text-white' },
+  { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400/5', hover: 'hover:border-orange-400/50', buttonBg: 'bg-orange-400', buttonText: 'text-white' },
+  { text: 'text-pink-400', border: 'border-pink-400', bg: 'bg-pink-400/5', hover: 'hover:border-pink-400/50', buttonBg: 'bg-pink-400', buttonText: 'text-white' },
+  { text: 'text-yellow-400', border: 'border-yellow-400', bg: 'bg-yellow-400/5', hover: 'hover:border-yellow-400/50', buttonBg: 'bg-yellow-400', buttonText: 'text-white' },
 ];
 
 const getOptionColor = (index) => OPTION_COLORS[index % OPTION_COLORS.length];
@@ -609,7 +609,7 @@ const TimerRing = React.memo(({ seconds }) => {
       <svg className="w-full h-full transform -rotate-90">
         <circle cx="32" cy="32" r="28" stroke="rgba(255,255,255,0.1)" strokeWidth="4" fill="none" />
         <motion.circle
-          cx="32" cy="32" r="28" stroke="#22c55e" strokeWidth="4" fill="none"
+          cx="32" cy="32" r="28" stroke="#C1121F" strokeWidth="4" fill="none"
           strokeDasharray={`${circumference * (percentage / 100)} ${circumference}`} strokeLinecap="round"
           initial={false}
           animate={{ strokeDasharray: `${circumference * (percentage / 100)} ${circumference}` }}
@@ -650,7 +650,7 @@ const ChatMessageReactions = ({ message, onReact }) => {
 
   return (
     <div className="absolute -bottom-3 right-2 flex items-center gap-1 bg-black/50 border border-white/10 rounded-full px-1 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-      <button onClick={() => handleReact('like')} className={`p-1 rounded-full hover:bg-white/10 ${reaction === 'like' ? 'text-neon' : 'text-gray-400'}`}>
+      <button onClick={() => handleReact('like')} className={`p-1 rounded-full hover:bg-white/10 ${reaction === 'like' ? 'text-brand' : 'text-gray-400'}`}>
         <ThumbsUp className="w-3 h-3" />
       </button>
       <button onClick={() => handleReact('dislike')} className={`p-1 rounded-full hover:bg-white/10 ${reaction === 'dislike' ? 'text-red-400' : 'text-gray-400'}`}>
@@ -669,7 +669,7 @@ const SidePanel = React.memo(({ option, colorConfig, isActiveSpeaker, score, onJ
       variants={panelVariant}
       className={`relative min-w-[280px] max-w-[320px] shrink-0 overflow-hidden rounded-2xl border backdrop-blur-xl transition-colors duration-300 ${
         isActiveSpeaker
-          ? `shadow-[0_0_15px_rgba(34,197,94,0.3)] ${colorConfig.bg} ${colorConfig.border}`
+          ? `shadow-[0_0_15px_rgba(193,18,31,0.3)] ${colorConfig.bg} ${colorConfig.border}`
           : isJoined
           ? ` ${colorConfig.border} ${colorConfig.bg}`
           : `border-white/10 bg-black/40 ${colorConfig.hover}`
@@ -722,7 +722,7 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, color
   const isAnon = message.isAnonymous || anonymityMode === 'anonymous';
   const author = message.author || message.sender;
   const profilePath = !isAnon ? profilePathFor(author) : null;
-  const optColor = message.associatedOption && colorMap[message.associatedOption] ? colorMap[message.associatedOption].text : 'text-neon';
+  const optColor = message.associatedOption && colorMap[message.associatedOption] ? colorMap[message.associatedOption].text : 'text-brand';
 
   return (
   <motion.div
@@ -736,12 +736,12 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, color
       <div
         className={`rounded-2xl px-4 py-2.5 shadow-lg ${
           isMine
-            ? 'bg-neon text-black'
+            ? 'bg-brand text-white'
             : 'bg-white/10 backdrop-blur-sm border border-white/10 text-white'
         }`}
       >
         {!isMine && (
-          <div className={`text-xs mb-1 font-mono flex items-center justify-between gap-2`} style={{ color: isAnon ? '#a855f7' : 'rgba(34, 197, 94, 0.8)' }}>
+          <div className={`text-xs mb-1 font-mono flex items-center justify-between gap-2`} style={{ color: isAnon ? '#a855f7' : 'rgba(193, 18, 31, 0.8)' }}>
             <div className="flex items-center gap-1">
               {isAnon ? <EyeSlash className="w-3 h-3" /> : null}
               {profilePath ? (
@@ -758,7 +758,7 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, color
           </div>
         )}
         <div className="text-sm break-words">{message.text}</div>
-        <div className={`text-[9px] mt-1.5 flex flex-wrap items-center justify-between gap-2 ${isMine ? 'text-black/60' : 'text-gray-400'}`}>
+        <div className={`text-[9px] mt-1.5 flex flex-wrap items-center justify-between gap-2 ${isMine ? 'text-white/60' : 'text-gray-400'}`}>
           <span>{new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           <div className="flex items-center gap-1.5 flex-wrap">
             {activeReactions.map(rt => (
@@ -784,9 +784,9 @@ const TypingIndicator = React.memo(({ typingUsers, anonymityMode }) => {
   return (
     <motion.div variants={typingIndicatorVariant} animate="animate" className="text-xs text-gray-400 pl-4 py-1 flex items-center gap-1">
       <span className="inline-flex gap-0.5">
-        <span className="w-1 h-1 bg-neon rounded-full animate-bounce" />
-        <span className="w-1 h-1 bg-neon rounded-full animate-bounce delay-100" />
-        <span className="w-1 h-1 bg-neon rounded-full animate-bounce delay-200" />
+        <span className="w-1 h-1 bg-brand rounded-full animate-bounce" />
+        <span className="w-1 h-1 bg-brand rounded-full animate-bounce delay-100" />
+        <span className="w-1 h-1 bg-brand rounded-full animate-bounce delay-200" />
       </span>
       {names} typing...
     </motion.div>
@@ -828,11 +828,11 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySid
          <div className="flex items-center gap-3 px-4 pt-3 pb-1">
            <span className="text-xs text-gray-500">Identity:</span>
            <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer hover:text-white transition">
-             <input type="radio" checked={!postAnon} onChange={() => setPostAnon(false)} className="text-neon focus:ring-neon/50 bg-black/60 border-white/20" />
+             <input type="radio" checked={!postAnon} onChange={() => setPostAnon(false)} className="text-brand focus:ring-brand/50 bg-black/60 border-white/20" />
              Public
            </label>
-           <label className="flex items-center gap-1.5 text-xs text-purple-400 cursor-pointer hover:text-purple-300 transition">
-             <input type="radio" checked={postAnon} onChange={() => setPostAnon(true)} className="text-purple-500 focus:ring-purple-500/50 bg-black/60 border-purple-500/30" />
+           <label className="flex items-center gap-1.5 text-xs text-ai cursor-pointer hover:text-ai transition">
+             <input type="radio" checked={postAnon} onChange={() => setPostAnon(true)} className="text-ai focus:ring-ai/50 bg-black/60 border-ai/30" />
              Anonymous
            </label>
          </div>
@@ -845,14 +845,14 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySid
         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
         placeholder={disabled ? 'This debate is closed.' : 'Type your argument...'}
         disabled={disabled}
-        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 text-sm disabled:opacity-60"
+        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 text-sm disabled:opacity-60"
       />
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleSend}
         disabled={disabled || !text.trim()}
-        className="px-4 py-2 rounded-xl bg-neon text-black font-bold flex items-center gap-1 disabled:opacity-50"
+        className="px-4 py-2 rounded-xl bg-brand text-white font-bold flex items-center gap-1 disabled:opacity-50"
       >
         <Send className="w-4 h-4" />
       </motion.button>
@@ -909,21 +909,21 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-5 px-2">
         <div className="flex items-center gap-2">
-          <CpuChip className="w-5 h-5 text-purple-400" />
+          <CpuChip className="w-5 h-5 text-ai" />
           <h2 className="text-lg md:text-xl font-bold text-white">ForReal AI Analysis</h2>
         </div>
         <button
           onClick={onGenerate}
           disabled={isAnalyzing}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold uppercase tracking-wider hover:bg-purple-500/20 transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ai/10 border border-ai/30 text-ai text-xs font-bold uppercase tracking-wider hover:bg-ai/20 transition-all disabled:opacity-50"
         >
-          {isAnalyzing ? <div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /> : <Zap className="w-3 h-3" />}
+          {isAnalyzing ? <div className="w-3 h-3 border-2 border-ai border-t-transparent rounded-full animate-spin" /> : <Zap className="w-3 h-3" />}
           {isAnalyzing ? 'Analyzing...' : summary ? 'Refresh Analysis' : 'Generate Insights'}
         </button>
       </div>
 
       <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden">
-         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+         <div className="absolute inset-0 bg-gradient-to-br from-ai/5 to-transparent pointer-events-none" />
 
          {!summary && !isAnalyzing && (
            <div className="text-center py-8 text-gray-500 text-sm">
@@ -934,13 +934,13 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
 
          {isAnalyzing && !summary && (
             <div className="space-y-4 py-4 animate-pulse">
-               <div className="h-4 w-1/3 bg-purple-500/20 rounded"></div>
-               <div className="h-20 bg-purple-500/10 rounded-xl"></div>
+               <div className="h-4 w-1/3 bg-ai/20 rounded"></div>
+               <div className="h-20 bg-ai/10 rounded-xl"></div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="h-16 bg-purple-500/10 rounded-xl"></div>
-                  <div className="h-16 bg-purple-500/10 rounded-xl"></div>
+                  <div className="h-16 bg-ai/10 rounded-xl"></div>
+                  <div className="h-16 bg-ai/10 rounded-xl"></div>
                </div>
-               <p className="text-purple-400/50 text-xs font-mono text-center pt-2">Running semantic analysis on debate data...</p>
+               <p className="text-ai/50 text-xs font-mono text-center pt-2">Running semantic analysis on debate data...</p>
             </div>
          )}
 
@@ -963,7 +963,7 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
                <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-white/10">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">Top Contributor:</span>
-                    <span className="text-sm font-bold text-neon bg-neon/10 px-2 py-0.5 rounded-md border border-neon/20">@{summary.topContributor}</span>
+                    <span className="text-sm font-bold text-brand bg-brand/10 px-2 py-0.5 rounded-md border border-brand/20">@{summary.topContributor}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">Consensus Level:</span>
@@ -1194,8 +1194,8 @@ export default function Room() {
           <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="flex items-center gap-1.5 text-xs font-mono text-neon uppercase tracking-wider">
-                  <Shield className="w-4 h-4 text-neon" />
+                <span className="flex items-center gap-1.5 text-xs font-mono text-brand uppercase tracking-wider">
+                  <Shield className="w-4 h-4 text-brand" />
                   {room.status === 'active' ? 'LIVE DEBATE' : room.status}
                 </span>
                 <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all duration-500 ${energy.bg} ${energy.color}`}>
@@ -1203,7 +1203,7 @@ export default function Room() {
                    {energy.label}
                 </span>
                 {room.anonymityMode === 'anonymous' && (
-                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider border-purple-400/30 bg-purple-400/10 text-purple-400">
+                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider border-ai/30 bg-ai/10 text-ai">
                     <EyeSlash className="w-3 h-3" /> Fully Anonymous
                   </span>
                 )}
@@ -1259,7 +1259,7 @@ export default function Room() {
             </button>
             {isHost && (
               <>
-                <button disabled={isClosed} onClick={() => startDebate()} className="px-4 py-2 rounded-xl bg-neon text-black font-bold text-sm flex items-center gap-1 disabled:opacity-50">
+                <button disabled={isClosed} onClick={() => startDebate()} className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-sm flex items-center gap-1 disabled:opacity-50">
                   <Play className="w-3.5 h-3.5" /> Start
                 </button>
                 <button disabled={isClosed} onClick={handleEndDebate} className="px-3 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-sm disabled:opacity-50">
@@ -1302,7 +1302,7 @@ export default function Room() {
             className="flex-1 min-w-[300px] bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col h-[520px]"
           >
             <div className="p-4 border-b border-white/10 flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-neon" />
+              <MessageCircle className="w-4 h-4 text-brand" />
               <h3 className="text-white font-semibold">Live Debate Chat</h3>
               <span className="text-xs text-gray-400 ml-auto">{chatMessages.length} messages</span>
             </div>
@@ -1350,7 +1350,7 @@ export default function Room() {
         {/* Debate Timeline Section */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 mb-10 max-w-4xl mx-auto">
            <div className="flex items-center gap-2 mb-5 px-2">
-              <Clock className="w-5 h-5 text-neon" />
+              <Clock className="w-5 h-5 text-brand" />
               <h2 className="text-lg md:text-xl font-bold text-white">Debate Timeline</h2>
            </div>
            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">

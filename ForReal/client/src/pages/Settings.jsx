@@ -318,7 +318,7 @@ const Toggle = React.memo(({ enabled, onChange, label, disabled = false }) => (
     onClick={() => !disabled && onChange(!enabled)}
     disabled={disabled}
     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-      enabled ? 'bg-neon' : 'bg-white/10'
+      enabled ? 'bg-brand' : 'bg-white/10'
     } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     aria-pressed={enabled}
     aria-label={label}
@@ -342,7 +342,7 @@ const Section = React.memo(({ title, icon: Icon, children, onSave, saving, saveL
     <div className="p-5 sm:p-6">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-neon" />
+          <Icon className="w-5 h-5 text-brand" />
           <h2 className="text-white font-semibold text-lg">{title}</h2>
         </div>
         {onSave && (
@@ -351,7 +351,7 @@ const Section = React.memo(({ title, icon: Icon, children, onSave, saving, saveL
             whileTap={{ scale: 0.98 }}
             onClick={onSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neon text-black font-bold text-sm disabled:opacity-50 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand text-white font-bold text-sm disabled:opacity-50 transition"
           >
             {saving === title ? (
               <>
@@ -394,7 +394,7 @@ const Tabs = React.memo(({ tabs, active, onChange }) => (
         onClick={() => onChange(key)}
         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
           active === key
-            ? 'bg-neon/10 border-neon/30 text-neon shadow-glow-sm'
+            ? 'bg-brand/10 border-brand/30 text-brand shadow-glow-sm'
             : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
         }`}
       >
@@ -474,10 +474,10 @@ export default function Settings() {
           animate="visible"
           className="relative"
         >
-          <div className="absolute inset-x-0 -top-10 h-24 bg-neon/10 blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute inset-x-0 -top-10 h-24 bg-brand/10 blur-3xl rounded-full pointer-events-none" />
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-neon/10 border border-neon/30">
-              <Sparkles className="w-6 h-6 text-neon" />
+            <div className="p-2 rounded-xl bg-brand/10 border border-brand/30">
+              <Sparkles className="w-6 h-6 text-brand" />
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white">Settings</h1>
@@ -517,7 +517,7 @@ export default function Settings() {
                       <img 
                         src={avatar || `https://ui-avatars.com/api/?name=${displayName || username}&background=0F0F0F&color=22c55e&bold=true`} 
                         alt="Avatar" 
-                        className="w-16 h-16 rounded-full object-cover border-2 border-neon/30 bg-black/40" 
+                        className="w-16 h-16 rounded-full object-cover border-2 border-brand/30 bg-black/40" 
                       />
                       <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                         <Upload className="w-5 h-5 text-white" />
@@ -555,7 +555,7 @@ export default function Settings() {
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition"
                       placeholder="How you appear to others"
                     />
                   </div>
@@ -565,7 +565,7 @@ export default function Settings() {
                       type="text"
                       value={avatar}
                       onChange={(e) => setAvatar(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition font-mono text-sm"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition font-mono text-sm"
                       placeholder="https://..."
                     />
                   </div>
@@ -578,7 +578,7 @@ export default function Settings() {
                       type="text"
                       value={coverImage}
                       onChange={(e) => setCoverImage(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition font-mono text-sm"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition font-mono text-sm"
                       placeholder="https://..."
                     />
                   </div>
@@ -588,7 +588,7 @@ export default function Settings() {
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition"
                       placeholder="City, Country"
                     />
                   </div>
@@ -600,7 +600,7 @@ export default function Settings() {
                     type="text"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition"
                     placeholder="https://your-website.com"
                   />
                 </div>
@@ -612,7 +612,7 @@ export default function Settings() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/70 transition text-sm"
+                    className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/70 transition text-sm"
                   />
                 </div>
 
@@ -623,7 +623,7 @@ export default function Settings() {
                     onChange={(e) => setBio(e.target.value.slice(0, 160))}
                     placeholder="Tell the world your truth..."
                     rows={3}
-                    className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/70 transition text-sm resize-none"
+                    className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/70 transition text-sm resize-none"
                   />
                   <div className="flex justify-end mt-1">
                     <span className={`text-xs ${bioLength > 160 ? 'text-red-400' : bioLength > 140 ? 'text-yellow-400' : 'text-gray-500'}`}>
@@ -646,7 +646,7 @@ export default function Settings() {
                   <select
                     value={profileVisibility}
                     onChange={(e) => setProfileVisibility(e.target.value)}
-                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon/50"
+                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand/50"
                   >
                     <option value="public">Public</option>
                     <option value="followers">Followers Only</option>
@@ -658,7 +658,7 @@ export default function Settings() {
                   <select
                     value={debatePrivacy}
                     onChange={(e) => setDebatePrivacy(e.target.value)}
-                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon/50"
+                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand/50"
                   >
                     <option value="public">Public</option>
                     <option value="followers">Followers Only</option>
@@ -670,7 +670,7 @@ export default function Settings() {
                   <select
                     value={allowMessagesFrom}
                     onChange={(e) => setAllowMessagesFrom(e.target.value)}
-                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon/50"
+                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand/50"
                   >
                     <option value="everyone">Everyone</option>
                     <option value="followers">Followers</option>
@@ -679,7 +679,7 @@ export default function Settings() {
                 </SettingRow>
 
                 <SettingRow label="Blocked Users" description="Manage blocked accounts">
-                  <button className="text-neon text-sm hover:underline flex items-center gap-1">
+                  <button className="text-brand text-sm hover:underline flex items-center gap-1">
                     View list <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </SettingRow>
@@ -722,7 +722,7 @@ export default function Settings() {
               >
                 <SettingRow label="Theme" description="ForReal only supports Dark for now">
                   <span className="flex items-center gap-2 text-white text-sm">
-                    <Moon className="w-4 h-4 text-neon" /> Dark
+                    <Moon className="w-4 h-4 text-brand" /> Dark
                   </span>
                 </SettingRow>
                 <SettingRow label="Reduce Motion" description="Minimize animations for accessibility">
@@ -732,7 +732,7 @@ export default function Settings() {
                   <select
                     value={uiDensity}
                     onChange={(e) => setUiDensity(e.target.value)}
-                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon/50"
+                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand/50"
                   >
                     <option value="compact">Compact</option>
                     <option value="comfortable">Comfortable</option>
@@ -752,7 +752,7 @@ export default function Settings() {
                   {!showPasswordFields ? (
                     <button
                       onClick={() => setShowPasswordFields(true)}
-                      className="text-neon text-sm hover:underline"
+                      className="text-brand text-sm hover:underline"
                     >
                       Change your password
                     </button>
@@ -767,21 +767,21 @@ export default function Settings() {
                         placeholder="Current password"
                         value={passwordData.current}
                         onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/70 text-sm"
+                        className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/70 text-sm"
                       />
                       <input
                         type="password"
                         placeholder="New password"
                         value={passwordData.new}
                         onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/70 text-sm"
+                        className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/70 text-sm"
                       />
                       <input
                         type="password"
                         placeholder="Confirm new password"
                         value={passwordData.confirm}
                         onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/70 text-sm"
+                        className="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/70 text-sm"
                       />
                       <div className="flex gap-2 justify-end">
                         <button
@@ -795,7 +795,7 @@ export default function Settings() {
                           whileTap={{ scale: 0.98 }}
                           onClick={changePassword}
                           disabled={savingSection === 'security'}
-                          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-neon text-black font-bold text-sm disabled:opacity-50"
+                          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-brand text-white font-bold text-sm disabled:opacity-50"
                         >
                           {savingSection === 'security' ? (
                             <><Loader className="w-4 h-4 animate-spin" /> Saving...</>

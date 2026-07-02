@@ -324,25 +324,25 @@ const NotificationGroup = React.memo(({ group, index, onMarkOneRead, onDelete })
       whileHover={{ x: 4 }}
       onClick={handleClick}
       className={`group relative overflow-hidden bg-black/40 backdrop-blur-sm rounded-xl border transition-all duration-300 cursor-pointer ${
-        isNew ? 'border-neon/30 shadow-glow-sm bg-neon/5' : 'border-white/10 hover:border-white/20'
+        isNew ? 'border-brand/30 shadow-glow-sm bg-brand/5' : 'border-white/10 hover:border-white/20'
       }`}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-neon/0 via-neon/5 to-neon/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       <div className="relative p-4 flex items-start gap-3 pr-4">
         {/* Avatar / Icon */}
         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-          isNew ? 'bg-neon/20 border border-neon/30' : 'bg-white/10 border border-white/10'
+          isNew ? 'bg-brand/20 border border-brand/30' : 'bg-white/10 border border-white/10'
         }`}>
           {actor?.avatar ? (
             <img src={actor.avatar} alt="" className="w-full h-full rounded-full object-cover" />
           ) : (
-            <Icon className={`w-5 h-5 ${isNew ? 'text-neon' : 'text-gray-400'}`} />
+            <Icon className={`w-5 h-5 ${isNew ? 'text-brand' : 'text-gray-400'}`} />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="text-sm text-gray-200 leading-relaxed">
-            <span className="font-bold text-neon">{actor?.displayName || actor?.username || 'Someone'}</span>
+            <span className="font-bold text-brand">{actor?.displayName || actor?.username || 'Someone'}</span>
             {count > 1 && (
               <>
                 {' '} and <span className="font-semibold text-gray-300">{count - 1} other{count > 2 ? 's' : ''}</span>
@@ -353,7 +353,7 @@ const NotificationGroup = React.memo(({ group, index, onMarkOneRead, onDelete })
             {target && (
               <>
                 {' on '}
-                <span className="text-neon font-medium truncate">"{target}"</span>
+                <span className="text-brand font-medium truncate">"{target}"</span>
               </>
             )}
           </div>
@@ -362,7 +362,7 @@ const NotificationGroup = React.memo(({ group, index, onMarkOneRead, onDelete })
               {new Date(groupItems[0]?.createdAt).toLocaleString()}
             </span>
             {isNew && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-neon/20 text-neon font-mono">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand/20 text-brand font-mono">
                 NEW
               </span>
             )}
@@ -371,7 +371,7 @@ const NotificationGroup = React.memo(({ group, index, onMarkOneRead, onDelete })
 
         {/* Actions & Indicator */}
         <div className="flex flex-col items-end gap-2 flex-shrink-0 mt-1">
-          {!read && <div className="w-2 h-2 rounded-full bg-neon shadow-glow-sm" />}
+          {!read && <div className="w-2 h-2 rounded-full bg-brand shadow-glow-sm" />}
           <button
             onClick={handleDelete}
             className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-all focus:opacity-100 outline-none"
@@ -412,24 +412,24 @@ const NotificationItem = React.memo(({ notification, index, onMarkOneRead, onDel
       whileHover={{ x: 4 }}
       onClick={handleClick}
       className={`group relative overflow-hidden bg-black/40 backdrop-blur-sm rounded-xl border transition-all duration-300 cursor-pointer ${
-        isNew ? 'border-neon/30 shadow-glow-sm bg-neon/5' : 'border-white/10 hover:border-white/20'
+        isNew ? 'border-brand/30 shadow-glow-sm bg-brand/5' : 'border-white/10 hover:border-white/20'
       }`}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-neon/0 via-neon/5 to-neon/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       <div className="relative p-4 flex items-start gap-3 pr-4">
         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-          isNew ? 'bg-neon/20 border border-neon/30' : 'bg-white/10 border border-white/10'
+          isNew ? 'bg-brand/20 border border-brand/30' : 'bg-white/10 border border-white/10'
         }`}>
           {notification.actor?.avatar ? (
             <img src={notification.actor.avatar} alt="" className="w-full h-full rounded-full object-cover" />
           ) : (
-            <Icon className={`w-5 h-5 ${isNew ? 'text-neon' : 'text-gray-400'}`} />
+            <Icon className={`w-5 h-5 ${isNew ? 'text-brand' : 'text-gray-400'}`} />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="text-sm text-gray-200 leading-relaxed">
-            <span className="font-bold text-neon">
+            <span className="font-bold text-brand">
               {notification.actor?.displayName || notification.actor?.username || 'Someone'}
             </span>
             {' '}
@@ -440,7 +440,7 @@ const NotificationItem = React.memo(({ notification, index, onMarkOneRead, onDel
               {new Date(notification.createdAt).toLocaleString()}
             </span>
             {isNew && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-neon/20 text-neon font-mono">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand/20 text-brand font-mono">
                 NEW
               </span>
             )}
@@ -449,7 +449,7 @@ const NotificationItem = React.memo(({ notification, index, onMarkOneRead, onDel
 
         {/* Actions & Indicator */}
         <div className="flex flex-col items-end gap-2 flex-shrink-0 mt-1">
-          {!notification.read && <div className="w-2 h-2 rounded-full bg-neon shadow-glow-sm" />}
+          {!notification.read && <div className="w-2 h-2 rounded-full bg-brand shadow-glow-sm" />}
           <button
             onClick={handleDelete}
             className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-all focus:opacity-100 outline-none"
@@ -499,13 +499,13 @@ const FilterTabs = React.memo(({ activeFilter, onChange, unreadCount }) => {
           onClick={() => onChange(key)}
           className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
             activeFilter === key
-              ? 'bg-neon/10 border-neon/30 text-neon shadow-glow-sm'
+              ? 'bg-brand/10 border-brand/30 text-brand shadow-glow-sm'
               : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
           }`}
         >
           {label}
           {key === 'all' && unreadCount > 0 && (
-            <span className="ml-1.5 bg-neon text-black text-[10px] px-1.5 py-0.5 rounded-full">
+            <span className="ml-1.5 bg-brand text-white text-[10px] px-1.5 py-0.5 rounded-full">
               {unreadCount}
             </span>
           )}
@@ -620,11 +620,11 @@ export default function Notifications() {
           animate={{ opacity: 1, y: 0 }}
           className="relative"
         >
-          <div className="absolute inset-x-0 -top-10 h-24 bg-neon/10 blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute inset-x-0 -top-10 h-24 bg-brand/10 blur-3xl rounded-full pointer-events-none" />
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-neon/10 border border-neon/30">
-                <Bell className="w-6 h-6 text-neon" />
+              <div className="p-2 rounded-xl bg-brand/10 border border-brand/30">
+                <Bell className="w-6 h-6 text-brand" />
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-white">Notifications</h1>
@@ -640,7 +640,7 @@ export default function Notifications() {
                 onClick={refetch}
                 className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
               >
-                <RefreshCw className="w-4 h-4 text-neon" />
+                <RefreshCw className="w-4 h-4 text-brand" />
               </motion.button>
               {unreadCount > 0 && (
                 <motion.button
@@ -648,7 +648,7 @@ export default function Notifications() {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleMarkAll}
                   disabled={markingAll}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-medium text-gray-300 hover:border-neon/50 hover:text-neon transition disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-medium text-gray-300 hover:border-brand/50 hover:text-brand transition disabled:opacity-50"
                 >
                   <CheckCheck className="w-4 h-4" />
                   {markingAll ? 'Marking...' : 'Mark all read'}
@@ -696,7 +696,7 @@ export default function Notifications() {
               className="text-center py-12 bg-black/40 backdrop-blur-xl rounded-2xl border border-red-500/30"
             >
               <p className="text-red-400">{error}</p>
-              <button onClick={refetch} className="mt-3 text-neon text-sm underline">
+              <button onClick={refetch} className="mt-3 text-brand text-sm underline">
                 Retry
               </button>
             </motion.div>
@@ -733,7 +733,7 @@ export default function Notifications() {
                 <div className="flex justify-center py-4">
                   <button
                     onClick={loadMore}
-                    className="text-neon text-sm hover:underline flex items-center gap-1"
+                    className="text-brand text-sm hover:underline flex items-center gap-1"
                   >
                     Load more <ChevronRight className="w-4 h-4" />
                   </button>

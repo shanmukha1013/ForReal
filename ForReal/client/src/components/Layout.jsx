@@ -361,19 +361,19 @@ function useFollowState(users) {
 // ─────────────────────────────────────────────────────────────────
 
 const TOKEN = {
-  bg:           "#070707",
-  surface:      "rgba(255,255,255,0.025)",
-  surfaceHover: "rgba(34,197,94,0.04)",
-  border:       "rgba(255,255,255,0.07)",
-  borderActive: "rgba(34,197,94,0.18)",
-  green:        "#22c55e",
-  greenDim:     "rgba(34,197,94,0.7)",
-  greenGlow:    "rgba(34,197,94,0.25)",
-  greenSub:     "rgba(34,197,94,0.1)",
-  text:         "#e4e4e7",
-  textMuted:    "#71717a",
-  textDim:      "#3f3f46",
-  glass:        "rgba(10,10,10,0.7)",
+  bg:           "var(--bg-primary)",
+  surface:      "var(--surface)",
+  surfaceHover: "var(--surface-elevated)",
+  border:       "var(--border)",
+  borderActive: "var(--border-active)",
+  brand:        "var(--brand-primary)",
+  brandDim:     "var(--brand-hover)",
+  brandGlow:    "var(--brand-glow)",
+  brandSub:     "rgba(193,18,31,0.1)",
+  text:         "var(--text-primary)",
+  textMuted:    "var(--text-muted)",
+  textDim:      "var(--text-secondary)",
+  glass:        "var(--surface)",
   blur:         "blur(24px)",
 };
 
@@ -397,7 +397,7 @@ const ForRealLogo = memo(function ForRealLogo() {
         style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", fontSize: "22px", letterSpacing: "-0.05em", lineHeight: "1" }}
       >
         <span style={{ color: "#FFFFFF" }}>F</span>
-        <span style={{ color: TOKEN.green }}>R</span>
+        <span style={{ color: TOKEN.brand }}>R</span>
       </span>
 
       {/* Wordmark */}
@@ -434,9 +434,9 @@ const NavBadge = memo(function NavBadge({ count }) {
         exit="exit"
         className="absolute -top-1 -right-1 min-w-[16px] h-4 px-[3px] rounded-full flex items-center justify-center text-[9px] font-black tracking-tight select-none pointer-events-none"
         style={{
-          background: "linear-gradient(135deg, #22c55e, #16a34a)",
+          background: "linear-gradient(135deg, #C1121F, #16a34a)",
           color: "#000",
-          boxShadow: "0 0 6px rgba(34,197,94,0.6), 0 0 0 1.5px rgba(7,7,7,1)",
+          boxShadow: "0 0 6px rgba(193,18,31,0.6), 0 0 0 1.5px rgba(7,7,7,1)",
           fontFamily: "'Space Mono', monospace",
         }}
         aria-label={`${count} unread`}
@@ -523,7 +523,7 @@ const NavItem = memo(function NavItem({ item, badge = 0, onClick }) {
         {/* Hover shimmer overlay */}
         <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-          style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.03) 0%, transparent 60%)" }}
+          style={{ background: "linear-gradient(135deg, rgba(193,18,31,0.03) 0%, transparent 60%)" }}
         />
 
         {/* Icon wrapper with badge */}
@@ -571,18 +571,8 @@ const CreateDebateButton = memo(function CreateDebateButton() {
       <Link
         to="/rooms"
         aria-label="Start a new debate"
-        className="group relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
-        style={{
-          background: "linear-gradient(135deg, rgba(34,197,94,0.18) 0%, rgba(34,197,94,0.08) 100%)",
-          border: `1px solid rgba(34,197,94,0.25)`,
-          color: TOKEN.green,
-        }}
+        className="group relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 bg-brand text-white hover:bg-brand-hover shadow-md hover:shadow-glow-sm"
       >
-        {/* Animated shimmer on hover */}
-        <motion.div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.12), transparent 60%)" }}
-        />
         <Icon.Plus className="relative w-4 h-4" />
         <span className="relative" style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", letterSpacing: "1px" }}>
           NEW DEBATE
@@ -611,7 +601,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
       {/* Top accent line */}
       <div
         className="h-px w-full"
-        style={{ background: "linear-gradient(to right, transparent 0%, rgba(34,197,94,0.5) 50%, transparent 100%)" }}
+        style={{ background: "linear-gradient(to right, transparent 0%, rgba(193,18,31,0.5) 50%, transparent 100%)" }}
       />
 
       <div className="p-4">
@@ -627,7 +617,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
               src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username || "user"}`}
               alt={user?.displayName || "Your avatar"}
               className="h-11 w-11 rounded-full object-cover transition-all duration-300 group-hover:brightness-110"
-              style={{ border: `2px solid rgba(34,197,94,0.2)` }}
+              style={{ border: `2px solid rgba(193,18,31,0.2)` }}
               loading="lazy"
             />
             {/* Online badge */}
@@ -709,7 +699,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
               letterSpacing: "0.05em",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.border = "1px solid rgba(34,197,94,0.2)";
+              e.currentTarget.style.border = "1px solid rgba(193,18,31,0.2)";
               e.currentTarget.style.color  = TOKEN.green;
             }}
             onMouseLeave={(e) => {
@@ -762,7 +752,7 @@ const TrendingCard = memo(function TrendingCard({ rooms, loading }) {
     >
       <div
         className="h-px w-full"
-        style={{ background: "linear-gradient(to right, transparent 0%, rgba(34,197,94,0.4) 50%, transparent 100%)" }}
+        style={{ background: "linear-gradient(to right, transparent 0%, rgba(193,18,31,0.4) 50%, transparent 100%)" }}
       />
       <div className="p-4">
         {/* Header */}
@@ -902,7 +892,7 @@ const SuggestionsCard = memo(function SuggestionsCard({ users, loading }) {
     >
       <div
         className="h-px w-full"
-        style={{ background: "linear-gradient(to right, transparent 0%, rgba(34,197,94,0.4) 50%, transparent 100%)" }}
+        style={{ background: "linear-gradient(to right, transparent 0%, rgba(193,18,31,0.4) 50%, transparent 100%)" }}
       />
       <div className="p-4">
         {/* Header */}
@@ -1036,8 +1026,8 @@ const SuggestionUserRow = memo(function SuggestionUserRow({ user, index, followi
                 fontFamily: "'Space Mono', monospace",
               }
             : {
-                background: "rgba(34,197,94,0.1)",
-                border: `1px solid rgba(34,197,94,0.25)`,
+                background: "rgba(193,18,31,0.1)",
+                border: `1px solid rgba(193,18,31,0.25)`,
                 color: TOKEN.green,
                 fontFamily: "'Space Mono', monospace",
               }
@@ -1109,7 +1099,7 @@ const MobileBottomNav = memo(function MobileBottomNav({ badges }) {
       {/* Top hairline glow */}
       <div
         className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: "linear-gradient(to right, transparent, rgba(34,197,94,0.2), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, var(--brand-glow), transparent)" }}
         aria-hidden="true"
       />
 
@@ -1134,7 +1124,7 @@ const MobileBottomNav = memo(function MobileBottomNav({ badges }) {
                   <motion.div
                     layoutId="mobile-nav-bg"
                     className="absolute inset-0 rounded-xl"
-                    style={{ background: "rgba(34,197,94,0.08)", border: `1px solid rgba(34,197,94,0.15)` }}
+                    style={{ background: "var(--border-active)", border: `1px solid var(--brand-glow)` }}
                     transition={{ type: "spring", stiffness: 450, damping: 30 }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -1240,7 +1230,7 @@ const MobileTopBar = memo(function MobileTopBar({ badges, user }) {
               src={user.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`}
               alt={user.displayName || "Your avatar"}
               className="h-8 w-8 rounded-full object-cover"
-              style={{ border: `1.5px solid rgba(34,197,94,0.2)` }}
+              style={{ border: `1.5px solid rgba(193,18,31,0.2)` }}
               loading="lazy"
             />
           </Link>

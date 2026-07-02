@@ -95,7 +95,7 @@ const FullScreenLoader = () => (
       transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
       className="flex flex-col items-center gap-4"
     >
-      <div className="w-12 h-12 bg-gradient-to-br from-[#22C55E] to-green-900 rounded-2xl shadow-[0_0_40px_rgba(34,197,94,0.3)] flex items-center justify-center overflow-hidden">
+      <div className="w-12 h-12 bg-gradient-to-br from-[#C1121F] to-green-900 rounded-2xl shadow-[0_0_40px_rgba(193,18,31,0.3)] flex items-center justify-center overflow-hidden">
         <motion.div 
           animate={{ scale: [1, 1.05, 1], opacity: [0.8, 1, 0.8] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -160,11 +160,11 @@ const ScrollToTop = () => {
 // -----------------------------------------------------------------------------
 const NotFound = () => (
   <div className="min-h-screen flex flex-col items-center justify-center text-white bg-transparent">
-    <h1 className="text-6xl font-black text-neon mb-4">404</h1>
+    <h1 className="text-6xl font-black text-brand mb-4">404</h1>
     <p className="text-gray-400 text-lg mb-6">This page doesn’t exist.</p>
     <a
       href="/"
-      className="px-6 py-2.5 rounded-full bg-neon text-black font-bold hover:bg-neon/90 transition"
+      className="px-6 py-2.5 rounded-full bg-brand text-white font-bold hover:bg-brand/90 transition"
     >
       Go Home
     </a>

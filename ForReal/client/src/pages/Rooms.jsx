@@ -214,7 +214,7 @@ const CategoryPill = React.memo(({ category, active, onClick }) => (
     onClick={() => onClick(category === 'All' ? '' : category)}
     className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap ${
       active
-        ? 'bg-neon/15 border border-neon/40 text-neon shadow-glow-sm'
+        ? 'bg-brand/15 border border-brand/40 text-brand shadow-glow-sm'
         : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
     }`}
   >
@@ -261,7 +261,7 @@ const RoomCard = React.memo(({ room, index }) => {
       transition={{ duration: 0.2 }}
     >
       <Link to={`/rooms/${_id}`} className="block h-full outline-none">
-        <div className="group relative overflow-hidden rounded-2xl p-5 hover:border-neon/40 transition-all duration-300 h-full flex flex-col glass-card">
+        <div className="group relative overflow-hidden rounded-2xl p-5 hover:border-brand/40 transition-all duration-300 h-full flex flex-col glass-card">
           {/* Glow overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-neon/0 via-neon/5 to-neon/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
@@ -284,7 +284,7 @@ const RoomCard = React.memo(({ room, index }) => {
               {visibility === 'private' ? (
                 <Lock className="w-3.5 h-3.5 text-gray-400" />
               ) : (
-                <Globe className="w-3.5 h-3.5 text-neon" />
+                <Globe className="w-3.5 h-3.5 text-brand" />
               )}
               {category && (
                 <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
@@ -304,7 +304,7 @@ const RoomCard = React.memo(({ room, index }) => {
             </div>
 
             {/* Topic */}
-            <h3 className="text-white font-bold text-base sm:text-lg mb-2 line-clamp-2 group-hover:text-neon transition-colors">
+            <h3 className="text-white font-bold text-base sm:text-lg mb-2 line-clamp-2 group-hover:text-brand transition-colors">
               {topic}
             </h3>
             {description && (
@@ -444,7 +444,7 @@ export default function Rooms() {
         >
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white flex items-center gap-2">
-              <Zap className="w-7 h-7 text-neon" />
+              <Zap className="w-7 h-7 text-brand" />
               Debate Rooms
             </h1>
             <p className="text-gray-400 text-sm mt-1">Join live debates, or start your own.</p>
@@ -457,13 +457,13 @@ export default function Rooms() {
               className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
               title="Refresh"
             >
-              <RefreshCw className="w-4 h-4 text-neon" />
+              <RefreshCw className="w-4 h-4 text-brand" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowCreatePanel((prev) => !prev)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neon text-black font-bold text-sm shadow-lg shadow-neon/20"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand text-white font-bold text-sm shadow-lg shadow-neon/20"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Create</span>
@@ -492,7 +492,7 @@ export default function Rooms() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search debates..."
-              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 transition text-sm"
+              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 transition text-sm"
             />
             {searchTerm && (
               <button
@@ -511,7 +511,7 @@ export default function Rooms() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-neon/50"
+              className="bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-brand/50"
             >
               <option value="trending">🔥 Trending</option>
               <option value="newest">🕒 Newest</option>
@@ -545,7 +545,7 @@ export default function Rooms() {
             className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center justify-between"
           >
             <span>{error}</span>
-            <button onClick={refetch} className="underline text-neon ml-2">Retry</button>
+            <button onClick={refetch} className="underline text-brand ml-2">Retry</button>
           </motion.div>
         )}
 
@@ -578,7 +578,7 @@ export default function Rooms() {
             {!searchTerm && !selectedCategory && (
               <button
                 onClick={() => setShowCreatePanel(true)}
-                className="mt-4 inline-flex items-center gap-2 text-neon font-medium text-sm hover:underline"
+                className="mt-4 inline-flex items-center gap-2 text-brand font-medium text-sm hover:underline"
               >
                 <Plus className="w-4 h-4" /> Create a Room
               </button>

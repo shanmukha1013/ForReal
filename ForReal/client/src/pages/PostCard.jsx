@@ -252,13 +252,13 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
           src={avatarSrc}
           alt={displayName}
           onClick={(e) => { e.stopPropagation(); if(author?.username || author?._id || author?.id) {navigate('/profile/' + encodeURIComponent(author.username || author._id || author.id));} }}
-          className="cursor-pointer h-11 w-11 rounded-full border border-neon/30 bg-black/40 object-cover shadow-glow-sm"
+          className="cursor-pointer h-11 w-11 rounded-full border border-brand/30 bg-black/40 object-cover shadow-glow-sm"
           loading="lazy"
         />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-white truncate">{displayName}</span>
-            <span className="hidden sm:inline-block text-[10px] font-mono font-bold tracking-wider text-neon border border-neon/30 px-1.5 py-0.5 rounded-full bg-neon/5">
+            <span className="hidden sm:inline-block text-[10px] font-mono font-bold tracking-wider text-brand border border-brand/30 px-1.5 py-0.5 rounded-full bg-brand/5">
               TALK
             </span>
           </div>
@@ -298,7 +298,7 @@ const TalkContent = ({ content }) => {
       {needsTruncation && (
         <button
           onClick={() => setTruncated(!truncated)}
-          className="ml-1 text-neon text-xs font-medium hover:underline"
+          className="ml-1 text-brand text-xs font-medium hover:underline"
         >
           {truncated ? 'Read more' : 'Show less'}
         </button>
@@ -334,7 +334,7 @@ const MediaGallery = ({ media = [] }) => {
         loading="lazy"
       />
       {media.length > 1 && (
-        <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md text-neon text-xs font-mono px-2 py-1 rounded-full border border-neon/30">
+        <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md text-brand text-xs font-mono px-2 py-1 rounded-full border border-brand/30">
           +{media.length - 1} more
         </div>
       )}
@@ -348,7 +348,7 @@ const EngagementStats = ({ likesCount, dislikesCount, commentsCount }) => {
     <div className="flex items-center gap-6 text-xs text-gray-400 border-t border-white/5 pt-3 mt-1">
       {likesCount > 0 && (
         <div className="flex items-center gap-1.5">
-          <HeartIcon className="h-3.5 w-3.5 text-neon" />
+          <HeartIcon className="h-3.5 w-3.5 text-brand" />
           <span className="font-medium text-white">{formatCount(likesCount)}</span>
           <span className="hidden sm:inline">likes</span>
         </div>
@@ -362,7 +362,7 @@ const EngagementStats = ({ likesCount, dislikesCount, commentsCount }) => {
       )}
       {commentsCount > 0 && (
         <div className="flex items-center gap-1.5">
-          <ChatBubbleLeftIcon className="h-3.5 w-3.5 text-neon" />
+          <ChatBubbleLeftIcon className="h-3.5 w-3.5 text-brand" />
           <span className="font-medium text-white">{formatCount(commentsCount)}</span>
           <span className="hidden sm:inline">responses</span>
         </div>
@@ -384,13 +384,13 @@ const TalkActions = ({ reaction, onReact, counts, isLoading, saved, onSave, onSh
         disabled={isLoading}
         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full font-medium text-sm transition-all duration-200 ${
           liked
-            ? 'bg-neon/10 border border-neon text-neon shadow-glow-sm'
-            : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-neon/30'
+            ? 'bg-brand/10 border border-brand text-brand shadow-glow-sm'
+            : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-brand/30'
         } ${isLoading ? 'opacity-50 cursor-wait' : ''}`}
         aria-label={liked ? 'Unlike' : 'Like'}
       >
         {liked ? (
-          <HeartSolidIcon className="h-4 w-4 text-neon" />
+          <HeartSolidIcon className="h-4 w-4 text-brand" />
         ) : (
           <HeartIcon className="h-4 w-4" />
         )}
@@ -421,7 +421,7 @@ const TalkActions = ({ reaction, onReact, counts, isLoading, saved, onSave, onSh
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
         onClick={() => onReact('comment')}
-        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-neon/30 font-medium text-sm transition-all"
+        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-brand/30 font-medium text-sm transition-all"
         aria-label="Comment"
       >
         <ChatBubbleLeftIcon className="h-4 w-4" />
@@ -432,17 +432,17 @@ const TalkActions = ({ reaction, onReact, counts, isLoading, saved, onSave, onSh
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onSave}
-        className="p-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-neon/30 transition-all"
+        className="p-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-brand/30 transition-all"
         title="Bookmark"
       >
-        {saved ? <BookmarkSolidIcon className="w-4 h-4 text-neon" /> : <BookmarkIcon className="w-4 h-4" />}
+        {saved ? <BookmarkSolidIcon className="w-4 h-4 text-brand" /> : <BookmarkIcon className="w-4 h-4" />}
       </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onShare}
-        className="p-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-neon/30 transition-all"
+        className="p-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-brand/30 transition-all"
         title="Share"
       >
         <ShareIcon className="w-4 h-4" />
@@ -481,7 +481,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
                 </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span onClick={(e) => { e.stopPropagation(); if (comment.author?.username || comment.author?._id) {navigate('/profile/' + encodeURIComponent(comment.author.username || comment.author._id));} }} className="font-semibold text-neon text-xs cursor-pointer hover:underline">
+                  <span onClick={(e) => { e.stopPropagation(); if (comment.author?.username || comment.author?._id) {navigate('/profile/' + encodeURIComponent(comment.author.username || comment.author._id));} }} className="font-semibold text-brand text-xs cursor-pointer hover:underline">
                     @{comment.author?.username || 'anonymous'}
                   </span>
                   <span className="text-gray-500 text-[10px]">
@@ -498,7 +498,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
       {hasMore && (
         <button
           onClick={handleViewAll}
-          className="mt-2 text-neon text-xs font-medium hover:underline transition-all flex items-center gap-1"
+          className="mt-2 text-brand text-xs font-medium hover:underline transition-all flex items-center gap-1"
           disabled={loading}
         >
           {loading ? 'Loading...' : `View all ${comments.length} responses →`}
@@ -518,14 +518,14 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Write a response..."
-              className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 transition-colors"
+              className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 transition-colors"
               onKeyPress={(e) => e.key === 'Enter' && onSubmitComment()}
               autoFocus
             />
             <button
               onClick={onSubmitComment}
               disabled={!commentText.trim()}
-              className="px-3 py-2 rounded-xl bg-neon text-black text-sm font-bold disabled:opacity-50 transition-opacity"
+              className="px-3 py-2 rounded-xl bg-brand text-white text-sm font-bold disabled:opacity-50 transition-opacity"
             >
               Post
             </button>
@@ -700,7 +700,7 @@ const PostCard = ({
       exit="exit"
       whileHover="hover"
       layout
-      className="group relative bg-gradient-to-br from-black/80 via-black/60 to-black/80 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-neon/40 shadow-xl transition-all duration-300"
+      className="group relative bg-gradient-to-br from-black/80 via-black/60 to-black/80 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-brand/40 shadow-xl transition-all duration-300"
     >
       {/* Glow overlay */}
       <motion.div

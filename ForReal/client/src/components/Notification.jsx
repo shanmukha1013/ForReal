@@ -25,7 +25,8 @@ import { createPortal } from "react-dom";
 // ─── Theme / Design Tokens ──────────────────────────────────
 // (In a real codebase these would be imported from a tokens file)
 const COLORS = {
-  neon:    "#22c55e",
+  brand:   "#C1121F",
+  success: "#22C55E",
   red:     "#ef4444",
   amber:   "#f59e0b",
   blue:    "#60a5fa",
@@ -33,7 +34,8 @@ const COLORS = {
 };
 
 const GLOW = {
-  neon:    "rgba(34,197,94,0.25)",
+  brand:   "rgba(193,18,31,0.25)",
+  success: "rgba(34,197,94,0.25)",
   red:     "rgba(239,68,68,0.25)",
   amber:   "rgba(245,158,11,0.25)",
   blue:    "rgba(96,165,250,0.25)",
@@ -46,8 +48,8 @@ const BG_ALPHA = 0.06;
 // ─── Notification Types Configuration ────────────────────────
 export const TYPES = {
   success: {
-    color:   COLORS.neon,
-    glow:    GLOW.neon,
+    color:   COLORS.success,
+    glow:    GLOW.success,
     border:  `rgba(34,197,94,${BORDER_ALPHA})`,
     bg:      `rgba(34,197,94,${BG_ALPHA})`,
     Icon: (props) => (
@@ -96,10 +98,10 @@ export const TYPES = {
     ),
   },
   live: {
-    color:   COLORS.neon,
-    glow:    "rgba(34,197,94,0.3)",
-    border:  "rgba(34,197,94,0.25)",
-    bg:      "rgba(34,197,94,0.07)",
+    color:   COLORS.brand,
+    glow:    "rgba(193,18,31,0.3)",
+    border:  `rgba(193,18,31,${BORDER_ALPHA})`,
+    bg:      `rgba(193,18,31,${BG_ALPHA})`,
     Icon: (props) => (
       <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <polygon points="23 7 16 12 23 17 23 7" />

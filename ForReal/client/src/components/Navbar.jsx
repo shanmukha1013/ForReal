@@ -164,11 +164,11 @@ const T = {
   surface:      "rgba(255,255,255,0.03)",
   surfaceHover: "rgba(255,255,255,0.055)",
   border:       "rgba(255,255,255,0.07)",
-  borderGreen:  "rgba(34,197,94,0.2)",
-  green:        "#22c55e",
-  greenDim:     "rgba(34,197,94,0.7)",
-  greenGlow:    "rgba(34,197,94,0.25)",
-  greenSub:     "rgba(34,197,94,0.08)",
+  borderGreen:  "rgba(193,18,31,0.2)",
+  green:        "#C1121F",
+  greenDim:     "rgba(193,18,31,0.7)",
+  greenGlow:    "rgba(193,18,31,0.25)",
+  greenSub:     "rgba(193,18,31,0.08)",
   text:         "#e4e4e7",
   textMuted:    "#71717a",
   textDim:      "#3f3f46",
@@ -525,12 +525,12 @@ const NavBadge = memo(function NavBadge({ count }) {
         exit="exit"
         className="absolute -top-1.5 -right-1.5 min-w-[15px] h-[15px] px-[3px] rounded-full flex items-center justify-center pointer-events-none select-none"
         style={{
-          background: "linear-gradient(135deg, #22c55e, #16a34a)",
+          background: "linear-gradient(135deg, #C1121F, #16a34a)",
           color:      "#000",
           fontSize:   "8px",
           fontWeight: 900,
           fontFamily: "'Space Mono', monospace",
-          boxShadow:  `0 0 6px rgba(34,197,94,0.55), 0 0 0 1.5px ${T.bg}`,
+          boxShadow:  `0 0 6px rgba(193,18,31,0.55), 0 0 0 1.5px ${T.bg}`,
         }}
         aria-label={`${count} unread`}
       >
@@ -682,7 +682,7 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
               src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username || "user"}`}
               alt={user?.displayName || "Your avatar"}
             className="h-7 w-7 rounded-full object-cover"
-            style={{ border: `1.5px solid rgba(34,197,94,0.2)` }}
+            style={{ border: `1.5px solid rgba(193,18,31,0.2)` }}
             loading="lazy"
           />
           <span
@@ -737,7 +737,7 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
             {/* Top glow line */}
             <div
               className="h-px w-full"
-              style={{ background: "linear-gradient(to right, transparent, rgba(34,197,94,0.45), transparent)" }}
+              style={{ background: "linear-gradient(to right, transparent, rgba(193,18,31,0.45), transparent)" }}
             />
 
             {/* Identity header */}
@@ -750,7 +750,7 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
                       src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username}`}
                       alt=""
                       className="h-9 w-9 rounded-full object-cover flex-shrink-0"
-                      style={{ border: `1.5px solid rgba(34,197,94,0.2)` }}
+                      style={{ border: `1.5px solid rgba(193,18,31,0.2)` }}
                   />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -952,7 +952,7 @@ const MobileDrawer = memo(function MobileDrawer({
             {/* Top glow line */}
             <div
               className="absolute top-0 left-0 right-0 h-px"
-              style={{ background: "linear-gradient(to right, transparent, rgba(34,197,94,0.4), transparent)" }}
+              style={{ background: "linear-gradient(to right, transparent, rgba(193,18,31,0.4), transparent)" }}
               aria-hidden="true"
             />
 
@@ -994,7 +994,7 @@ const MobileDrawer = memo(function MobileDrawer({
                       src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username}`}
                       alt={user?.displayName || "Your avatar"}
                       className="h-11 w-11 rounded-full object-cover"
-                      style={{ border: `2px solid rgba(34,197,94,0.2)` }}
+                      style={{ border: `2px solid rgba(193,18,31,0.2)` }}
                       loading="lazy"
                     />
                     <span
@@ -1124,7 +1124,7 @@ const MobileBottomBar = memo(function MobileBottomBar({ navLinks, badges }) {
       {/* Top hairline accent */}
       <div
         className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: "linear-gradient(to right, transparent, rgba(34,197,94,0.2), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(193,18,31,0.2), transparent)" }}
         aria-hidden="true"
       />
 
@@ -1255,7 +1255,7 @@ export default function Navbar() {
         {/* Top neon accent line */}
         <div
           className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-          style={{ background: "linear-gradient(to right, transparent 0%, rgba(34,197,94,0.5) 50%, transparent 100%)" }}
+          style={{ background: "linear-gradient(to right, transparent 0%, rgba(193,18,31,0.5) 50%, transparent 100%)" }}
           aria-hidden="true"
         />
 
@@ -1295,7 +1295,7 @@ export default function Navbar() {
                   color:      T.green,
                   fontFamily: "'Space Mono', monospace",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(34,197,94,0.13)"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(193,18,31,0.13)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = T.greenSub; }}
               >
                 <Icons.Plus className="w-3 h-3" />
@@ -1337,7 +1337,7 @@ export default function Navbar() {
                     src={user.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`}
                     alt={user.displayName || "Your avatar"}
                     className="h-8 w-8 rounded-full object-cover"
-                    style={{ border: `1.5px solid rgba(34,197,94,0.22)` }}
+                    style={{ border: `1.5px solid rgba(193,18,31,0.22)` }}
                     loading="lazy"
                   />
                   {/* Online dot */}

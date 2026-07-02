@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'black', color: 'white', fontFamily: 'sans-serif' }}>
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <h1 style={{ fontSize: '2rem', color: '#22c55e' }}>Something went wrong</h1>
+            <h1 style={{ fontSize: '2rem', color: '#C1121F' }}>Something went wrong</h1>
             <p style={{ color: '#aaa', marginTop: '0.5rem' }}>
               We’re sorry — the app encountered an unexpected error.
             </p>
@@ -44,7 +44,7 @@ class ErrorBoundary extends React.Component {
               style={{
                 marginTop: '1.5rem',
                 padding: '0.75rem 2rem',
-                background: '#22c55e',
+                background: '#C1121F',
                 color: 'black',
                 border: 'none',
                 borderRadius: '9999px',

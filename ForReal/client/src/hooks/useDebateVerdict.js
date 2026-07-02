@@ -95,8 +95,8 @@ export const useDebateVerdict = (roomId, myId, myCredScore, room, summary) => {
 
     if (!isTie && highestPoints > 0) {
        outcomeTitle = `Community Verdict: ${winner}`;
-       color = "text-neon";
-       bg = "bg-neon/10 border-neon/30";
+       color = "text-brand";
+       bg = "bg-brand/10 border-brand/30";
     }
 
     const outcome = { title: outcomeTitle, winner: isTie ? 'tie' : winner, points, color, bg, resolvedAt: new Date().toISOString() };

@@ -283,7 +283,7 @@ const useRooms = () => {
 // Stat Card
 const StatColorClasses = {
   // safe fixed strings so Tailwind can generate them
-  'neon':  { bg: 'bg-neon/10', border: 'border-neon/30', text: 'text-neon' },
+  'neon':  { bg: 'bg-brand/10', border: 'border-brand/30', text: 'text-brand' },
   'red-400': { bg: 'bg-red-400/10', border: 'border-red-400/30', text: 'text-red-400' },
   'green-400': { bg: 'bg-green-400/10', border: 'border-green-400/30', text: 'text-green-400' },
 };
@@ -294,7 +294,7 @@ const StatCard = React.memo(({ icon: Icon, label, value, sub, color }) => {
   return (
     <motion.div
       variants={cardVariant}
-      className="relative overflow-hidden bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:border-neon/40 transition-all duration-300 group"
+      className="relative overflow-hidden bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:border-brand/40 transition-all duration-300 group"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="flex items-center gap-4">
@@ -323,7 +323,7 @@ const AdminTabs = React.memo(({ tabs, active, onChange }) => (
         onClick={() => onChange(key)}
         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
           active === key
-            ? 'bg-neon/10 border-neon/30 text-neon shadow-glow-sm'
+            ? 'bg-brand/10 border-brand/30 text-brand shadow-glow-sm'
             : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
         }`}
       >
@@ -367,7 +367,7 @@ const ReportItem = React.memo(({ report, onResolve, onDismiss, onDeleteUser }) =
             <span className="text-xs text-gray-500">ID: {report._id}</span>
           </div>
           <p className="text-gray-300 text-sm">
-            <span className="text-neon">Reason:</span> {report.reason}
+            <span className="text-brand">Reason:</span> {report.reason}
           </p>
           <p className="text-gray-500 text-xs mt-1">
             Reported by: {report.reportedBy?.username || 'Anonymous'}
@@ -446,7 +446,7 @@ const UserRow = React.memo(({ user, onAction }) => (
       </button>
       <button
         onClick={() => onAction('view', user._id)}
-        className="text-xs text-neon hover:bg-neon/10 px-3 py-1 rounded-lg border border-neon/20"
+        className="text-xs text-brand hover:bg-brand/10 px-3 py-1 rounded-lg border border-brand/20"
       >
         View
       </button>
@@ -459,7 +459,7 @@ UserRow.displayName = 'UserRow';
 const LogEntry = React.memo(({ log }) => (
   <motion.div variants={itemVariant} className="flex items-start gap-3 p-3 hover:bg-white/5 rounded-lg transition-colors text-sm">
     <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-      <Activity className="w-4 h-4 text-neon" />
+      <Activity className="w-4 h-4 text-brand" />
     </div>
     <div className="flex-1 min-w-0">
       <p className="text-gray-200">{log.action}</p>
@@ -608,8 +608,8 @@ export default function Admin() {
         {/* Header */}
         <motion.div variants={pageEnter} initial="hidden" animate="visible" className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-neon/10 border border-neon/30">
-              <Shield className="w-7 h-7 text-neon" />
+            <div className="p-2 rounded-xl bg-brand/10 border border-brand/30">
+              <Shield className="w-7 h-7 text-brand" />
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Admin Command Center</h1>
@@ -620,7 +620,7 @@ export default function Admin() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => { refetchStats(); refetchReports(); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:border-neon/50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:border-brand/50"
           >
             <RefreshCw className="w-4 h-4" /> Refresh
           </motion.button>
@@ -651,7 +651,7 @@ export default function Admin() {
                 {/* Additional quick stats */}
                 <motion.div variants={cardVariant} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
                   <h2 className="text-white font-semibold text-lg mb-3 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-neon" /> Activity Overview
+                    <TrendingUp className="w-5 h-5 text-brand" /> Activity Overview
                   </h2>
                   {statsLoading ? <SectionSkeleton /> : (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -670,7 +670,7 @@ export default function Admin() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-white font-semibold text-lg flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-neon" /> Moderation Queue
+                    <AlertTriangle className="w-5 h-5 text-brand" /> Moderation Queue
                   </h2>
                   <span className="text-xs text-gray-400">{reports.length} items</span>
                 </div>
@@ -696,7 +696,7 @@ export default function Admin() {
                 )}
                 {!reportsLoading && reports.length > 0 && hasMore && (
                   <div className="flex justify-center">
-                    <button onClick={loadMoreReports} className="text-neon text-sm hover:underline">Load more</button>
+                    <button onClick={loadMoreReports} className="text-brand text-sm hover:underline">Load more</button>
                   </div>
                 )}
               </div>
@@ -707,7 +707,7 @@ export default function Admin() {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <h2 className="text-white font-semibold text-lg flex items-center gap-2">
-                    <Users className="w-5 h-5 text-neon" /> User Management
+                    <Users className="w-5 h-5 text-brand" /> User Management
                   </h2>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -716,7 +716,7 @@ export default function Admin() {
                       placeholder="Search users..."
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
-                      className="pl-9 pr-4 py-2 bg-black/30 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon/50 text-sm"
+                      className="pl-9 pr-4 py-2 bg-black/30 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 text-sm"
                     />
                   </div>
                 </div>
@@ -738,7 +738,7 @@ export default function Admin() {
             {activeTab === 'rooms' && (
               <div className="space-y-4">
                 <h2 className="text-white font-semibold text-lg flex items-center gap-2">
-                  <Monitor className="w-5 h-5 text-neon" /> Active Debate Rooms
+                  <Monitor className="w-5 h-5 text-brand" /> Active Debate Rooms
                 </h2>
                 {roomsLoading ? (
                   <div className="space-y-3">{[1,2,3].map(i => <SectionSkeleton key={i} />)}</div>
@@ -747,7 +747,7 @@ export default function Admin() {
                 ) : (
                   <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {rooms.map((room) => (
-                      <motion.div key={room._id} variants={cardVariant} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-4 hover:border-neon/40">
+                      <motion.div key={room._id} variants={cardVariant} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-4 hover:border-brand/40">
                         <div className="flex justify-between">
                           <div>
                             <h3 className="text-white font-medium">{room.topic || room.title}</h3>
@@ -775,7 +775,7 @@ export default function Admin() {
             {activeTab === 'audit' && (
               <div className="space-y-4">
                 <h2 className="text-white font-semibold text-lg flex items-center gap-2">
-                  <History className="w-5 h-5 text-neon" /> Recent Audit Logs
+                  <History className="w-5 h-5 text-brand" /> Recent Audit Logs
                 </h2>
                 {logsLoading ? (
                   <div className="space-y-2">{[1,2,3].map(i => <SectionSkeleton key={i} />)}</div>

@@ -215,8 +215,8 @@ export default function Home() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-neon/10 border border-neon/30">
-                <Zap className="w-6 h-6 text-neon" />
+              <div className="p-2 rounded-xl bg-brand/10 border border-brand/30">
+                <Zap className="w-6 h-6 text-brand" />
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
                 Raw Debates 🎙️
@@ -238,13 +238,13 @@ export default function Home() {
               className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
               title="Refresh feed"
             >
-              <RefreshCw className="w-4 h-4 text-neon" />
+              <RefreshCw className="w-4 h-4 text-brand" />
             </motion.button>
 
             {!isAuthenticated && (
               <Link
                 to="/login"
-                className="px-4 py-2.5 rounded-xl bg-neon text-black font-bold text-sm hover:bg-neon/90 transition"
+                className="px-4 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:bg-brand/90 transition"
               >
                 Sign in to participate
               </Link>
@@ -274,12 +274,12 @@ export default function Home() {
                 />
                 <div className="flex justify-between items-center mt-2 pt-3 border-t border-white/10">
                   <div className="text-xs text-gray-500 flex items-center gap-1">
-                    <Zap className="w-3 h-3 text-neon" /> Keep it real. No fake news.
+                    <Zap className="w-3 h-3 text-brand" /> Keep it real. No fake news.
                   </div>
                   <button
                     onClick={handleCreateTalk}
                     disabled={!composeText.trim() || isSubmitting}
-                    className="px-5 py-2 bg-neon text-black font-bold rounded-full text-sm disabled:opacity-50 hover:bg-neon/90 transition shadow-glow-sm disabled:shadow-none flex items-center gap-2"
+                    className="px-5 py-2 bg-brand text-white font-bold rounded-full text-sm disabled:opacity-50 hover:bg-brand/90 transition shadow-glow-sm disabled:shadow-none flex items-center gap-2"
                   >
                     {isSubmitting ? (
                       <><div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> Publishing...</>
@@ -304,7 +304,7 @@ export default function Home() {
               <div className="mt-5">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-neon text-black font-bold hover:bg-neon/90 transition"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand text-white font-bold hover:bg-brand/90 transition"
                 >
                   <Plus className="w-4 h-4" /> Sign in
                 </Link>
@@ -333,7 +333,7 @@ export default function Home() {
               whileTap={{ scale: 0.98 }}
               onClick={loadMore}
               disabled={loadingMore || !hasMore}
-              className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-gray-200 hover:border-neon/50 hover:text-neon transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-gray-200 hover:border-brand/50 hover:text-brand transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingMore ? 'Loading...' : hasMore ? 'Load more' : 'You’re caught up'}
             </motion.button>

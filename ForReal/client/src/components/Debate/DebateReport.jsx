@@ -8,10 +8,10 @@ export default function DebateReport({ report, room }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-black/60 backdrop-blur-xl border border-neon/30 rounded-2xl p-6 shadow-[0_0_20px_rgba(34,197,94,0.1)]"
+      className="bg-black/60 backdrop-blur-xl border border-brand/30 rounded-2xl p-6 shadow-[0_0_20px_rgba(193,18,31,0.1)]"
     >
       <div className="flex items-center gap-2 mb-4">
-        <SparklesIcon className="w-6 h-6 text-neon" />
+        <SparklesIcon className="w-6 h-6 text-brand" />
         <h2 className="text-xl font-bold text-white">AI Final Verdict</h2>
       </div>
 
@@ -41,9 +41,9 @@ export default function DebateReport({ report, room }) {
           <span>AI Confidence</span>
           <div className="flex items-center gap-2">
             <div className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-neon" style={{ width: `${report.confidenceScore}%` }} />
+              <div className="h-full bg-brand" style={{ width: `${report.confidenceScore}%` }} />
             </div>
-            <span className="text-neon">{report.confidenceScore}%</span>
+            <span className="text-brand">{report.confidenceScore}%</span>
           </div>
         </div>
       )}

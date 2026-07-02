@@ -44,10 +44,10 @@ export default function DebateCoach({ argumentText, optionName }) {
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="absolute right-4 top-4 w-64 bg-black/80 backdrop-blur-md border border-neon/30 rounded-xl p-4 shadow-glow-sm z-10"
+        className="absolute right-4 top-4 w-64 bg-black/80 backdrop-blur-md border border-ai/30 rounded-xl p-4 shadow-glow-ai z-10"
       >
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-neon font-bold text-xs uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-ai font-bold text-xs uppercase tracking-wider">
             <SparklesIcon className="w-4 h-4" />
             AI Coach
           </div>
@@ -58,7 +58,7 @@ export default function DebateCoach({ argumentText, optionName }) {
 
         {loading ? (
           <div className="flex items-center gap-2 text-xs text-gray-400">
-            <div className="w-3 h-3 border-2 border-neon border-t-transparent rounded-full animate-spin" />
+            <div className="w-3 h-3 border-2 border-ai border-t-transparent rounded-full animate-spin" />
             Analyzing argument...
           </div>
         ) : (

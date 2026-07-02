@@ -24,7 +24,7 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-neon/50"
+          className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-brand/50"
         >
           <option value="website">URL</option>
           <option value="pdf">PDF</option>
@@ -36,12 +36,12 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Paste link here..."
-          className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-neon/50"
+          className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-brand/50"
         />
         <button
           onClick={handleAdd}
           disabled={!url.trim()}
-          className="px-4 py-2 bg-neon/20 text-neon border border-neon/50 rounded-lg text-xs font-bold hover:bg-neon/30 transition disabled:opacity-50"
+          className="px-4 py-2 bg-brand/20 text-brand border border-brand/50 rounded-lg text-xs font-bold hover:bg-brand/30 transition disabled:opacity-50"
         >
           Add
         </button>

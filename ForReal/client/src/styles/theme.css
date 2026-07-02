@@ -12,49 +12,44 @@
    2. CSS Custom Properties (Design Tokens)
    -------------------------------------------------------------------------- */
 :root {
-  /* ---- Brand / Accent ---- */
-  --neon:            #22c55e;
-  --neon-soft:       #4ade80;
-  --neon-dim:        rgba(34,197,94,0.25);
-  --neon-bright:     #00ff88; /* older alias kept for compatibility */
-
-  /* ---- Neutral Palette ---- */
-  --white:           #ffffff;
-  --gray-50:         #f9fafb;
-  --gray-100:        #f3f4f6;
-  --gray-200:        #e5e7eb;
-  --gray-300:        #d1d5db;
-  --gray-400:        #9ca3af;
-  --gray-500:        #6b7280;
-  --gray-600:        #4b5563;
-  --gray-700:        #374151;
-  --gray-800:        #1f2937;
-  --gray-900:        #111827;
-  --gray-950:        #0a0a0a;
-  --black:           #000000;
-
   /* ---- Backgrounds ---- */
-  --bg-root:         #000000;
-  --bg-base:         #0a0a0a;
-  --bg-glass:        rgba(10, 10, 10, 0.75);
-  --bg-card:         rgba(0, 0, 0, 0.6);
-  --bg-input:        rgba(0, 0, 0, 0.5);
+  --bg-primary:      #050505;
+  --bg-secondary:    #090909;
+  --surface:         #0D0D0D;
+  --surface-elevated:#141414;
+
+  /* ---- Brand (Crimson) ---- */
+  --brand-primary:   #C1121F;
+  --brand-hover:     #DC2626;
+  --brand-accent:    #EF4444;
+  --brand-glow:      rgba(193,18,31,0.25);
+
+  /* ---- Typography ---- */
+  --text-primary:    #FFFFFF;
+  --text-secondary:  #A1A1AA;
+  --text-muted:      #71717A;
 
   /* ---- Borders ---- */
-  --border-subtle:   rgba(255, 255, 255, 0.06);
-  --border-default:  rgba(255, 255, 255, 0.1);
-  --border-active:   rgba(34, 197, 94, 0.4);
-  --border-error:    rgba(239, 68, 68, 0.3);
+  --border:          rgba(255,255,255,0.08);
+  --border-active:   rgba(193,18,31,0.30);
+  --border-subtle:   rgba(255,255,255,0.04);
+  
+  /* ---- States & Badges ---- */
+  --ai:              #F59E0B;
+  --success:         #C1121F;
+  --warning:         #F59E0B;
+  --info:            #3B82F6;
+  --error:           #EF4444;
 
   /* ---- Shadows & Glows ---- */
-  --shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg:       0 8px 30px rgba(0, 0, 0, 0.5);
-  --shadow-xl:       0 12px 40px rgba(0, 0, 0, 0.6);
-  --shadow-glow-sm:  0 0 8px rgba(34, 197, 94, 0.25);
-  --shadow-glow:     0 0 16px rgba(34, 197, 94, 0.3);
-  --shadow-glow-md:  0 0 24px rgba(34, 197, 94, 0.35);
-  --shadow-glow-lg:  0 0 40px rgba(34, 197, 94, 0.4);
+  --shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:       0 8px 30px rgba(0, 0, 0, 0.6);
+  --shadow-xl:       0 12px 40px rgba(0, 0, 0, 0.7);
+  --shadow-glow-sm:  0 0 8px var(--brand-glow);
+  --shadow-glow:     0 0 16px var(--brand-glow);
+  --shadow-glow-md:  0 0 24px var(--brand-glow);
+  --shadow-glow-lg:  0 0 40px var(--brand-glow);
 
   /* ---- Typography ---- */
   --font-sans:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -128,8 +123,8 @@ html {
 
 body {
   min-height: 100vh;
-  background-color: var(--bg-root);
-  color: var(--white);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
@@ -138,8 +133,8 @@ body {
 
   /* Subtle global neon ambient glow */
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(34,197,94,0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(34,197,94,0.04) 0%, transparent 60%);
+    radial-gradient(circle at 20% 20%, rgba(193,18,31,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(193,18,31,0.04) 0%, transparent 60%);
   background-attachment: fixed;
 }
 
@@ -167,7 +162,7 @@ h1, h2, h3, h4, h5, h6 {
 .heading-3  { font-size: var(--font-size-2xl); font-weight: 700; }
 .heading-4  { font-size: var(--font-size-xl);  font-weight: 600; }
 
-.text-neon   { color: var(--neon); }
+.text-brand   { color: var(--neon); }
 .text-muted  { color: var(--gray-400); }
 .text-subtle { color: var(--gray-500); }
 
@@ -191,7 +186,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(34,197,94,0.25);
+  background: rgba(193,18,31,0.25);
   border-radius: 9999px;
   transition: background var(--duration-fast) var(--ease-in-out);
 }
@@ -224,10 +219,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .glass-strong {
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(var(--blur-lg));
-  -webkit-backdrop-filter: blur(var(--blur-lg));
-  border: 1px solid var(--border-default);
+  background: var(--surface);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xl);
 }
 
 /* Buttons (base style, extended by framework classes) */
@@ -272,7 +268,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(34,197,94,0.1);
+  background: rgba(193,18,31,0.1);
   border-color: var(--border-active);
   color: var(--neon);
 }
@@ -304,7 +300,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .input:focus {
   border-color: var(--neon);
-  box-shadow: 0 0 0 2px rgba(34,197,94,0.15);
+  box-shadow: 0 0 0 2px rgba(193,18,31,0.15);
 }
 
 .input::placeholder {
@@ -328,7 +324,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .badge-neon {
-  background: rgba(34,197,94,0.1);
+  background: rgba(193,18,31,0.1);
   border-color: var(--border-active);
   color: var(--neon);
 }
@@ -406,25 +402,33 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Card (generic post/panel) */
 .card {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-md));
-  -webkit-backdrop-filter: blur(var(--blur-md));
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
-  transition: border-color var(--duration-normal) var(--ease-in-out),
-              box-shadow var(--duration-normal) var(--ease-in-out);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  transition: all var(--duration-normal) var(--ease-out);
 }
-
-.card:hover {
+.glass-panel:hover {
   border-color: var(--border-active);
   box-shadow: var(--shadow-glow-sm);
+}
+
+.glass-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+.glass-card:hover {
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-glow);
 }
 
 /* Avatar */
 .avatar {
   border-radius: var(--radius-full);
-  border: 2px solid rgba(34,197,94,0.3);
+  border: 2px solid rgba(193,18,31,0.3);
   background: var(--black);
   object-fit: cover;
 }

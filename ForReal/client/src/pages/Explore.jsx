@@ -284,7 +284,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
         className="rounded-2xl p-5 glass-panel"
       >
         <div className="flex items-center gap-2 mb-4">
-          <Icon className="w-5 h-5 text-neon" />
+          <Icon className="w-5 h-5 text-brand" />
           <motion.div variants={skeletonPulse} animate="animate" className="h-5 w-24 bg-white/5 rounded" />
         </div>
         <div className="space-y-3">
@@ -303,7 +303,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
         className="rounded-2xl p-5 glass-panel"
       >
         <div className="flex items-center gap-2 mb-4">
-          <Icon className="w-5 h-5 text-neon" />
+          <Icon className="w-5 h-5 text-brand" />
           <h3 className="text-white font-semibold">{title}</h3>
         </div>
         <p className="text-gray-400 text-sm">{emptyMessage}</p>
@@ -317,7 +317,7 @@ const SearchSection = React.memo(({ title, icon: Icon, items, loading, emptyMess
       className="rounded-2xl overflow-hidden glass-panel"
     >
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
-        <Icon className="w-5 h-5 text-neon" />
+        <Icon className="w-5 h-5 text-brand" />
         <h3 className="text-white font-semibold">{title}</h3>
         <span className="ml-auto text-xs text-gray-400">{items.length}</span>
       </div>
@@ -428,7 +428,7 @@ const CreatorCard = React.memo(({ creator }) => {
         <img
           src={safeCreator.avatar || `https://ui-avatars.com/api/?name=${safeCreator.username || 'user'}&background=0F0F0F&color=22c55e`}
           alt={safeCreator.username}
-          className="w-10 h-10 rounded-full border border-neon/30 object-cover"
+          className="w-10 h-10 rounded-full border border-brand/30 object-cover"
         />
         <div className="flex-1 min-w-0">
           <p className="text-white font-medium text-sm truncate">{safeCreator.displayName || safeCreator.username}</p>
@@ -436,8 +436,8 @@ const CreatorCard = React.memo(({ creator }) => {
           {score !== undefined && (
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
               <div className="flex items-center gap-1" title="Credibility Score">
-                <Award className={`w-3 h-3 ${rank?.color || 'text-neon'}`} />
-                <span className={`text-[10px] font-mono ${rank?.color || 'text-neon'}`}>{Number(score || 0).toLocaleString()}</span>
+                <Award className={`w-3 h-3 ${rank?.color || 'text-brand'}`} />
+                <span className={`text-[10px] font-mono ${rank?.color || 'text-brand'}`}>{Number(score || 0).toLocaleString()}</span>
               </div>
               <span className={`text-[9px] px-1.5 py-0.5 rounded-md border ${rank?.bg || ''} ${rank?.border || ''} ${rank?.color || ''} uppercase tracking-wider`}>
                 {rank?.title || ''}
@@ -448,7 +448,7 @@ const CreatorCard = React.memo(({ creator }) => {
         <motion.button
           whileTap={{ scale: 0.9 }}
           disabled={followLoading}
-          className={`hidden sm:flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition disabled:opacity-60 ${following ? 'bg-neon/20 border-neon/50 text-neon' : 'bg-neon/10 border-neon/30 text-neon group-hover:bg-neon/20'}`}
+          className={`hidden sm:flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition disabled:opacity-60 ${following ? 'bg-brand/20 border-brand/50 text-brand' : 'bg-brand/10 border-brand/30 text-brand group-hover:bg-brand/20'}`}
           onClick={toggleFollow}
         >
           <UserPlus className="w-3 h-3" /> {following ? 'Following' : 'Follow'}
@@ -463,7 +463,7 @@ CreatorCard.displayName = 'CreatorCard';
 const RoomCard = React.memo(({ room }) => (
   <Link to={`/rooms/${room._id}`}>
     <motion.div
-      whileHover={{ scale: 1.02, borderColor: 'rgba(34,197,94,0.5)' }}
+      whileHover={{ scale: 1.02, borderColor: 'rgba(193,18,31,0.5)' }}
       className="group relative overflow-hidden rounded-xl p-4 transition-all duration-300 glass-card"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-neon/0 via-neon/5 to-neon/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -473,7 +473,7 @@ const RoomCard = React.memo(({ room }) => (
             <h4 className="text-white font-semibold text-sm line-clamp-1">{room.topic}</h4>
             <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
               <span className="flex items-center gap-1">
-                <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'active' ? 'bg-neon animate-pulse' : 'bg-gray-500'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'active' ? 'bg-brand animate-pulse' : 'bg-gray-500'}`} />
                 {room.status === 'active' ? 'Live' : 'Ended'}
               </span>
               <span className="flex items-center gap-1">
@@ -486,7 +486,7 @@ const RoomCard = React.memo(({ room }) => (
               )}
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-neon transition-colors" />
+          <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-brand transition-colors" />
         </div>
       </div>
     </motion.div>
@@ -500,9 +500,9 @@ const TopicPill = React.memo(({ topic, onClick }) => (
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={() => onClick && onClick(topic.tag)}
-    className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/5 hover:border-neon/30 transition-all cursor-pointer"
+    className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/5 hover:border-brand/30 transition-all cursor-pointer"
   >
-    <Hash className="w-4 h-4 text-neon" />
+    <Hash className="w-4 h-4 text-brand" />
     <span className="text-sm font-medium text-white">{topic.tag}</span>
     <span className="text-[10px] text-gray-400">{topic.count} posts</span>
   </motion.div>
@@ -542,7 +542,7 @@ export default function Explore() {
           className="relative mb-10"
         >
           <div className="relative max-w-2xl mx-auto">
-            <div className="absolute inset-0 bg-neon/20 blur-3xl rounded-full opacity-20" />
+            <div className="absolute inset-0 bg-brand/20 blur-3xl rounded-full opacity-20" />
             <div className="relative flex items-center">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -550,7 +550,7 @@ export default function Explore() {
                 value={query}
                 onChange={handleChange}
                 placeholder="Search for talks, users, rooms..."
-                className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-neon/50 focus:shadow-glow-sm transition-all duration-300"
+                className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-brand/50 focus:shadow-glow-sm transition-all duration-300"
               />
               {hasSearch && (
                 <button
@@ -580,7 +580,7 @@ export default function Explore() {
                   <button
                     key={tab.id}
                     onClick={() => setSearchTab(tab.id)}
-                    className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-all ${searchTab === tab.id ? 'text-neon border-b-2 border-neon bg-neon/5' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-all ${searchTab === tab.id ? 'text-brand border-b-2 border-brand bg-brand/5' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                   >
                     {tab.label}
                   </button>
@@ -615,7 +615,7 @@ export default function Explore() {
                         <p className="text-white font-medium text-sm">{room.topic}</p>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                           <span className="flex items-center gap-1">
-                            <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'active' ? 'bg-neon' : 'bg-gray-500'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'active' ? 'bg-brand' : 'bg-gray-500'}`} />
                             {room.status}
                           </span>
                         <span>{Array.isArray(room.participants) ? room.participants.length : (room.participantCount || 0)} debaters</span>
@@ -658,12 +658,12 @@ export default function Explore() {
               <section>
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-neon/10 border border-neon/30">
-                      <Zap className="w-4 h-4 text-neon" />
+                    <div className="p-1.5 rounded-lg bg-brand/10 border border-brand/30">
+                      <Zap className="w-4 h-4 text-brand" />
                     </div>
                     <h2 className="text-xl font-bold text-white">Trending Debates</h2>
                   </div>
-                  <Link to="/rooms" className="text-neon text-sm hover:underline flex items-center gap-1">
+                  <Link to="/rooms" className="text-brand text-sm hover:underline flex items-center gap-1">
                     All Rooms <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
@@ -689,12 +689,12 @@ export default function Explore() {
               <section>
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-neon/10 border border-neon/30">
-                      <Award className="w-4 h-4 text-neon" />
+                    <div className="p-1.5 rounded-lg bg-brand/10 border border-brand/30">
+                      <Award className="w-4 h-4 text-brand" />
                     </div>
                     <h2 className="text-xl font-bold text-white">Top Creators</h2>
                   </div>
-                  <Link to="/creators" className="text-neon text-sm hover:underline flex items-center gap-1">
+                  <Link to="/creators" className="text-brand text-sm hover:underline flex items-center gap-1">
                     Discover <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
@@ -715,7 +715,7 @@ export default function Explore() {
                       <motion.div
                         key={creator._id}
                         variants={cardVariant}
-                        className="rounded-xl p-4 hover:border-neon/40 transition-all glass-card"
+                        className="rounded-xl p-4 hover:border-brand/40 transition-all glass-card"
                       >
                         <CreatorCard creator={creator} />
                       </motion.div>
@@ -728,8 +728,8 @@ export default function Explore() {
               <section>
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-neon/10 border border-neon/30">
-                      <Sparkles className="w-4 h-4 text-neon" />
+                    <div className="p-1.5 rounded-lg bg-brand/10 border border-brand/30">
+                      <Sparkles className="w-4 h-4 text-brand" />
                     </div>
                     <h2 className="text-xl font-bold text-white">Hot Topics</h2>
                   </div>

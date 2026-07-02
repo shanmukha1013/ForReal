@@ -213,7 +213,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
             whileTap={{ scale: 0.98 }}
             disabled={!canCreate || creating}
             onClick={handleCreate}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-500 text-black font-bold text-sm disabled:opacity-50 transition shadow-lg shadow-green-500/20"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-500 text-white font-bold text-sm disabled:opacity-50 transition shadow-lg shadow-green-500/20"
           >
             {creating ? 'Creating...' : 'Create Debate'}
           </motion.button>

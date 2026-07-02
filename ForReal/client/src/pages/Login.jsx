@@ -67,7 +67,7 @@ export default function Login() {
   return (
     <div className="relative min-h-screen bg-[#050505] text-white flex items-center justify-center overflow-hidden">
       {/* Premium Spotlight */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_600px_at_50%_-10%,rgba(34,197,94,0.1),transparent)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_600px_at_50%_-10%,rgba(193,18,31,0.1),transparent)] pointer-events-none" />
 
       <motion.div
         variants={containerVariants}
@@ -75,8 +75,8 @@ export default function Login() {
         animate="visible"
         className="relative z-10 w-full max-w-md mx-auto px-6"
       >
-        <div className="bg-black/60 backdrop-blur-2xl rounded-3xl p-10 border border-white/5 shadow-[0_0_40px_rgba(34,197,94,0.05)] relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#22C55E]/50 to-transparent" />
+        <div className="bg-black/60 backdrop-blur-2xl rounded-3xl p-10 border border-white/5 shadow-[0_0_40px_rgba(193,18,31,0.05)] relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#C1121F]/50 to-transparent" />
           
           <motion.div variants={itemVariants} className="text-center mb-10">
             <h1 className="text-4xl font-semibold tracking-tight text-white mb-2">
@@ -112,7 +112,7 @@ export default function Login() {
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#22C55E]/50 focus:bg-white/[0.05] transition-all duration-300"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#C1121F]/50 focus:bg-white/[0.05] transition-all duration-300"
                   placeholder="Enter your username"
                 />
               </div>
@@ -127,7 +127,7 @@ export default function Login() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#22C55E]/50 focus:bg-white/[0.05] transition-all duration-300"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#C1121F]/50 focus:bg-white/[0.05] transition-all duration-300"
                   placeholder="Enter your password"
                 />
               </div>
@@ -135,7 +135,7 @@ export default function Login() {
 
             <motion.div variants={itemVariants} className="flex items-center justify-between pt-1 pb-2">
               <label className="flex items-center gap-2 cursor-pointer group">
-                <div className="relative flex items-center justify-center w-4 h-4 rounded border border-white/20 bg-transparent group-hover:border-[#22C55E]/50 transition-colors">
+                <div className="relative flex items-center justify-center w-4 h-4 rounded border border-white/20 bg-transparent group-hover:border-[#C1121F]/50 transition-colors">
                   <input
                     type="checkbox"
                     name="rememberMe"
@@ -144,13 +144,13 @@ export default function Login() {
                     className="absolute opacity-0 w-full h-full cursor-pointer"
                   />
                   {formData.rememberMe && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 h-2 rounded-sm bg-[#22C55E]" />
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 h-2 rounded-sm bg-[#C1121F]" />
                   )}
                 </div>
                 <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Remember me</span>
               </label>
 
-              <Link to="/forgot-password" className="text-sm text-gray-400 hover:text-[#22C55E] transition-colors">
+              <Link to="/forgot-password" className="text-sm text-gray-400 hover:text-[#C1121F] transition-colors">
                 Forgot password?
               </Link>
             </motion.div>
@@ -161,12 +161,12 @@ export default function Login() {
                 disabled={loading || authLoading}
                 whileHover={{ scale: loading || authLoading ? 1 : 1.01 }}
                 whileTap={{ scale: loading || authLoading ? 1 : 0.99 }}
-                className="w-full relative overflow-hidden group bg-gradient-to-r from-[#22C55E] to-[#16a34a] text-black py-3.5 rounded-xl text-sm font-bold transition-all duration-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] disabled:opacity-50"
+                className="w-full relative overflow-hidden group bg-gradient-to-r from-[#C1121F] to-[#16a34a] text-white py-3.5 rounded-xl text-sm font-bold transition-all duration-500 hover:shadow-[0_0_20px_rgba(193,18,31,0.3)] disabled:opacity-50"
               >
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 {loading || authLoading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
@@ -181,7 +181,7 @@ export default function Login() {
           <motion.div variants={itemVariants} className="mt-8 text-center border-t border-white/5 pt-6">
             <p className="text-sm text-gray-500">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-white font-medium hover:text-[#22C55E] transition-colors">
+              <Link to="/signup" className="text-white font-medium hover:text-[#C1121F] transition-colors">
                 Create Account
               </Link>
             </p>

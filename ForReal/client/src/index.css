@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --neon: #22c55e;
+    --neon: #C1121F;
     --neon-soft: #4ade80;
     --dark-root: #000000;
     --dark-base: #050505;
@@ -46,7 +46,7 @@
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(34,197,94,0.3);
+    background: rgba(193,18,31,0.3);
   }
 }
 
@@ -57,11 +57,11 @@
   }
 
   .glass-card {
-    @apply bg-white/[0.02] backdrop-blur-md border border-white/5 hover:border-neon/30 hover:bg-white/[0.04] transition-all duration-300;
+    @apply bg-white/[0.02] backdrop-blur-md border border-white/5 hover:border-brand hover:bg-white/[0.04] transition-all duration-300;
   }
 
   .btn-primary {
-    @apply bg-neon text-black font-semibold px-4 py-2 rounded-lg hover:bg-neon-bright hover:shadow-glow transition-all duration-300;
+    @apply bg-brand text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-bright hover:shadow-glow transition-all duration-300;
   }
 
   .btn-secondary {
@@ -73,13 +73,13 @@
   }
 
   .input-field {
-    @apply bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all duration-300 w-full;
+    @apply bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all duration-300 w-full;
   }
 }
 
 @layer utilities {
   .text-shadow-glow {
-    text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    text-shadow: 0 0 10px rgba(193, 18, 31, 0.5);
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;

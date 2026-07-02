@@ -17,7 +17,7 @@ export const getRank = (score) => {
   if (score >= 10000) {return { title: 'Trusted Contributor', color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/30' };}
   if (score >= 5000) {return { title: 'Fact Checker', color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/30' };}
   if (score >= 2500) {return { title: 'Community Voice', color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/30' };}
-  if (score >= 1500) {return { title: 'Analyst', color: 'text-neon', bg: 'bg-neon/10', border: 'border-neon/30' };}
+  if (score >= 1500) {return { title: 'Analyst', color: 'text-brand', bg: 'bg-brand/10', border: 'border-brand/30' };}
   if (score >= 1000) {return { title: 'Debater', color: 'text-gray-300', bg: 'bg-white/10', border: 'border-white/20' };}
   if (score >= 500) {return { title: 'Novice', color: 'text-gray-400', bg: 'bg-white/5', border: 'border-white/10' };}
   return { title: 'Disputed', color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/30' };

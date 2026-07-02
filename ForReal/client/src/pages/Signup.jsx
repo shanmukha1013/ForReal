@@ -7,7 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
-import { ParticleBackground } from '../components/BackgroundAesthetics';
+import BackgroundAesthetics from '../components/BackgroundAesthetics';
 
 // -----------------------------------------------------------------------------
 // Animation Variants (match Login premium theme)
@@ -43,7 +43,7 @@ const formContainer = {
 };
 
 // ParticleBackground removed, using global BackgroundAesthetics
-ParticleBackground.displayName = 'ParticleBackground';
+
 
 const IntroOverlay = React.memo(({ onFinish }) => {
   useEffect(() => {
@@ -60,18 +60,18 @@ const IntroOverlay = React.memo(({ onFinish }) => {
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black overflow-hidden cursor-pointer"
       aria-label="Skip intro"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(34,197,94,0.08)_0%,transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(193,18,31,0.08)_0%,transparent_70%)]" />
 
       <div className="relative flex flex-col items-center text-center px-6">
         <motion.div variants={logoReveal} initial="hidden" animate="visible" className="mb-6">
           <span
             className="text-[100px] sm:text-[140px] font-black tracking-tighter leading-none select-none"
             style={{
-              background: 'linear-gradient(to bottom, #ffffff 20%, #22c55e 80%)',
+              background: 'linear-gradient(to bottom, #ffffff 20%, #C1121F 80%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
-              filter: 'drop-shadow(0 0 30px rgba(34,197,94,0.45))',
+              filter: 'drop-shadow(0 0 30px rgba(193,18,31,0.45))',
             }}
           >
             Fr
@@ -103,7 +103,7 @@ const IntroOverlay = React.memo(({ onFinish }) => {
 IntroOverlay.displayName = 'IntroOverlay';
 
 const ButtonSpinner = () => (
-  <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
   </svg>
@@ -228,10 +228,10 @@ export default function Signup() {
                       required
                       value={formData.username}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon/70 focus:ring-1 focus:ring-neon/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="Pick a username"
                     />
-                    <div className="absolute inset-0 rounded-xl bg-neon/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                   </div>
                 </motion.div>
 
@@ -248,10 +248,10 @@ export default function Signup() {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon/70 focus:ring-1 focus:ring-neon/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="Enter your email"
                     />
-                    <div className="absolute inset-0 rounded-xl bg-neon/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                   </div>
                 </motion.div>
 
@@ -267,10 +267,10 @@ export default function Signup() {
                       required
                       value={formData.displayName}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon/70 focus:ring-1 focus:ring-neon/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="How should we call you?"
                     />
-                    <div className="absolute inset-0 rounded-xl bg-neon/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                   </div>
                 </motion.div>
 
@@ -287,10 +287,10 @@ export default function Signup() {
                       required
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon/70 focus:ring-1 focus:ring-neon/50 transition-all duration-300"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand/70 focus:ring-1 focus:ring-brand/50 transition-all duration-300"
                       placeholder="Create a password"
                     />
-                    <div className="absolute inset-0 rounded-xl bg-neon/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl bg-brand/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
                   </div>
                 </motion.div>
 
@@ -300,10 +300,10 @@ export default function Signup() {
                     disabled={loading || authLoading}
                     whileHover={{ scale: loading || authLoading ? 1 : 1.02 }}
                     whileTap={{ scale: loading || authLoading ? 1 : 0.98 }}
-                    className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-neon/50 shadow-lg ${
+                    className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50 shadow-lg ${
                       loading || authLoading
-                        ? 'bg-neon/50 text-gray-800 cursor-not-allowed'
-                        : 'bg-neon text-black hover:bg-neon-soft active:scale-[0.98] shadow-neon/30'
+                        ? 'bg-brand/50 text-gray-800 cursor-not-allowed'
+                        : 'bg-brand text-white hover:bg-brand-soft active:scale-[0.98] shadow-neon/30'
                     }`}
                   >
                     {loading || authLoading ? (
@@ -328,7 +328,7 @@ export default function Signup() {
                 <Link
                   to="/login"
                   replace
-                  className="text-neon font-semibold hover:underline focus:outline-none focus:underline"
+                  className="text-brand font-semibold hover:underline focus:outline-none focus:underline"
                   aria-label="Go to login"
                 >
                   Sign in

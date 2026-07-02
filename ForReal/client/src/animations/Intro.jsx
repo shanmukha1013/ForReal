@@ -162,11 +162,11 @@ export default function Intro({ onFinish }) {
                       <rect x="131" y="140" width="100" height="50" rx="0"/>
                       <rect x="151" y="231" width="80" height="50" rx="0"/>
                     </g>
-                    <g fill="none" stroke="#22C55E" strokeWidth="50" strokeLinecap="square" strokeLinejoin="miter">
+                    <g fill="none" stroke="#C1121F" strokeWidth="50" strokeLinecap="square" strokeLinejoin="miter">
                       <path d="M 256 165 H 331 A 33 33 0 0 1 331 231 H 256"/>
                       <line x1="266" y1="231" x2="336" y2="347"/>
                     </g>
-                    <g fill="#22C55E">
+                    <g fill="#C1121F">
                       <rect x="256" y="347" width="25" height="25" rx="0"/>
                       <polygon points="316,347 341,347 361,372 336,372"/>
                     </g>
@@ -183,7 +183,7 @@ export default function Intro({ onFinish }) {
                   className="text-6xl sm:text-8xl font-black text-white drop-shadow-2xl"
                   style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
                 >
-                  FOR<span style={{ color: "#22C55E" }}>REAL</span>
+                  FOR<span style={{ color: "#C1121F" }}>REAL</span>
                 </motion.h1>
               )}
             </AnimatePresence>

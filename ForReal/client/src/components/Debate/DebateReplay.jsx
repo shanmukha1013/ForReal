@@ -22,7 +22,7 @@ export default function DebateReplay({ argumentsList }) {
           </button>
           <button 
             onClick={() => setIsPlaying(!isPlaying)}
-            className="p-2 bg-neon text-black rounded-full hover:bg-neon/90 transition shadow-glow-sm"
+            className="p-2 bg-brand text-white rounded-full hover:bg-brand/90 transition shadow-glow-sm"
           >
             {isPlaying ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
           </button>
@@ -33,7 +33,7 @@ export default function DebateReplay({ argumentsList }) {
       </div>
       
       <div className="relative h-1 bg-white/10 rounded-full w-full">
-        <div className="absolute left-0 top-0 h-full bg-neon rounded-full" style={{ width: `${(currentIndex / Math.max(1, argumentsList?.length - 1)) * 100}%` }} />
+        <div className="absolute left-0 top-0 h-full bg-brand rounded-full" style={{ width: `${(currentIndex / Math.max(1, argumentsList?.length - 1)) * 100}%` }} />
       </div>
       <p className="text-center text-xs text-gray-500 mt-3">Replay feature is in preview</p>
     </motion.div>

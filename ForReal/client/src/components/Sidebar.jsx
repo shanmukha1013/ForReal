@@ -85,7 +85,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
           <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-neon to-white bg-clip-text text-transparent">
             ForReal
           </div>
-          <div className="ml-2 w-1.5 h-1.5 rounded-full bg-neon shadow-glow-sm" />
+          <div className="ml-2 w-1.5 h-1.5 rounded-full bg-brand shadow-glow-sm" />
         </div>
 
         {/* New Debate Button */}
@@ -93,7 +93,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
           <button
             type="button"
             onClick={onNewDebate}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-neon text-black font-semibold text-sm hover:bg-neon/90 active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-neon/50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:bg-brand/90 active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50"
             aria-label="Start a new debate"
           >
             <PlusCircle className="w-5 h-5" />
@@ -126,9 +126,9 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
                     to={item.path}
                     end={item.end}
                     className={({ isActive }) =>
-                      `flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-neon/50 ${
+                      `flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-brand/50 ${
                         isActive
-                          ? 'bg-neon/10 text-neon border border-neon/30 shadow-glow-sm'
+                          ? 'bg-brand/10 text-brand border border-brand/30 shadow-glow-sm'
                           : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
                       }`
                     }
@@ -137,7 +137,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
                       <>
                         <item.icon
                           className={`w-5 h-5 transition-transform duration-200 ${
-                            isActive ? 'text-neon scale-110' : 'text-current'
+                            isActive ? 'text-brand scale-110' : 'text-current'
                           }`}
                           strokeWidth={isActive ? 2 : 1.7}
                           aria-hidden="true"
@@ -146,14 +146,14 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
 
                         {/* Badge for messages / notifications */}
                         {!isLoading && item.badgeKey && user?.[item.badgeKey] > 0 && (
-                          <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-neon text-black rounded-full shadow-glow-sm">
+                          <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-brand text-white rounded-full shadow-glow-sm">
                             {user[item.badgeKey]}
                           </span>
                         )}
 
                         {/* Active glow dot (optional) */}
                         {isActive && item.badgeKey && user?.[item.badgeKey] > 0 ? null : (
-                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-neon/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-brand/30 opacity-0 group-hover:opacity-100 transition-opacity" />
                         )}
                       </>
                     )}
@@ -176,12 +176,12 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
             </div>
           ) : user ? (
             <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-white/5 backdrop-blur-sm">
-              <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName || user.username || 'U'}&background=0F0F0F&color=22c55e&bold=true`} alt="Avatar" className="w-8 h-8 rounded-full border border-neon/30 object-cover bg-black" />
+              <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName || user.username || 'U'}&background=0F0F0F&color=22c55e&bold=true`} alt="Avatar" className="w-8 h-8 rounded-full border border-brand/30 object-cover bg-black" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-white truncate">{user.displayName}</p>
                 <p className="text-[10px] text-gray-400 truncate">@{user.username}</p>
               </div>
-              <div className="w-2 h-2 rounded-full bg-neon shadow-glow-sm" />
+              <div className="w-2 h-2 rounded-full bg-brand shadow-glow-sm" />
             </div>
           ) : null}
         </div>
@@ -220,9 +220,9 @@ const MobileBottomBar = React.memo(({ user, isLoading }) => {
                   to={item.path}
                   end={item.end}
                   className={({ isActive }) =>
-                    `relative flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-neon/50 ${
+                    `relative flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50 ${
                       isActive
-                        ? 'text-neon bg-neon/10'
+                        ? 'text-brand bg-brand/10'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                     }`
                   }
@@ -240,7 +240,7 @@ const MobileBottomBar = React.memo(({ user, isLoading }) => {
 
                       {/* Badge for messages / notifications */}
                       {item.badgeKey && user?.[item.badgeKey] > 0 && (
-                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 text-[9px] font-bold bg-neon text-black rounded-full shadow-glow-sm">
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 text-[9px] font-bold bg-brand text-white rounded-full shadow-glow-sm">
                           {user[item.badgeKey]}
                         </span>
                       )}
@@ -249,7 +249,7 @@ const MobileBottomBar = React.memo(({ user, isLoading }) => {
                       {isActive && (
                         <motion.div
                           layoutId="mobileActiveTab"
-                          className="absolute -top-[2px] w-8 h-0.5 rounded-full bg-neon shadow-glow-sm"
+                          className="absolute -top-[2px] w-8 h-0.5 rounded-full bg-brand shadow-glow-sm"
                           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                         />
                       )}

@@ -110,7 +110,7 @@ const statVariant = {
 
 const tabVariant = {
   inactive: { borderColor: 'rgba(255,255,255,0)', color: '#6b7280' },
-  active: { borderColor: 'var(--neon, #22c55e)', color: 'var(--neon, #22c55e)' },
+  active: { borderColor: 'var(--neon, #C1121F)', color: 'var(--neon, #C1121F)' },
 };
 
 const postGridVariant = {
@@ -511,8 +511,8 @@ const FollowButton = React.memo(({ profile, isOwnProfile, onFollowChange }) => {
       onClick={toggle}
       className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-200 border ${
         following
-          ? 'bg-neon/10 border-neon/40 text-neon hover:bg-neon/20'
-          : 'bg-neon text-black border-neon hover:bg-neon/90'
+          ? 'bg-brand/10 border-brand/40 text-brand hover:bg-brand/20'
+          : 'bg-brand text-white border-brand hover:bg-brand/90'
       } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {loading ? (
@@ -544,7 +544,7 @@ const ProfileTabs = React.memo(({ activeTab, onChange }) => {
           onClick={() => onChange(key)}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
             activeTab === key
-              ? 'text-neon border-b-2 border-neon'
+              ? 'text-brand border-b-2 border-brand'
               : 'text-gray-400 hover:text-white'
           }`}
           whileTap={{ scale: 0.97 }}
@@ -618,7 +618,7 @@ const UserFeed = React.memo(({ userId, activeTab }) => {
           <motion.div 
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-2 h-2 bg-[#22C55E] rounded-full"
+            className="w-2 h-2 bg-[#C1121F] rounded-full"
           />
         </div>
       )}
@@ -707,7 +707,7 @@ export default function Profile() {
           <p className="text-gray-400 text-sm mb-4">This account doesn’t exist or may have been removed.</p>
           <button
             onClick={() => navigate(-1)}
-            className="text-neon hover:underline text-sm font-medium"
+            className="text-brand hover:underline text-sm font-medium"
           >
             ← Go back
           </button>
@@ -747,7 +747,7 @@ export default function Profile() {
                     {displayProfile?.displayName || displayProfile?.username}
                   </h1>
                   {displayProfile?.verified && (
-                    <span className="text-neon" title="Verified">
+                    <span className="text-success" title="Verified">
                       <ShieldCheck className="w-5 h-5" />
                     </span>
                   )}
@@ -772,7 +772,7 @@ export default function Profile() {
                       href={displayProfile.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-neon hover:underline"
+                      className="flex items-center gap-1 text-brand hover:underline"
                     >
                       <LinkIcon className="w-3 h-3" /> Website
                     </a>

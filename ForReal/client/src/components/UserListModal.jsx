@@ -53,8 +53,8 @@ const InlineFollowButton = ({ user }) => {
       onClick={toggle}
       className={`ml-4 flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 border ${
         following
-          ? 'bg-neon/10 border-neon/40 text-neon hover:bg-neon/20'
-          : 'bg-neon text-black border-neon hover:bg-neon/90'
+          ? 'bg-brand/10 border-brand/40 text-brand hover:bg-brand/20'
+          : 'bg-brand text-white border-brand hover:bg-brand/90'
       } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {loading ? (
@@ -148,10 +148,10 @@ export default function UserListModal({ isOpen, onClose, title, fetchType, userI
                       <img
                         src={user.avatar || `https://ui-avatars.com/api/?name=${user.username || 'user'}&background=0F0F0F&color=22c55e`}
                         alt={user.username}
-                        className="w-12 h-12 rounded-full border border-neon/30 object-cover"
+                        className="w-12 h-12 rounded-full border border-brand/30 object-cover"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium text-sm truncate group-hover:text-neon transition-colors">
+                        <p className="text-white font-medium text-sm truncate group-hover:text-brand transition-colors">
                           {user.displayName || user.username}
                         </p>
                         <p className="text-gray-400 text-xs truncate">@{user.username}</p>

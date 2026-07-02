@@ -28,6 +28,7 @@ import {
   useMemo,
   memo,
 } from "react";
+import BackgroundAesthetics from './BackgroundAesthetics';
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 import { AuthContext } from "../context/AuthContext";

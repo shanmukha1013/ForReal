@@ -173,19 +173,19 @@ export class ErrorBoundary extends React.Component {
             >
               <button
                 onClick={this.handleReset}
-                className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+                className="flex-1 px-6 py-3 bg-[#141414] hover:bg-[#1a1a1a] text-white border border-white/10 font-semibold rounded-lg transition-colors"
               >
                 Try Again
               </button>
               <button
                 onClick={this.handleReload}
-                className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                className="flex-1 px-6 py-3 bg-[#C1121F] hover:bg-[#DC2626] text-white font-semibold rounded-lg transition-colors"
               >
                 Reload App
               </button>
               <button
                 onClick={this.handleClearCache}
-                className="flex-1 px-6 py-3 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-lg transition-colors"
+                className="flex-1 px-6 py-3 bg-transparent border border-[#C1121F] text-[#C1121F] hover:bg-[#C1121F]/10 font-semibold rounded-lg transition-colors"
               >
                 Clear Cache & Reload
               </button>
@@ -216,25 +216,27 @@ export class ErrorBoundary extends React.Component {
 // ─────────────────────────────────────────────────────────────────────────────
 export function RouteErrorFallback({ error, resetErrorBoundary }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4">
-      <div className="max-w-md w-full text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-900/30 border border-yellow-700/50 mb-6">
-          <span className="text-3xl">⚠️</span>
+    <div className="min-h-screen flex items-center justify-center bg-[#050505] px-4">
+      <div className="max-w-md w-full text-center bg-[#0D0D0D] p-8 rounded-xl border border-white/10 shadow-[0_0_30px_rgba(193,18,31,0.1)]">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#C1121F]/10 border border-[#C1121F]/50 mb-6">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C1121F" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">Page Error</h1>
-        <p className="text-gray-300 mb-6">
+        <p className="text-gray-400 mb-6 text-sm">
           Failed to load this page. Please try again or return home.
         </p>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-col sm:flex-row">
           <button
             onClick={resetErrorBoundary}
-            className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+            className="flex-1 px-4 py-3 bg-[#C1121F] hover:bg-[#DC2626] text-white font-semibold rounded-lg transition-colors"
           >
             Retry
           </button>
           <a
             href="/"
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-center"
+            className="flex-1 px-4 py-3 bg-[#141414] hover:bg-[#1a1a1a] border border-white/10 text-white font-semibold rounded-lg transition-colors text-center"
           >
             Home
           </a>

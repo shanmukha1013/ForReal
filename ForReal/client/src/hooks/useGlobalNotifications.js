@@ -35,7 +35,7 @@ export function useGlobalNotifications() {
     const sync = async () => {
       try {
         const res = await axios.get('/chat/notifications');
-        if (cancelled) return;
+        if (cancelled) {return;}
         const payload = res?.data || res?.notifications || res;
         const list = (Array.isArray(payload) ? payload : []).map((n) => ({
           ...n,

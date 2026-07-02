@@ -1,5 +1,4 @@
 import api from './axios.js';
-import { storageCache } from '../lib/storageCache.js';
 
 // =============================================================================
 // Posts API Service - Communicates with MongoDB-driven backend

@@ -3,7 +3,6 @@ import React, {
   useCallback,
   useMemo,
   useEffect,
-  useRef,
   useContext,
 } from 'react';
 import PropTypes from 'prop-types';
@@ -12,7 +11,6 @@ import {
   HeartIcon,
   ChatBubbleLeftIcon,
   TrashIcon,
-  PhotoIcon,
   ShareIcon,
   BookmarkIcon,
   HandThumbDownIcon,
@@ -22,7 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../realtime/socket';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
-import { useInView } from 'framer-motion'; // for viewport detection if needed
+// for viewport detection if needed
 import { storageCache } from '../lib/storageCache';
 
 // -----------------------------------------------------------------------------
@@ -253,7 +251,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
           transition={{ type: 'spring', stiffness: 400 }}
           src={avatarSrc}
           alt={displayName}
-          onClick={(e) => { e.stopPropagation(); if(author?.username || author?._id || author?.id) navigate('/profile/' + encodeURIComponent(author.username || author._id || author.id)); }}
+          onClick={(e) => { e.stopPropagation(); if(author?.username || author?._id || author?.id) {navigate('/profile/' + encodeURIComponent(author.username || author._id || author.id));} }}
           className="cursor-pointer h-11 w-11 rounded-full border border-neon/30 bg-black/40 object-cover shadow-glow-sm"
           loading="lazy"
         />
@@ -483,7 +481,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
                 </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span onClick={(e) => { e.stopPropagation(); if (comment.author?.username || comment.author?._id) navigate('/profile/' + encodeURIComponent(comment.author.username || comment.author._id)); }} className="font-semibold text-neon text-xs cursor-pointer hover:underline">
+                  <span onClick={(e) => { e.stopPropagation(); if (comment.author?.username || comment.author?._id) {navigate('/profile/' + encodeURIComponent(comment.author.username || comment.author._id));} }} className="font-semibold text-neon text-xs cursor-pointer hover:underline">
                     @{comment.author?.username || 'anonymous'}
                   </span>
                   <span className="text-gray-500 text-[10px]">

@@ -42,7 +42,6 @@ import {
   TrashIcon,
   ChevronRightIcon,
   ClockIcon,
-  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 
 // Backward-compatible icon aliases (removes lucide-react dependency)

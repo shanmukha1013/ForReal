@@ -11,7 +11,6 @@ import React, {
   useEffect,
   useCallback,
   useRef,
-  useMemo,
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -28,7 +27,6 @@ import {
   ClockIcon,
   EyeIcon,
   UserPlusIcon,
-  ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import Layout from '../components/Layout';
 
@@ -358,7 +356,7 @@ const CreatorCard = React.memo(({ creator }) => {
   useEffect(() => {
     const handler = (e) => {
       const changedId = e?.detail?.targetId;
-      if (!targetId || !changedId || String(changedId) !== String(targetId)) return;
+      if (!targetId || !changedId || String(changedId) !== String(targetId)) {return;}
       try {
         const localFollows = storageCache.getFollows();
         setFollowing(!!localFollows?.[targetId]);
@@ -377,7 +375,7 @@ const CreatorCard = React.memo(({ creator }) => {
     e.preventDefault();
     e.stopPropagation?.();
 
-    if (!targetId) return;
+    if (!targetId) {return;}
 
     // optimistic
     const prev = following;
@@ -410,8 +408,8 @@ const CreatorCard = React.memo(({ creator }) => {
         // rollback optimistic UI
         setFollowing(prev);
         try {
-          if (!prev) storageCache.removeFollow(targetId);
-          else storageCache.addFollow(targetId);
+          if (!prev) {storageCache.removeFollow(targetId);}
+          else {storageCache.addFollow(targetId);}
         } catch {
           // no-op
         }

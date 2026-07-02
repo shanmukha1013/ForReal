@@ -439,7 +439,7 @@ export default function Messages() {
       if (!activeConversationId) {return;}
       if (message.conversationId !== activeConversationId) {return;}
       setMessages(prev => {
-        if (prev.some(m => m._id === message._id)) return prev;
+        if (prev.some(m => m._id === message._id)) {return prev;}
         const isMine = String(message.sender?._id || message.sender) === String(myId);
         let matched = false;
         const updated = prev.map(m => {
@@ -449,7 +449,7 @@ export default function Messages() {
           }
           return m;
         });
-        if (matched) return mergeMessages(updated);
+        if (matched) {return mergeMessages(updated);}
         return mergeMessages([...prev, message]);
       });
       setConversations(prev => prev.map(conv => (

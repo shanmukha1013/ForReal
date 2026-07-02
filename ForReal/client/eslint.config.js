@@ -1,14 +1,18 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import { defineConfig, globalIgnores } from 'eslint/config';
+import unusedImports from 'eslint-plugin-unused-imports';
+import reactHooks from 'eslint-plugin-react-hooks';
 
-// Simplified ESLint config to avoid heavy plugin dependencies in CI/local env
-// This preserves basic JS/JSX checks and lets the linter run reliably.
 export default defineConfig([
   globalIgnores(['dist', 'node_modules', 'coverage', '.vite']),
 
   {
     files: ['**/*.{js,jsx}'],
+    plugins: {
+      'unused-imports': unusedImports,
+      'react-hooks': reactHooks,
+    },
     extends: [js.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -32,6 +36,10 @@ export default defineConfig([
       'no-var': 'error',
       'eqeqeq': ['error', 'smart'],
       'curly': ['error', 'all'],
+      'no-unused-vars': 'off',
+      'no-empty': ['error', { 'allowEmptyCatch': true }],
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': 'off'
     },
   },
 ]);

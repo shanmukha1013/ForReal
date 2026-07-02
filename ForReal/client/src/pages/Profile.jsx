@@ -209,7 +209,7 @@ const useUserProfile = (username, currentUser) => {
 
   const displayProfile = useMemo(() => {
     const _ = refreshTrigger; // force re-evaluation
-    if (!profile) return null;
+    if (!profile) {return null;}
     const p = { ...profile };
     const localPosts = storageCache.getPosts();
     const userPostsCount = localPosts.filter(post => 
@@ -242,15 +242,15 @@ const useUserPosts = (userId, limit = 12) => {
       abortRef.current = controller;
 
       if (!userId) { setPosts([]); setLoading(false); return; }
-      if (page === 1 && !append) setPosts([]);
+      if (page === 1 && !append) {setPosts([]);}
       setLoading(true);
       let fetchedPosts = [];
       try {
         const res = await fetchUserPosts(userId, { page, limit });
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) {return;}
         fetchedPosts = res?.posts || (Array.isArray(res) ? res : []);
       } catch (err) {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) {return;}
         console.warn('API fetch failed, using local cache', err);
       } finally {
         const localPosts = storageCache.getPosts();

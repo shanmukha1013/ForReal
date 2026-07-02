@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getVoteWeight, updateCredibility } from './useCredibility';
+import { getVoteWeight } from './useCredibility';
 
 export const useDebateVerdict = (roomId, myId, myCredScore, room, summary) => {
   const [verdictData, setVerdictData] = useState({
@@ -29,7 +29,7 @@ export const useDebateVerdict = (roomId, myId, myCredScore, room, summary) => {
       const newVotes = { ...prev.votes };
       
       // Initialize if needed
-      if (!newVotes[category]) newVotes[category] = {};
+      if (!newVotes[category]) {newVotes[category] = {};}
       
       // Remove previous vote in this category by this user across all options (prevent multi-voting)
       Object.keys(newVotes[category]).forEach(opt => {

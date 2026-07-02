@@ -68,7 +68,7 @@ async function connectDB({ uri = process.env.MONGO_URI, retries = DEFAULT_RETRY 
       const backoff = RETRY_BASE_MS * attempt;
       console.info(`[db] Retrying connection in ${backoff}ms...`);
       // exponential-ish backoff
-      // eslint-disable-next-line no-await-in-loop
+       
       await wait(backoff);
     }
   }

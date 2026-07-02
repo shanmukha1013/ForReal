@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LightBulbIcon, ShieldExclamationIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -14,7 +14,7 @@ export default function DebateCoach({ argumentText, optionName }) {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed) {return;}
     if (argumentText.length < 20) {
       setSuggestions([]);
       return;
@@ -35,7 +35,7 @@ export default function DebateCoach({ argumentText, optionName }) {
     return () => clearTimeout(timer);
   }, [argumentText, dismissed]);
 
-  if (dismissed || (suggestions.length === 0 && !loading)) return null;
+  if (dismissed || (suggestions.length === 0 && !loading)) {return null;}
 
   return (
     <AnimatePresence>

@@ -13,7 +13,6 @@ import {
   HeartIcon,
   ChatBubbleLeftIcon,
   TrashIcon,
-  PhotoIcon,
   ShareIcon,
   BookmarkIcon,
   ShieldCheckIcon,
@@ -22,11 +21,11 @@ import {
   LinkIcon,
   EyeSlashIcon,
 } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartSolidIcon, BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
+import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { useSocket } from '../realtime/socket';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
-import { useInView } from 'framer-motion'; // for viewport detection if needed
+// for viewport detection if needed
 import { useCredibility, updateCredibility, getVoteWeight } from '../hooks/useCredibility';
 import { storageCache } from '../lib/storageCache';
 import api from '../api/api';
@@ -914,8 +913,8 @@ const PostCard = ({
 
     // Fallback sync to backend if parent lacks handler
     try {
-      if (api?.posts?.react) api.posts.react(safePost._id, newReaction || 'remove');
-      else if (api?.posts?.interact) api.posts.interact(safePost._id, newReaction || 'remove');
+      if (api?.posts?.react) {api.posts.react(safePost._id, newReaction || 'remove');}
+      else if (api?.posts?.interact) {api.posts.interact(safePost._id, newReaction || 'remove');}
     } catch (e) { console.warn('React sync failed', e); }
   };
 

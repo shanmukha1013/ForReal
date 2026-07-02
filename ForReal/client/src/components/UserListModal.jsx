@@ -21,7 +21,7 @@ const InlineFollowButton = ({ user }) => {
   const toggle = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!currentUser) return notify.error('Sign in to follow');
+    if (!currentUser) {return notify.error('Sign in to follow');}
     
     setLoading(true);
     const prev = following;
@@ -45,7 +45,7 @@ const InlineFollowButton = ({ user }) => {
     }
   };
 
-  if (String(currentUser?._id || currentUser?.id) === String(targetId)) return null;
+  if (String(currentUser?._id || currentUser?.id) === String(targetId)) {return null;}
 
   return (
     <button

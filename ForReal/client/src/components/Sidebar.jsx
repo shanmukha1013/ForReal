@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { NavLink } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Home,
   MessageSquare,
   Settings,
   PlusCircle,
   Bell,
-  User,
-  TrendingUp,
   Compass,
 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';

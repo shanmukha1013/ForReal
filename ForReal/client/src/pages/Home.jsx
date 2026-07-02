@@ -6,7 +6,7 @@ import {
   useContext,
   useMemo,
 } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   SparklesIcon,
@@ -79,7 +79,7 @@ const useFeed = (limit = 10) => {
         const paginated = unique.slice((page - 1) * limit, page * limit);
         
         setTalks((prev) => {
-          if (!append) return paginated;
+          if (!append) {return paginated;}
           const merged = [...prev, ...paginated];
           return Array.from(new Map(merged.map(t => [t._id, t])).values());
         });
@@ -117,7 +117,7 @@ const useFeed = (limit = 10) => {
 
   const addTalk = useCallback((newTalk) => {
     setTalks((prev) => {
-      if (prev.some((t) => t._id === newTalk._id)) return prev;
+      if (prev.some((t) => t._id === newTalk._id)) {return prev;}
       return [newTalk, ...prev];
     });
   }, []);
@@ -181,7 +181,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateTalk = async () => {
-    if (!composeText.trim()) return;
+    if (!composeText.trim()) {return;}
     setIsSubmitting(true);
     try {
       const newPost = await apiCreatePost({ content: composeText.trim() });
@@ -193,7 +193,7 @@ export default function Home() {
       setComposeText('');
       if (notify?.success) { notify.success('Talk published successfully!'); }
     } catch (err) {
-      if (notify?.error) notify.error(err.message || 'Failed to publish talk');
+      if (notify?.error) {notify.error(err.message || 'Failed to publish talk');}
     } finally {
       setIsSubmitting(false);
     }

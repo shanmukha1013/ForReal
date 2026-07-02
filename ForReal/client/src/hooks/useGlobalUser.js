@@ -33,7 +33,7 @@ export function useGlobalUser() {
     try {
       const currentUser = storageCache.getUser();
       const userId = currentUser?._id || currentUser?.id;
-      if (!userId) throw new Error('User ID not found');
+      if (!userId) {throw new Error('User ID not found');}
       const response = await api.users.updateProfile(userId, updates);
       const updatedUser = response.user || response;
       storageCache.setUser(updatedUser);

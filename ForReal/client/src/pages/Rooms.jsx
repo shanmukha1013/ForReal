@@ -38,6 +38,7 @@ import {
   ChartBarIcon,
   FunnelIcon,
   EyeSlashIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 
 import Layout from '../components/Layout';

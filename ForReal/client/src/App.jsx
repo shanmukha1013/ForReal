@@ -30,14 +30,13 @@ import {
   Route,
   Navigate,
   useLocation,
-  useRouteError,
 } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // Providers
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './components/Notification';
-import { ErrorBoundary, RouteErrorFallback } from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import BackgroundAesthetics from './components/BackgroundAesthetics';
 
 // -----------------------------------------------------------------------------

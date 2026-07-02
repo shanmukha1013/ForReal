@@ -17,36 +17,36 @@ export function useGlobalRooms() {
 
   useEffect(() => {
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket) {return;}
 
     const handleMembersUpdate = (data) => {
-      if (!data || !data.roomId) return;
+      if (!data || !data.roomId) {return;}
       storageCache.updateRoom(data.roomId, { participants: data.participants });
     };
 
     const handleNewMessage = (msg) => {
-      if (!msg || !msg.roomId) return;
+      if (!msg || !msg.roomId) {return;}
       const currentRooms = storageCache.getRooms();
       const room = currentRooms.find(r => r._id === msg.roomId);
       if (room) {
-        if (room.messages?.some(m => m.id === msg.id || m._id === msg.id)) return;
+        if (room.messages?.some(m => m.id === msg.id || m._id === msg.id)) {return;}
         const updatedMessages = [...(room.messages || []), msg];
         storageCache.updateRoom(msg.roomId, { messages: updatedMessages });
       }
     };
 
     const handleNewRoom = (room) => {
-      if (!room || !room._id) return;
+      if (!room || !room._id) {return;}
       storageCache.addRoom(room);
     };
 
     const handleRoomDeleted = ({ roomId } = {}) => {
-      if (!roomId) return;
+      if (!roomId) {return;}
       storageCache.deleteRoom(roomId);
     };
 
     const handleReactionNew = (data) => {
-      if (!data || !data.roomId) return;
+      if (!data || !data.roomId) {return;}
       const currentRooms = storageCache.getRooms();
       const room = currentRooms.find(r => r._id === data.roomId);
       if (room && !data.messageId) {
@@ -142,9 +142,9 @@ export function useGlobalRooms() {
       const newRoom = response.room || response;
       
       // Ensure required fallback fields for UI assumptions
-      if (!newRoom.participants) newRoom.participants = roomData.participants || [];
-      if (!newRoom.messages) newRoom.messages = [];
-      if (!newRoom.status) newRoom.status = 'active';
+      if (!newRoom.participants) {newRoom.participants = roomData.participants || [];}
+      if (!newRoom.messages) {newRoom.messages = [];}
+      if (!newRoom.status) {newRoom.status = 'active';}
 
       const updated = storageCache.addRoom(newRoom);
       setRooms(updated);

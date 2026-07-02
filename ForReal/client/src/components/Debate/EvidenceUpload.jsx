@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LinkIcon, DocumentTextIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -7,7 +7,7 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
   const [type, setType] = useState('website');
 
   const handleAdd = () => {
-    if (!url.trim()) return;
+    if (!url.trim()) {return;}
     setEvidenceList([...evidenceList, { url: url.trim(), type }]);
     setUrl('');
   };

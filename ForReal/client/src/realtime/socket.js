@@ -31,10 +31,10 @@ const SOCKET_OPTIONS = {
 // Singleton instance & state
 // -----------------------------------------------------------------------------
 let socket = null;
-let reconnectTimer = null;
+const reconnectTimer = null;
 let _initialized = false;
 let _lastRefreshAttempt = 0;
-let _activeRooms = new Set();
+const _activeRooms = new Set();
 
 // -----------------------------------------------------------------------------
 // Internal helpers

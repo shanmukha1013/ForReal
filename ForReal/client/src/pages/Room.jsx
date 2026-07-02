@@ -26,7 +26,6 @@ import {
   XMarkIcon,
   LinkIcon,
   ExclamationTriangleIcon,
-  ClipboardIcon,
   HandThumbUpIcon,
   HandThumbDownIcon,
   FireIcon,
@@ -116,7 +115,7 @@ const mergeChatMessages = (messages) => {
   (messages || []).filter(Boolean).forEach((msg, index) => {
     const key = getMessageKey(msg) || 'idx_' + index;
     const existing = map.get(key);
-    if (existing && String(existing._id).startsWith('msg_') && !String(msg._id).startsWith('msg_')) return;
+    if (existing && String(existing._id).startsWith('msg_') && !String(msg._id).startsWith('msg_')) {return;}
     map.set(key, { ...existing, ...msg, _id: msg._id || existing?._id || msg.id });
   });
   return Array.from(map.values());
@@ -193,7 +192,7 @@ const useDebateRoom = (roomId) => {
   }, [roomId]);
 
   const fetchRoom = useCallback(async () => {
-    if (!roomId) return;
+    if (!roomId) {return;}
     setLoading(true);
     let fetchedRoom = null;
     try {
@@ -249,7 +248,7 @@ const useDebateRoom = (roomId) => {
 
   useEffect(() => {
     const socket = socketRef.current;
-    if (!socket || !roomId) return;
+    if (!socket || !roomId) {return;}
 
     socket.emit('room:join', { roomId });
 
@@ -271,7 +270,7 @@ const useDebateRoom = (roomId) => {
           return existing;
         });
         
-        if (foundMatch) return mergeChatMessages(updated);
+        if (foundMatch) {return mergeChatMessages(updated);}
         return mergeChatMessages([...updated, { ...message, _id: message._id || message.id }]);
       });
       setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(message.author?.id || message.sender?._id)));
@@ -294,7 +293,7 @@ const useDebateRoom = (roomId) => {
 
     const onPresence = ({ optionStats, observerCount }) => {
       setRoom((r) => {
-        if (!r) return r;
+        if (!r) {return r;}
         const newOpts = r.customOptions.map(opt => ({
            ...opt,
            participants: new Array(optionStats?.[opt.name] || 0).fill(0)
@@ -308,14 +307,14 @@ const useDebateRoom = (roomId) => {
     };
 
     const onTyping = ({ userId, username } = {}) => {
-      if (!userId) return;
+      if (!userId) {return;}
       setTypingUsers((prev) => {
-        if (prev.find((u) => String(u._id) === String(userId))) return prev;
+        if (prev.find((u) => String(u._id) === String(userId))) {return prev;}
         return [...prev, { _id: userId, username }];
       });
     };
     const onStopTyping = ({ userId } = {}) => {
-      if (!userId) return;
+      if (!userId) {return;}
       setTypingUsers((prev) => prev.filter((u) => String(u._id) !== String(userId)));
     };
 
@@ -364,10 +363,10 @@ const useDebateRoom = (roomId) => {
   }, [chatMessages]);
 
   const joinSide = useCallback(async (optionName) => {
-      if (!user) return;
+      if (!user) {return;}
       try {
         const socket = socketRef.current;
-        if (socket) socket.emit('debate:joinSide', { roomId, optionName });
+        if (socket) {socket.emit('debate:joinSide', { roomId, optionName });}
         await axios.post(`/rooms/${roomId}/join`, { optionName });
       } catch(e) { console.warn('joinSide failed', e); }
       
@@ -385,12 +384,12 @@ const useDebateRoom = (roomId) => {
       }
 
       setRoom((prev) => {
-        if (!prev) return prev;
+        if (!prev) {return prev;}
         const updated = { ...prev, customOptions: [...(prev.customOptions||[])] };
         
         // Remove from all
         updated.customOptions.forEach(opt => {
-           if (opt.participants) opt.participants = opt.participants.filter(p => p._id !== user._id && p.username !== user.username);
+           if (opt.participants) {opt.participants = opt.participants.filter(p => p._id !== user._id && p.username !== user.username);}
         });
         if (updated.observers) {updated.observers = updated.observers.filter(p => p._id !== user._id && p.username !== user.username);}
         
@@ -398,11 +397,11 @@ const useDebateRoom = (roomId) => {
         if (optionName && optionName !== 'observe') {
            const target = updated.customOptions.find(o => o.name === optionName);
            if (target) {
-              if (!target.participants) target.participants = [];
+              if (!target.participants) {target.participants = [];}
               target.participants.push(user);
            }
         } else {
-           if (!updated.observers) updated.observers = [];
+           if (!updated.observers) {updated.observers = [];}
            updated.observers.push(user);
         }
         
@@ -415,7 +414,7 @@ const useDebateRoom = (roomId) => {
   );
 
   const vote = useCallback((optionName) => {
-      try { socketRef.current?.emit('reaction:send', { roomId, reaction: optionName }); } catch(e) {}
+      try { socketRef.current?.emit('reaction:send', { roomId, reaction: optionName }); } catch(e) { /* empty */ }
       setVotes(prev => {
         const updated = { ...prev, [optionName]: (prev[optionName] || 0) + 1 };
         updateLocalRoom({ votes: updated });
@@ -427,7 +426,7 @@ const useDebateRoom = (roomId) => {
   );
 
   const startDebate = useCallback((durationSec = 3600) => {
-      try { socketRef.current?.emit('debate:start', { roomId, durationSec }); } catch(e) {}
+      try { socketRef.current?.emit('debate:start', { roomId, durationSec }); } catch(e) { /* empty */ }
       setRoom(prev => {
         const updated = { ...prev, status: 'active', debateTimer: { startedAt: new Date().toISOString(), duration: durationSec } };
         updateLocalRoom(updated);
@@ -468,7 +467,7 @@ const useDebateRoom = (roomId) => {
   }, [roomId, notify]);
 
   const adjustScore = useCallback((optionName, delta) => {
-      try { socketRef.current?.emit('debate:score', { roomId, optionName, delta }); } catch(e) {}
+      try { socketRef.current?.emit('debate:score', { roomId, optionName, delta }); } catch(e) { /* empty */ }
       setScore(prev => {
         const updated = { ...prev, [optionName]: (prev[optionName] || 0) + delta };
         updateLocalRoom({ score: updated });
@@ -512,18 +511,18 @@ const useDebateRoom = (roomId) => {
           isAnonymous: isAnon,
           associatedOption,
         });}
-      } catch(e) {}
+      } catch(e) { /* empty */ }
     },
     [roomId, user, updateLocalRoom]
   );
 
   const reactToChatMessage = useCallback((messageId, reactionType) => {
     const myId = userRef.current?._id || userRef.current?.id;
-    if (!myId) return;
+    if (!myId) {return;}
 
     setChatMessages(prev => {
         const newMessages = prev.map(msg => {
-            if (msg._id !== messageId) return msg;
+            if (msg._id !== messageId) {return msg;}
 
             const updatedMsg = { ...msg };
             Object.values(arrayKeyMap).forEach(arrKey => {
@@ -535,7 +534,7 @@ const useDebateRoom = (roomId) => {
             
             let oldReaction = null;
             Object.keys(arrayKeyMap).forEach(key => {
-                if (updatedMsg[arrayKeyMap[key]]?.includes(myId)) oldReaction = key;
+                if (updatedMsg[arrayKeyMap[key]]?.includes(myId)) {oldReaction = key;}
             });
 
             Object.values(arrayKeyMap).forEach(arrKey => {
@@ -562,7 +561,7 @@ const useDebateRoom = (roomId) => {
   const emitTyping = useCallback((isTyping) => {
       try {
         socketRef.current?.emit(isTyping ? 'typing:start' : 'typing:stop', { roomId });
-      } catch(e) {}
+      } catch(e) { /* empty */ }
     },
     [roomId]
   );
@@ -638,8 +637,8 @@ const ChatMessageReactions = ({ message, onReact }) => {
   const myId = user?._id || user?.id;
 
   const [reaction, setReaction] = useState(() => {
-    if (message.likes?.includes(myId)) return 'like';
-    if (message.dislikes?.includes(myId)) return 'dislike';
+    if (message.likes?.includes(myId)) {return 'like';}
+    if (message.dislikes?.includes(myId)) {return 'dislike';}
     return null;
   });
 
@@ -779,9 +778,9 @@ const ChatMessage = React.memo(({ message, isMine, onReact, anonymityMode, color
 ChatMessage.displayName = 'ChatMessage';
 
 const TypingIndicator = React.memo(({ typingUsers, anonymityMode }) => {
-  if (!typingUsers.length) return null;
+  if (!typingUsers.length) {return null;}
   let names = typingUsers.map((u) => u.username).join(', ');
-  if (anonymityMode === 'anonymous') names = `${typingUsers.length} debater${typingUsers.length > 1 ? 's' : ''}`;
+  if (anonymityMode === 'anonymous') {names = `${typingUsers.length} debater${typingUsers.length > 1 ? 's' : ''}`;}
   return (
     <motion.div variants={typingIndicatorVariant} animate="animate" className="text-xs text-gray-400 pl-4 py-1 flex items-center gap-1">
       <span className="inline-flex gap-0.5">
@@ -801,12 +800,12 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySid
   const typingTimeout = useRef(null);
 
   useEffect(() => {
-    if (anonymityMode === 'public') setPostAnon(false);
-    if (anonymityMode === 'anonymous') setPostAnon(true);
+    if (anonymityMode === 'public') {setPostAnon(false);}
+    if (anonymityMode === 'anonymous') {setPostAnon(true);}
   }, [anonymityMode]);
 
   const handleChange = (e) => {
-    if (disabled) return;
+    if (disabled) {return;}
     setText(e.target.value);
     if (onTyping) {
       onTyping(true);
@@ -817,10 +816,10 @@ const ChatInput = React.memo(({ onSend, onTyping, anonymityMode, disabled, mySid
 
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed || disabled) return;
+    if (!trimmed || disabled) {return;}
     onSend(trimmed, postAnon, mySide !== 'observe' ? mySide : null);
     setText('');
-    if (onTyping) onTyping(false);
+    if (onTyping) {onTyping(false);}
   };
 
   return (
@@ -1098,7 +1097,7 @@ export default function Room() {
   const [joining, setJoining] = useState(false);
 
   const isHost = useMemo(() => {
-    if (!user || !room) return false;
+    if (!user || !room) {return false;}
     const ownerId = room.creator?._id || room.creator?.id || room.creator || room.createdBy?._id || room.createdBy?.id || room.createdBy;
     return String(ownerId) === String(myId) || user.role === 'admin';
   }, [user, room, myId]);
@@ -1121,7 +1120,7 @@ export default function Room() {
   const { verdictData, castEvaluationVote, generateVerdict } = useDebateVerdict(roomId, myId, myCredScore, room, summary);
 
   const handleJoin = async (optionName) => {
-    if (isClosed || joining) return;
+    if (isClosed || joining) {return;}
     setJoining(true);
     try {
       await joinSide(optionName);
@@ -1134,12 +1133,12 @@ export default function Room() {
   };
 
   const handleEndDebate = async () => {
-    if (!window.confirm('End this debate now? The room stays readable, but chat closes.')) return;
+    if (!window.confirm('End this debate now? The room stays readable, but chat closes.')) {return;}
     await endDebate();
   };
 
   const handleDeleteDebate = async () => {
-    if (!window.confirm('Delete this debate? It will be removed from discovery.')) return;
+    if (!window.confirm('Delete this debate? It will be removed from discovery.')) {return;}
     await deleteDebate();
     navigate('/rooms');
   };

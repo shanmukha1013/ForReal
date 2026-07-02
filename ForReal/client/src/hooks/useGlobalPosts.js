@@ -6,7 +6,7 @@
 // Now integrates with MongoDB-driven backend API.
 // -----------------------------------------------------------------------------
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { storageCache } from '../lib/storageCache';
 import { fetchPosts, createPost as apiCreatePost, reactToPost as apiReactToPost, deletePost as apiDeletePost } from '../api/posts';
 

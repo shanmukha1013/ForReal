@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useContext } from 'react';
+import { motion } from 'framer-motion';
 import { Zap, Plus, X } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from './Notification';
@@ -36,7 +36,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
   };
 
   const handleCreate = async () => {
-    if (!canCreate || creating) return;
+    if (!canCreate || creating) {return;}
     setCreating(true);
     setError('');
     
@@ -71,7 +71,7 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
     let optimisticRoom = null;
     try {
       optimisticRoom = optimisticCreateRoom(newRoom);
-      if (onCreate) onCreate(optimisticRoom);
+      if (onCreate) {onCreate(optimisticRoom);}
       notify.success('Debate room created!');
 
       const payload = {

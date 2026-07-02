@@ -7,6 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../components/Notification';
+import { ParticleBackground } from '../components/BackgroundAesthetics';
 
 // -----------------------------------------------------------------------------
 // Animation Variants (match Login premium theme)

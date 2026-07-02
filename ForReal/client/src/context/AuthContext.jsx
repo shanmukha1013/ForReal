@@ -27,10 +27,7 @@ import {
   signupApi,
   verifyToken,
   refreshToken,
-  logoutApi,
   clearAuthStorage,
-  getStoredToken,
-  getCachedUser,
 } from '../api/auth';
 import { authenticateSocket } from '../realtime/socket';
 import { storageCache } from '../lib/storageCache';
@@ -149,7 +146,7 @@ export function AuthProvider({ children }) {
     return () => {
       if (refreshIntervalRef.current) {clearInterval(refreshIntervalRef.current);}
     };
-  }, [state.user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.user]);  
 
   // ─── Actions ────────────────────────────────────────────
   const login = useCallback(async (username, password) => {

@@ -1,9 +1,8 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { TrophyIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 export default function DebateReport({ report, room }) {
-  if (!report) return null;
+  if (!report) {return null;}
 
   return (
     <motion.div

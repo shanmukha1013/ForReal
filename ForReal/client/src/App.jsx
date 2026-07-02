@@ -6,8 +6,8 @@
 // Designed for scale, performance, and a premium realtime feel.
 // -----------------------------------------------------------------------------
 
-import React, { lazy } from 'react';
-
+import React, { lazy, useState } from 'react';
+import Intro from './animations/Intro';
 // -----------------------------------------------------------------------------
 // Lazy-load safety wrapper
 // If an import resolves without a `default` export (React.lazy expects a component),
@@ -84,33 +84,10 @@ const PageTransition = ({ children }) => (
   </motion.div>
 );
 
-// -----------------------------------------------------------------------------
-// Loading fallback (minimalist Vercel/Linear style logo reveal)
-// -----------------------------------------------------------------------------
+import LoadingSpinner from './components/LoadingSpinner';
+
 const FullScreenLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#050505]">
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
-      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      className="flex flex-col items-center gap-4"
-    >
-      <div className="w-12 h-12 bg-gradient-to-br from-[#C1121F] to-green-900 rounded-2xl shadow-[0_0_40px_rgba(193,18,31,0.3)] flex items-center justify-center overflow-hidden">
-        <motion.div 
-          animate={{ scale: [1, 1.05, 1], opacity: [0.8, 1, 0.8] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="w-6 h-6 bg-white rounded-full"
-        />
-      </div>
-      <motion.p
-        animate={{ opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="text-xs font-semibold tracking-[0.2em] text-gray-400 uppercase"
-      >
-        ForReal
-      </motion.p>
-    </motion.div>
-  </div>
+  <LoadingSpinner fullScreen={true} size="md" />
 );
 
 // -----------------------------------------------------------------------------
@@ -235,11 +212,17 @@ const AppRoutes = () => {
 // Root App Component – Provider Hierarchy
 // -----------------------------------------------------------------------------
 export default function App() {
+  const [showIntro, setShowIntro] = useState(true);
+
   return (
     <BrowserRouter>
       <AuthProvider>
         <NotificationProvider>
-          <AppRoutes />
+          {showIntro ? (
+            <Intro onFinish={() => setShowIntro(false)} />
+          ) : (
+            <AppRoutes />
+          )}
         </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>

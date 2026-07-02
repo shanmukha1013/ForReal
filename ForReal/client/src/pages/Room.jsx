@@ -142,14 +142,14 @@ const getOptionColor = (index) => OPTION_COLORS[index % OPTION_COLORS.length];
 // -----------------------------------------------------------------------------
 
 const REACTION_TYPES = [
-  { id: 'like', icon: '❤️', label: 'Like' },
-  { id: 'dislike', icon: '👎', label: 'Dislike' },
-  { id: 'agree', icon: '🤝', label: 'Agree' },
-  { id: 'disagree', icon: '🙅', label: 'Disagree' },
-  { id: 'facts', icon: '💯', label: 'Facts' },
-  { id: 'cap', icon: '🧢', label: 'Cap' },
-  { id: 'misleading', icon: '⚠️', label: 'Misleading' },
-  { id: 'validPoint', icon: '🎯', label: 'Valid Point' },
+  { id: 'like', icon: '[+]', label: 'Like' },
+  { id: 'dislike', icon: '[-]', label: 'Dislike' },
+  { id: 'agree', icon: '[AGREE]', label: 'Agree' },
+  { id: 'disagree', icon: '[DISAGREE]', label: 'Disagree' },
+  { id: 'facts', icon: '[FACTS]', label: 'Facts' },
+  { id: 'cap', icon: '[CAP]', label: 'Cap' },
+  { id: 'misleading', icon: '[!]', label: 'Misleading' },
+  { id: 'validPoint', icon: '[*]', label: 'Valid Point' },
 ];
 
 const arrayKeyMap = {
@@ -876,7 +876,7 @@ const TimelineEvent = React.memo(({ event, index }) => {
      case 'key_argument':
        Icon = Star; colorClass = 'text-yellow-400'; borderClass = 'border-yellow-400/30'; bgClass = 'bg-yellow-400/10'; break;
      case 'fact_check':
-       Icon = Shield; colorClass = 'text-green-400'; borderClass = 'border-green-400/30'; bgClass = 'bg-green-400/10'; break;
+       Icon = Shield; colorClass = 'text-[#C1121F]'; borderClass = 'border-[#C1121F]/30'; bgClass = 'bg-[#C1121F]/10'; break;
      case 'dispute':
        Icon = AlertTriangle; colorClass = 'text-orange-400'; borderClass = 'border-orange-400/30'; bgClass = 'bg-orange-400/10'; break;
   }
@@ -952,7 +952,7 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <h4 className="text-xs font-mono uppercase tracking-widest text-green-400 mb-2 flex items-center gap-1.5"><Star className="w-3.5 h-3.5" /> Strongest Argument</h4>
+                    <h4 className="text-xs font-mono uppercase tracking-widest text-[#C1121F] mb-2 flex items-center gap-1.5"><Star className="w-3.5 h-3.5" /> Strongest Argument</h4>
                     <p className="text-gray-300 text-sm italic">"{summary.strongestArgument}"</p>
                  </div>
                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
@@ -967,7 +967,7 @@ const AIDebateSummary = React.memo(({ summary, isAnalyzing, onGenerate }) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">Consensus Level:</span>
-                    <span className={`text-sm font-bold px-2 py-0.5 rounded-md border ${summary.consensusLevel === 'High' ? 'text-green-400 border-green-400/30 bg-green-400/10' : summary.consensusLevel === 'Low' ? 'text-red-400 border-red-400/30 bg-red-400/10' : 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'}`}>{summary.consensusLevel}</span>
+                    <span className={`text-sm font-bold px-2 py-0.5 rounded-md border ${summary.consensusLevel === 'High' ? 'text-[#C1121F] border-[#C1121F]/30 bg-[#C1121F]/10' : summary.consensusLevel === 'Low' ? 'text-red-400 border-red-400/30 bg-red-400/10' : 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'}`}>{summary.consensusLevel}</span>
                   </div>
                </div>
             </motion.div>

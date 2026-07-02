@@ -156,11 +156,11 @@ const Icon = {
 // ─────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { to: "/",              label: "Home 🏠",          Icon: Icon.Home,         IconFilled: Icon.HomeFilled,       badgeKey: null },
-  { to: "/explore",       label: "Explore 🔍",       Icon: Icon.Explore,      IconFilled: Icon.ExploreFilled,    badgeKey: null },
+  { to: "/",              label: "Home",          Icon: Icon.Home,         IconFilled: Icon.HomeFilled,       badgeKey: null },
+  { to: "/explore",       label: "Explore",       Icon: Icon.Explore,      IconFilled: Icon.ExploreFilled,    badgeKey: null },
   { to: "/rooms",         label: "Debates 💬",       Icon: Icon.Debates,      IconFilled: Icon.DebatesFilled,    badgeKey: "rooms" },
-  { to: "/messages",      label: "Messages ✉️",      Icon: Icon.Messages,     IconFilled: Icon.MessagesFilled,   badgeKey: "messages" },
-  { to: "/notifications", label: "Notifications 🔔", Icon: Icon.Bell,         IconFilled: Icon.BellFilled,       badgeKey: "notifications" },
+  { to: "/messages",      label: "Messages",      Icon: Icon.Messages,     IconFilled: Icon.MessagesFilled,   badgeKey: "messages" },
+  { to: "/notifications", label: "Notifications", Icon: Icon.Bell,         IconFilled: Icon.BellFilled,       badgeKey: "notifications" },
   { to: "/settings",      label: "Settings ⚙️",      Icon: Icon.Settings,     IconFilled: Icon.Settings,         badgeKey: null },
 ];
 
@@ -390,7 +390,7 @@ const ForRealLogo = memo(function ForRealLogo() {
     <Link
       to="/"
       aria-label="ForReal — Home"
-      className="group flex items-center gap-3 px-2 py-2 rounded-xl transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
+      className="group flex items-center gap-3 px-2 py-2 rounded-xl transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/50"
     >
       {/* FR wordmark — F white, R green, no icon, no background */}
       <span
@@ -454,15 +454,15 @@ const LivePulse = memo(function LivePulse({ size = 8 }) {
     <span className="relative flex" style={{ width: size, height: size }}>
       <span
         className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-        style={{ background: TOKEN.green }}
+        style={{ background: TOKEN.brand }}
       />
       <span
         className="relative inline-flex rounded-full"
         style={{
           width: size,
           height: size,
-          background: TOKEN.green,
-          boxShadow: `0 0 ${size / 2}px ${TOKEN.greenGlow}`,
+          background: TOKEN.brand,
+          boxShadow: `0 0 ${size / 2}px ${TOKEN.brandGlow}`,
         }}
       />
     </span>
@@ -503,7 +503,7 @@ const NavItem = memo(function NavItem({ item, badge = 0, onClick }) {
         aria-current={isActive ? "page" : undefined}
         className={clsx(
           "group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all duration-200 overflow-hidden outline-none",
-          "focus-visible:ring-2 focus-visible:ring-green-500/40"
+          "focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
         )}
         style={
           isActive
@@ -516,7 +516,7 @@ const NavItem = memo(function NavItem({ item, badge = 0, onClick }) {
           <motion.div
             layoutId="nav-active-bar"
             className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
-            style={{ background: TOKEN.green, boxShadow: `0 0 10px ${TOKEN.greenGlow}` }}
+            style={{ background: TOKEN.brand, boxShadow: `0 0 10px ${TOKEN.brandGlow}` }}
             transition={{ type: "spring", stiffness: 500, damping: 32 }}
           />
         )}
@@ -533,10 +533,10 @@ const NavItem = memo(function NavItem({ item, badge = 0, onClick }) {
             className={clsx(
               "w-[18px] h-[18px] transition-all duration-200",
               isActive
-                ? "text-green-400"
+                ? "text-[#C1121F]"
                 : "text-zinc-500 group-hover:text-zinc-300"
             )}
-            style={isActive ? { filter: `drop-shadow(0 0 5px ${TOKEN.greenGlow})` } : {}}
+            style={isActive ? { filter: `drop-shadow(0 0 5px ${TOKEN.brandGlow})` } : {}}
           />
           <NavBadge count={badge} />
         </div>
@@ -545,7 +545,7 @@ const NavItem = memo(function NavItem({ item, badge = 0, onClick }) {
         <span
           className={clsx(
             "relative text-[13.5px] font-semibold tracking-wide transition-colors duration-200 select-none",
-            isActive ? "text-green-400" : "text-zinc-400 group-hover:text-zinc-100"
+            isActive ? "text-[#C1121F]" : "text-zinc-400 group-hover:text-zinc-100"
           )}
         >
           {item.label}
@@ -612,7 +612,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
           <Link
             to={`/profile/${meId}`}
             aria-label={`View ${user?.displayName || "your"} profile`}
-            className="relative flex-shrink-0 group outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 rounded-full"
+            className="relative flex-shrink-0 group outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/50 rounded-full"
           >
             <img
               src={user?.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.username || "user"}`}
@@ -625,9 +625,9 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             <span
               className="absolute -bottom-0.5 -right-0.5 h-[13px] w-[13px] rounded-full"
               style={{
-                background: TOKEN.green,
+                background: TOKEN.brand,
                 border: `2.5px solid ${TOKEN.bg}`,
-                boxShadow: `0 0 6px ${TOKEN.greenGlow}`,
+                boxShadow: `0 0 6px ${TOKEN.brandGlow}`,
               }}
               aria-label="Online"
             />
@@ -658,7 +658,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
           >
             <Link to={`/profile/${meId}/followers`} className="text-center group outline-none">
-              <div className="text-[13px] font-bold text-white group-hover:text-green-400 transition-colors">
+              <div className="text-[13px] font-bold text-white group-hover:text-[#C1121F] transition-colors">
                 {(user?.followersCount || 0).toLocaleString()}
               </div>
               <div className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5" style={{ fontFamily: "'Space Mono', monospace" }}>
@@ -667,7 +667,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             </Link>
             <div className="w-px h-6" style={{ background: "rgba(255,255,255,0.08)" }} />
             <Link to={`/profile/${meId}/following`} className="text-center group outline-none">
-              <div className="text-[13px] font-bold text-white group-hover:text-green-400 transition-colors">
+              <div className="text-[13px] font-bold text-white group-hover:text-[#C1121F] transition-colors">
                 {(user?.followingCount || 0).toLocaleString()}
               </div>
               <div className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5" style={{ fontFamily: "'Space Mono', monospace" }}>
@@ -676,7 +676,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             </Link>
             <div className="w-px h-6" style={{ background: "rgba(255,255,255,0.08)" }} />
             <Link to={`/profile/${meId}/debates`} className="text-center group outline-none">
-              <div className="text-[13px] font-bold text-white group-hover:text-green-400 transition-colors">
+              <div className="text-[13px] font-bold text-white group-hover:text-[#C1121F] transition-colors">
                 {(user?.debatesCount || 0).toLocaleString()}
               </div>
               <div className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5" style={{ fontFamily: "'Space Mono', monospace" }}>
@@ -691,7 +691,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
           <Link
             to={`/profile/${meId}`}
             aria-label="View your profile"
-            className="group flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+            className="group flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
             style={{
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.09)",
@@ -701,7 +701,7 @@ const UserCard = memo(function UserCard({ user, onLogout }) {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.border = "1px solid rgba(193,18,31,0.2)";
-              e.currentTarget.style.color  = TOKEN.green;
+              e.currentTarget.style.color  = TOKEN.brand;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.border = "1px solid rgba(255,255,255,0.09)";
@@ -761,7 +761,7 @@ const TrendingCard = memo(function TrendingCard({ rooms, loading }) {
           <div className="flex items-center gap-2">
             <Icon.Flame
               className="w-3.5 h-3.5"
-              style={{ color: TOKEN.green }}
+              style={{ color: TOKEN.brand }}
             />
             <span
               className="text-[11px] font-bold text-white tracking-[0.15em] uppercase select-none"
@@ -773,10 +773,10 @@ const TrendingCard = memo(function TrendingCard({ rooms, loading }) {
           <Link
             to="/rooms"
             aria-label="See all debates"
-            className="text-[10px] tracking-wider uppercase transition-colors outline-none focus-visible:ring-1 focus-visible:ring-green-500/40 rounded"
-            style={{ fontFamily: "'Space Mono', monospace", color: TOKEN.greenDim }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = TOKEN.green)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = TOKEN.greenDim)}
+            className="text-[10px] tracking-wider uppercase transition-colors outline-none focus-visible:ring-1 focus-visible:ring-[#C1121F]/40 rounded"
+            style={{ fontFamily: "'Space Mono', monospace", color: TOKEN.brandDim }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = TOKEN.brand)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = TOKEN.brandDim)}
           >
             All →
           </Link>
@@ -826,7 +826,7 @@ const TrendingRoomRow = memo(function TrendingRoomRow({ room, index }) {
       <Link
         to={`/rooms/${room._id}`}
         aria-label={`${room.topic} — ${isLive ? "Live" : "Ended"}, ${room.spectators || 0} watching`}
-        className="group flex items-start gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 outline-none focus-visible:ring-1 focus-visible:ring-green-500/40"
+        className="group flex items-start gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 outline-none focus-visible:ring-1 focus-visible:ring-[#C1121F]/40"
         onMouseEnter={(e) => {
           e.currentTarget.style.background   = TOKEN.surfaceHover;
           e.currentTarget.style.borderColor  = TOKEN.borderActive;
@@ -858,7 +858,7 @@ const TrendingRoomRow = memo(function TrendingRoomRow({ room, index }) {
             {isLive && (
               <span
                 className="text-[9px] font-black tracking-[0.15em]"
-                style={{ fontFamily: "'Space Mono', monospace", color: TOKEN.green }}
+                style={{ fontFamily: "'Space Mono', monospace", color: TOKEN.brand }}
               >
                 LIVE
               </span>
@@ -875,7 +875,7 @@ const TrendingRoomRow = memo(function TrendingRoomRow({ room, index }) {
         {/* Arrow */}
         <Icon.ChevronRight
           className="w-3.5 h-3.5 flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-x-1 group-hover:translate-x-0"
-          style={{ color: TOKEN.greenDim }}
+          style={{ color: TOKEN.brandDim }}
         />
       </Link>
     </motion.div>
@@ -901,7 +901,7 @@ const SuggestionsCard = memo(function SuggestionsCard({ users, loading }) {
           <div className="flex items-center gap-2">
             <Icon.Users
               className="w-3.5 h-3.5"
-              style={{ color: TOKEN.green }}
+              style={{ color: TOKEN.brand }}
             />
             <span
               className="text-[11px] font-bold text-white tracking-[0.15em] uppercase select-none"
@@ -913,10 +913,10 @@ const SuggestionsCard = memo(function SuggestionsCard({ users, loading }) {
           <Link
             to="/explore"
             aria-label="More suggestions"
-            className="text-[10px] tracking-wider uppercase transition-colors outline-none focus-visible:ring-1 focus-visible:ring-green-500/40 rounded"
-            style={{ fontFamily: "'Space Mono', monospace", color: TOKEN.greenDim }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = TOKEN.green)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = TOKEN.greenDim)}
+            className="text-[10px] tracking-wider uppercase transition-colors outline-none focus-visible:ring-1 focus-visible:ring-[#C1121F]/40 rounded"
+            style={{ fontFamily: "'Space Mono', monospace", color: TOKEN.brandDim }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = TOKEN.brand)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = TOKEN.brandDim)}
           >
             More →
           </Link>
@@ -981,7 +981,7 @@ const SuggestionUserRow = memo(function SuggestionUserRow({ user, index, followi
       <Link
         to={`/profile/${user._id}`}
         aria-label={`View ${user.displayName || user.username}'s profile`}
-        className="flex-shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+        className="flex-shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
         tabIndex={0}
       >
         <img
@@ -1017,7 +1017,7 @@ const SuggestionUserRow = memo(function SuggestionUserRow({ user, index, followi
         onClick={onFollow}
         aria-label={following ? `Unfollow @${user.username}` : `Follow @${user.username}`}
         aria-pressed={following}
-        className="flex-shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+        className="flex-shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
         style={
           following
             ? {
@@ -1029,7 +1029,7 @@ const SuggestionUserRow = memo(function SuggestionUserRow({ user, index, followi
             : {
                 background: "rgba(193,18,31,0.1)",
                 border: `1px solid rgba(193,18,31,0.25)`,
-                color: TOKEN.green,
+                color: TOKEN.brand,
                 fontFamily: "'Space Mono', monospace",
               }
         }
@@ -1117,7 +1117,7 @@ const MobileBottomNav = memo(function MobileBottomNav({ badges }) {
               to={item.to}
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
-              className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 min-w-[52px]"
+              className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40 min-w-[52px]"
             >
               {/* Active background pill */}
               <AnimatePresence>
@@ -1139,9 +1139,9 @@ const MobileBottomNav = memo(function MobileBottomNav({ badges }) {
                 <CurrIcon
                   className={clsx(
                     "relative w-5 h-5 transition-all duration-200",
-                    isActive ? "text-green-400" : "text-zinc-500"
+                    isActive ? "text-[#C1121F]" : "text-zinc-500"
                   )}
-                  style={isActive ? { filter: `drop-shadow(0 0 5px ${TOKEN.greenGlow})` } : {}}
+                  style={isActive ? { filter: `drop-shadow(0 0 5px ${TOKEN.brandGlow})` } : {}}
                 />
                 <NavBadge count={badge} />
               </div>
@@ -1150,7 +1150,7 @@ const MobileBottomNav = memo(function MobileBottomNav({ badges }) {
               <span
                 className={clsx(
                   "relative text-[8px] font-bold tracking-[0.12em] uppercase transition-colors select-none",
-                  isActive ? "text-green-400" : "text-zinc-600"
+                  isActive ? "text-[#C1121F]" : "text-zinc-600"
                 )}
                 style={{ fontFamily: "'Space Mono', monospace" }}
               >
@@ -1198,7 +1198,7 @@ const MobileTopBar = memo(function MobileTopBar({ badges, user }) {
         <NavLink
           to="/notifications"
           aria-label={`Notifications${notifBadge ? ` — ${notifBadge} unread` : ""}`}
-          className="relative p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+          className="relative p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
           style={{ color: TOKEN.textMuted }}
           onMouseEnter={(e) => (e.currentTarget.style.color = TOKEN.text)}
           onMouseLeave={(e) => (e.currentTarget.style.color = TOKEN.textMuted)}
@@ -1211,7 +1211,7 @@ const MobileTopBar = memo(function MobileTopBar({ badges, user }) {
         <NavLink
           to="/messages"
           aria-label={`Messages${msgBadge ? ` — ${msgBadge} unread` : ""}`}
-          className="relative p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+          className="relative p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
           style={{ color: TOKEN.textMuted }}
           onMouseEnter={(e) => (e.currentTarget.style.color = TOKEN.text)}
           onMouseLeave={(e) => (e.currentTarget.style.color = TOKEN.textMuted)}
@@ -1225,7 +1225,7 @@ const MobileTopBar = memo(function MobileTopBar({ badges, user }) {
           <Link
             to={`/profile/${meId}`}
             aria-label="Your profile"
-            className="outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 rounded-full"
+            className="outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40 rounded-full"
           >
             <img
               src={user.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`}

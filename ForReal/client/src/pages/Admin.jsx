@@ -285,7 +285,7 @@ const StatColorClasses = {
   // safe fixed strings so Tailwind can generate them
   'neon':  { bg: 'bg-brand/10', border: 'border-brand/30', text: 'text-brand' },
   'red-400': { bg: 'bg-red-400/10', border: 'border-red-400/30', text: 'text-red-400' },
-  'green-400': { bg: 'bg-green-400/10', border: 'border-green-400/30', text: 'text-green-400' },
+  'red-600': { bg: 'bg-red-600/10', border: 'border-red-600/30', text: 'text-red-600' },
 };
 
 const StatCard = React.memo(({ icon: Icon, label, value, sub, color }) => {
@@ -357,12 +357,12 @@ const ReportItem = React.memo(({ report, onResolve, onDismiss, onDeleteUser }) =
             <span className={`text-xs font-mono px-2 py-1 rounded-full border ${
               report.status === 'pending'
                 ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                : 'bg-green-500/10 border-green-500/30 text-green-400'
+                : 'bg-red-600/10 border-red-600/30 text-red-600'
             }`}>
               {report.status.toUpperCase()}
             </span>
             <span className="text-sm text-gray-300">
-              {report.targetType === 'post' ? '📝 Talk' : '👤 User'}
+              {report.targetType === 'post' ? 'Talk' : 'User'}
             </span>
             <span className="text-xs text-gray-500">ID: {report._id}</span>
           </div>
@@ -380,7 +380,7 @@ const ReportItem = React.memo(({ report, onResolve, onDismiss, onDeleteUser }) =
               whileTap={{ scale: 0.98 }}
               onClick={() => handleAction(onResolve, report._id, 'resolved')}
               disabled={loading}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20 text-sm font-medium disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-600/10 border border-red-600/30 text-red-600 hover:bg-red-600/20 text-sm font-medium disabled:opacity-50"
             >
               <CheckCircle className="w-4 h-4" /> Resolve
             </motion.button>
@@ -644,7 +644,7 @@ export default function Admin() {
                     <StatCard icon={Users} label="Total Users" value={stats?.totalUsers} color="neon" delay={0.1} />
                     <StatCard icon={MessageSquare} label="Total Talks" value={stats?.totalPosts} color="neon" delay={0.2} />
                     <StatCard icon={AlertTriangle} label="Pending Reports" value={stats?.pendingReports} color="red-400" delay={0.3} />
-                    <StatCard icon={Activity} label="Online Now" value={stats?.onlineUsers} color="green-400" delay={0.4} />
+                    <StatCard icon={Activity} label="Online Now" value={stats?.onlineUsers} color="red-600" delay={0.4} />
                   </motion.div>
                 )}
 
@@ -678,7 +678,7 @@ export default function Admin() {
                   <div className="space-y-3">{[1,2,3].map(i => <SectionSkeleton key={i} />)}</div>
                 ) : reports.length === 0 ? (
                   <div className="text-center py-12 text-gray-400 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10">
-                    <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-3" />
+                    <CheckCircle className="w-10 h-10 text-red-600 mx-auto mb-3" />
                     <p>All clear! No pending reports.</p>
                   </div>
                 ) : (

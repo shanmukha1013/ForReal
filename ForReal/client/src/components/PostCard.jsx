@@ -95,14 +95,14 @@ const skeletonPulse = {
 // -----------------------------------------------------------------------------
 
 const REACTION_TYPES = [
-  { id: 'like', icon: '❤️', label: 'Like' },
-  { id: 'dislike', icon: '👎', label: 'Dislike' },
-  { id: 'agree', icon: '🤝', label: 'Agree' },
-  { id: 'disagree', icon: '🙅', label: 'Disagree' },
-  { id: 'facts', icon: '💯', label: 'Facts' },
-  { id: 'cap', icon: '🧢', label: 'Cap' },
-  { id: 'misleading', icon: '⚠️', label: 'Misleading' },
-  { id: 'validPoint', icon: '🎯', label: 'Valid Point' },
+  { id: 'like', icon: '[+]', label: 'Like' },
+  { id: 'dislike', icon: '[-]', label: 'Dislike' },
+  { id: 'agree', icon: '[AGREE]', label: 'Agree' },
+  { id: 'disagree', icon: '[DISAGREE]', label: 'Disagree' },
+  { id: 'facts', icon: '[FACTS]', label: 'Facts' },
+  { id: 'cap', icon: '[CAP]', label: 'Cap' },
+  { id: 'misleading', icon: '[!]', label: 'Misleading' },
+  { id: 'validPoint', icon: '[*]', label: 'Valid Point' },
 ];
 
 const arrayKeyMap = {
@@ -454,7 +454,7 @@ const FactCheckBar = ({ sourceUrl, verifications, disputes, onVerify, onDispute,
   if (totalScore >= 3) {
     if (verifyScore > disputeScore * 2) {
       status = 'Verified';
-      statusColor = 'text-green-400 border-green-400/30 bg-green-400/10';
+      statusColor = 'text-[#C1121F] border-[#C1121F]/30 bg-[#C1121F]/10';
       StatusIcon = CheckBadgeIcon;
     } else if (verifyScore > disputeScore) {
       status = 'Community Verified';
@@ -493,7 +493,7 @@ const FactCheckBar = ({ sourceUrl, verifications, disputes, onVerify, onDispute,
         <div className="flex items-center gap-2">
           <button 
             onClick={() => onVerify('verify')} 
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${myVote === 'verify' ? 'bg-green-500/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-400 hover:text-green-400 hover:border-green-400/30'}`}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${myVote === 'verify' ? 'bg-[#C1121F]/20 border-[#C1121F]/40 text-[#C1121F]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-[#C1121F] hover:border-[#C1121F]/30'}`}
           >
             Verify
           </button>

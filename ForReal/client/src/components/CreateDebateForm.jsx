@@ -196,8 +196,8 @@ export default function CreateDebateForm({ onCreate, optimisticCreateRoom, confi
             onChange={(e) => setVisibility(e.target.value)}
             className="bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500/50 text-sm"
           >
-            <option value="public">🌍 Public</option>
-            <option value="private">🔒 Private</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
           </select>
         </div>
         

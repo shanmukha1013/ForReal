@@ -164,11 +164,11 @@ const T = {
   surface:      "rgba(255,255,255,0.03)",
   surfaceHover: "rgba(255,255,255,0.055)",
   border:       "rgba(255,255,255,0.07)",
-  borderGreen:  "rgba(193,18,31,0.2)",
-  green:        "#C1121F",
-  greenDim:     "rgba(193,18,31,0.7)",
-  greenGlow:    "rgba(193,18,31,0.25)",
-  greenSub:     "rgba(193,18,31,0.08)",
+  borderActive: "rgba(193,18,31,0.2)",
+  brand:        "#C1121F",
+  brandDim:     "rgba(193,18,31,0.7)",
+  brandGlow:    "rgba(193,18,31,0.25)",
+  brandSub:     "rgba(193,18,31,0.08)",
   text:         "#e4e4e7",
   textMuted:    "#71717a",
   textDim:      "#3f3f46",
@@ -486,7 +486,7 @@ const NavLogo = memo(function NavLogo({ compact = false }) {
     <Link
       to="/"
       aria-label="ForReal — Home"
-      className="group flex items-center gap-2.5 flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 rounded-xl"
+      className="group flex items-center gap-2.5 flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40 rounded-xl"
     >
       {/* FR wordmark — F white, R green, no icon, no background */}
       <span
@@ -494,7 +494,7 @@ const NavLogo = memo(function NavLogo({ compact = false }) {
         style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", fontSize: "20px", letterSpacing: "-0.05em", lineHeight: "1" }}
       >
         <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>F</span>
-        <span style={{ color: T.green }}>R</span>
+        <span style={{ color: T.brand }}>R</span>
       </span>
 
       {/* Wordmark — hidden on very small or when compact=true */}
@@ -503,7 +503,7 @@ const NavLogo = memo(function NavLogo({ compact = false }) {
           className="hidden sm:block font-black select-none"
           style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "18px", letterSpacing: "-0.04em", lineHeight: "1" }}
         >
-          <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>FOR</span><span style={{ color: T.green }}>REAL</span>
+          <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>FOR</span><span style={{ color: T.brand }}>REAL</span>
         </span>
       )}
     </Link>
@@ -546,11 +546,11 @@ const LivePulse = memo(function LivePulse() {
     <span className="relative flex h-2 w-2 flex-shrink-0">
       <span
         className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-        style={{ background: T.green }}
+        style={{ background: T.brand }}
       />
       <span
         className="relative inline-flex rounded-full h-2 w-2"
-        style={{ background: T.green, boxShadow: `0 0 5px ${T.greenGlow}` }}
+        style={{ background: T.brand, boxShadow: `0 0 5px ${T.brandGlow}` }}
       />
     </span>
   );
@@ -571,14 +571,14 @@ const DesktopNavLink = memo(function DesktopNavLink({ item, badge = 0 }) {
       to={item.to}
       aria-label={item.label}
       aria-current={isActive ? "page" : undefined}
-      className="group relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+      className="group relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
     >
       {/* Active pill */}
       {isActive && (
         <motion.div
           layoutId="navbar-desktop-pill"
           className="absolute inset-0 rounded-xl"
-          style={{ background: T.greenSub, border: `1px solid ${T.borderGreen}` }}
+          style={{ background: T.brandSub, border: `1px solid ${T.borderActive}` }}
           transition={EASE_SPRING}
         />
       )}
@@ -595,9 +595,9 @@ const DesktopNavLink = memo(function DesktopNavLink({ item, badge = 0 }) {
       <div className="relative">
         <CurrIcon
           className={`w-4 h-4 transition-all duration-200 ${
-            isActive ? "text-green-400" : "text-zinc-500 group-hover:text-zinc-300"
+            isActive ? "text-[#C1121F]" : "text-zinc-500 group-hover:text-zinc-300"
           }`}
-          style={isActive ? { filter: `drop-shadow(0 0 4px ${T.greenGlow})` } : {}}
+          style={isActive ? { filter: `drop-shadow(0 0 4px ${T.brandGlow})` } : {}}
         />
         <NavBadge count={badge} />
       </div>
@@ -605,7 +605,7 @@ const DesktopNavLink = memo(function DesktopNavLink({ item, badge = 0 }) {
       {/* Label */}
       <span
         className={`relative text-[13px] font-semibold tracking-wide transition-colors duration-200 whitespace-nowrap select-none ${
-          isActive ? "text-green-400" : "text-zinc-400 group-hover:text-zinc-100"
+          isActive ? "text-[#C1121F]" : "text-zinc-400 group-hover:text-zinc-100"
         }`}
       >
         {item.label}
@@ -620,7 +620,7 @@ const DropdownItem = memo(function DropdownItem({ to, Icon, label, onClick, dang
     <Link
       to={to}
       onClick={onClick}
-      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[12px] font-semibold tracking-wide transition-all duration-200 outline-none focus-visible:ring-1 focus-visible:ring-green-500/30"
+      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[12px] font-semibold tracking-wide transition-all duration-200 outline-none focus-visible:ring-1 focus-visible:ring-[#C1121F]/30"
       style={{ color: danger ? "#f87171" : T.textMuted }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = danger ? "rgba(239,68,68,0.07)" : T.surfaceHover;
@@ -670,10 +670,10 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Account menu for ${user?.displayName || user?.username}`}
-        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl border transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl border transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
         style={{
-          background:  open ? T.greenSub         : T.surface,
-          borderColor: open ? T.borderGreen       : T.border,
+          background:  open ? T.brandSub         : T.surface,
+          borderColor: open ? T.borderActive       : T.border,
         }}
       >
         {/* Avatar + online dot */}
@@ -687,7 +687,7 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
           />
           <span
             className="absolute -bottom-0.5 -right-0.5 h-[10px] w-[10px] rounded-full"
-            style={{ background: T.green, border: `2px solid ${T.bg}`, boxShadow: `0 0 5px ${T.greenGlow}` }}
+            style={{ background: T.brand, border: `2px solid ${T.bg}`, boxShadow: `0 0 5px ${T.brandGlow}` }}
             aria-label="Online"
           />
         </div>
@@ -758,7 +758,7 @@ const UserDropdown = memo(function UserDropdown({ user, onLogout }) {
                           {user?.displayName || "User"}
                         </span>
                         {user?.verified && (
-                          <Icons.Verified className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.green }} />
+                          <Icons.Verified className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.brand }} />
                         )}
                   </div>
                   <div
@@ -832,10 +832,10 @@ const DrawerNavLink = memo(function DrawerNavLink({ item, badge = 0, onClick }) 
         onClick={onClick}
         aria-label={item.label}
         aria-current={isActive ? "page" : undefined}
-        className="group relative flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 border outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+        className="group relative flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 border outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
         style={
           isActive
-            ? { background: T.greenSub, borderColor: T.borderGreen, color: T.green }
+            ? { background: T.brandSub, borderColor: T.borderActive, color: T.brand }
             : { borderColor: "transparent", color: T.textMuted }
         }
         onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = T.surfaceHover; e.currentTarget.style.color = T.text; } }}
@@ -846,7 +846,7 @@ const DrawerNavLink = memo(function DrawerNavLink({ item, badge = 0, onClick }) 
           <motion.div
             layoutId="drawer-active-bar"
             className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
-            style={{ background: T.green, boxShadow: `0 0 10px ${T.greenGlow}` }}
+            style={{ background: T.brand, boxShadow: `0 0 10px ${T.brandGlow}` }}
             transition={EASE_SPRING}
           />
         )}
@@ -855,7 +855,7 @@ const DrawerNavLink = memo(function DrawerNavLink({ item, badge = 0, onClick }) 
         <div className="relative flex-shrink-0">
           <CurrIcon
             className="w-5 h-5 transition-colors duration-200"
-            style={isActive ? { filter: `drop-shadow(0 0 5px ${T.greenGlow})` } : {}}
+            style={isActive ? { filter: `drop-shadow(0 0 5px ${T.brandGlow})` } : {}}
           />
           <NavBadge count={badge} />
         </div>
@@ -867,7 +867,7 @@ const DrawerNavLink = memo(function DrawerNavLink({ item, badge = 0, onClick }) 
         {badge > 0 && (
           <span
             className="text-[10px] font-bold"
-            style={{ fontFamily: "'Space Mono', monospace", color: isActive ? T.greenDim : T.textDim }}
+            style={{ fontFamily: "'Space Mono', monospace", color: isActive ? T.brandDim : T.textDim }}
           >
             {badge > 99 ? "99+" : badge}
           </span>
@@ -967,7 +967,7 @@ const MobileDrawer = memo(function MobileDrawer({
                 whileTap={shouldReduceMotion ? {} : { scale: 0.88 }}
                 onClick={onClose}
                 aria-label="Close navigation menu"
-                className="p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                className="p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
                 style={{ color: T.textMuted, background: T.surface, border: `1px solid ${T.border}` }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = T.text; e.currentTarget.style.background = T.surfaceHover; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = T.surface; }}
@@ -986,7 +986,7 @@ const MobileDrawer = memo(function MobileDrawer({
                 <Link
                   to={`/profile/${meId}`}
                   onClick={onClose}
-                  className="flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 rounded-xl"
+                  className="flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40 rounded-xl"
                   aria-label={`View ${user?.displayName}'s profile`}
                 >
                   <div className="relative flex-shrink-0">
@@ -999,14 +999,14 @@ const MobileDrawer = memo(function MobileDrawer({
                     />
                     <span
                       className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full"
-                      style={{ background: T.green, border: `2px solid rgba(6,6,6,1)`, boxShadow: `0 0 6px ${T.greenGlow}` }}
+                      style={{ background: T.brand, border: `2px solid rgba(6,6,6,1)`, boxShadow: `0 0 6px ${T.brandGlow}` }}
                       aria-label="Online"
                     />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[13px] font-bold text-white truncate">{user.displayName || "User"}</span>
-                      {user.verified && <Icons.Verified className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.green }} />}
+                      {user.verified && <Icons.Verified className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.brand }} />}
                     </div>
                     <span
                       className="text-[11px] truncate block mt-0.5"
@@ -1047,11 +1047,11 @@ const MobileDrawer = memo(function MobileDrawer({
                   to="/rooms"
                   onClick={onClose}
                   aria-label="Start a new debate"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-2xl text-[11px] font-bold tracking-widest transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-2xl text-[11px] font-bold tracking-widest transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
                   style={{
-                    background: T.greenSub,
-                    border:     `1px solid ${T.borderGreen}`,
-                    color:      T.green,
+                    background: T.brandSub,
+                    border:     `1px solid ${T.borderActive}`,
+                    color:      T.brand,
                     fontFamily: "'Space Mono', monospace",
                   }}
                 >
@@ -1144,7 +1144,7 @@ const MobileBottomBar = memo(function MobileBottomBar({ navLinks, badges }) {
               to={item.to}
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
-              className="relative flex flex-col items-center gap-[3px] px-3 py-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40 min-w-[52px]"
+              className="relative flex flex-col items-center gap-[3px] px-3 py-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40 min-w-[52px]"
             >
               {/* Active bg pill */}
               <AnimatePresence>
@@ -1152,7 +1152,7 @@ const MobileBottomBar = memo(function MobileBottomBar({ navLinks, badges }) {
                   <motion.div
                     layoutId="bottombar-active-pill"
                     className="absolute inset-0 rounded-xl"
-                    style={{ background: T.greenSub, border: `1px solid ${T.borderGreen}` }}
+                    style={{ background: T.brandSub, border: `1px solid ${T.borderActive}` }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -1164,8 +1164,8 @@ const MobileBottomBar = memo(function MobileBottomBar({ navLinks, badges }) {
               {/* Icon + badge */}
               <div className="relative">
                 <CurrIcon
-                  className={`relative w-5 h-5 transition-all duration-200 ${isActive ? "text-green-400" : "text-zinc-500"}`}
-                  style={isActive ? { filter: `drop-shadow(0 0 5px ${T.greenGlow})` } : {}}
+                  className={`relative w-5 h-5 transition-all duration-200 ${isActive ? "text-[#C1121F]" : "text-zinc-500"}`}
+                  style={isActive ? { filter: `drop-shadow(0 0 5px ${T.brandGlow})` } : {}}
                 />
                 <NavBadge count={badge} />
               </div>
@@ -1173,7 +1173,7 @@ const MobileBottomBar = memo(function MobileBottomBar({ navLinks, badges }) {
               {/* Label */}
               <span
                 className={`relative text-[8px] font-bold tracking-[0.1em] uppercase select-none transition-colors duration-200 ${
-                  isActive ? "text-green-400" : "text-zinc-600"
+                  isActive ? "text-[#C1121F]" : "text-zinc-600"
                 }`}
                 style={{ fontFamily: "'Space Mono', monospace" }}
               >
@@ -1288,15 +1288,15 @@ export default function Navbar() {
               <Link
                 to="/rooms"
                 aria-label="Start a new debate"
-                className="group flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[11px] font-bold tracking-widest transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                className="group flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[11px] font-bold tracking-widest transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
                 style={{
-                  background: T.greenSub,
-                  border:     `1px solid ${T.borderGreen}`,
-                  color:      T.green,
+                  background: T.brandSub,
+                  border:     `1px solid ${T.borderActive}`,
+                  color:      T.brand,
                   fontFamily: "'Space Mono', monospace",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(193,18,31,0.13)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = T.greenSub; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = T.brandSub; }}
               >
                 <Icons.Plus className="w-3 h-3" />
                 DEBATE
@@ -1317,7 +1317,7 @@ export default function Navbar() {
               <NavLink
                 to="/notifications"
                 aria-label={`Notifications${badges.notifications ? ` — ${badges.notifications} unread` : ""}`}
-                className="relative p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                className="relative p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
                 style={{ color: T.textMuted }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = T.text)}
                 onMouseLeave={(e) => (e.currentTarget.style.color = T.textMuted)}
@@ -1331,7 +1331,7 @@ export default function Navbar() {
                 <NavLink
                   to={`/profile/${userId}`}
                   aria-label="Your profile"
-                  className="relative flex-shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                  className="relative flex-shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
                 >
                   <img
                     src={user.avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`}
@@ -1343,7 +1343,7 @@ export default function Navbar() {
                   {/* Online dot */}
                   <span
                     className="absolute -bottom-0.5 -right-0.5 h-[10px] w-[10px] rounded-full"
-                    style={{ background: T.green, border: `2px solid ${T.bg}`, boxShadow: `0 0 4px ${T.greenGlow}` }}
+                    style={{ background: T.brand, border: `2px solid ${T.bg}`, boxShadow: `0 0 4px ${T.brandGlow}` }}
                     aria-hidden="true"
                   />
                 </NavLink>
@@ -1356,7 +1356,7 @@ export default function Navbar() {
                 aria-label="Open navigation menu"
                 aria-expanded={drawerOpen}
                 aria-controls="mobile-drawer"
-                className="p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-green-500/40"
+                className="p-2 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
                 style={{
                   color:      T.textMuted,
                   background: T.surface,

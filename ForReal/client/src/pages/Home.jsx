@@ -219,7 +219,7 @@ export default function Home() {
                 <Zap className="w-6 h-6 text-brand" />
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
-                Raw Debates 🎙️
+                Raw Debates
               </h1>
             </div>
             <p className="text-gray-400 mt-2">

@@ -314,7 +314,7 @@ const RoomCard = React.memo(({ room, index }) => {
             {/* Stats row */}
             <div className="mt-auto pt-3 border-t border-white/5 flex items-center gap-4 text-xs text-gray-400">
               <div className="flex items-center gap-1">
-                <Users className="w-3.5 h-3.5 text-green-400" />
+                <Users className="w-3.5 h-3.5 text-[#C1121F]" />
                 <span className="font-medium text-white">{proCount}</span> Pro
               </div>
               <div className="flex items-center gap-1">
@@ -513,9 +513,9 @@ export default function Rooms() {
               onChange={(e) => setSortBy(e.target.value)}
               className="bg-black/40 border border-white/10 rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-brand/50"
             >
-              <option value="trending">🔥 Trending</option>
+              <option value="trending">Trending</option>
               <option value="newest">🕒 Newest</option>
-              <option value="active">💬 Most Active</option>
+              <option value="active">Most Active</option>
             </select>
           </div>
         </div>

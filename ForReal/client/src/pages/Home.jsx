@@ -80,12 +80,12 @@ const useFeed = (limit = 10) => {
         
                 setTalks((prev) => {
           if (!append) {
-             localStorage.setItem('forreal_posts', JSON.stringify(paginated));
+             try { localStorage.setItem('forreal_posts', JSON.stringify(paginated.slice(0, 20))); } catch(e) {}
              return paginated;
           }
           const merged = [...prev, ...paginated];
           const uniqueMerged = Array.from(new Map(merged.map(t => [t._id, t])).values());
-          localStorage.setItem('forreal_posts', JSON.stringify(uniqueMerged));
+          try { localStorage.setItem('forreal_posts', JSON.stringify(uniqueMerged.slice(0, 20))); } catch(e) {}
           return uniqueMerged;
         });
         pageRef.current = page;

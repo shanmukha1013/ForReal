@@ -231,7 +231,7 @@ function useTrendingData() {
           setRooms(finalData.rooms);
           setCreators(finalData.creators);
           setTopics(finalData.topics);
-          sessionStorage.setItem('forreal_explore_trending', JSON.stringify(finalData));
+          try { sessionStorage.setItem('forreal_explore_trending', JSON.stringify(finalData)); } catch(e) {}
         }
       } catch (err) {
         console.error('Trending data error:', err);

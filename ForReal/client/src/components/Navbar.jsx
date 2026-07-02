@@ -493,17 +493,17 @@ const NavLogo = memo(function NavLogo({ compact = false }) {
         className="select-none font-black"
         style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", fontSize: "20px", letterSpacing: "-0.05em", lineHeight: "1" }}
       >
-        <span style={{ color: "#FFFFFF" }}>F</span>
+        <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>F</span>
         <span style={{ color: T.green }}>R</span>
       </span>
 
       {/* Wordmark — hidden on very small or when compact=true */}
       {!compact && (
         <span
-          className="hidden sm:block text-white font-black select-none"
+          className="hidden sm:block font-black select-none"
           style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "18px", letterSpacing: "-0.04em", lineHeight: "1" }}
         >
-          FOR<span style={{ color: T.green }}>REAL</span>
+          <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>FOR</span><span style={{ color: T.green }}>REAL</span>
         </span>
       )}
     </Link>

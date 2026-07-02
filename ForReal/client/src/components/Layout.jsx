@@ -396,17 +396,17 @@ const ForRealLogo = memo(function ForRealLogo() {
         className="select-none tracking-tight font-black"
         style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", fontSize: "22px", letterSpacing: "-0.05em", lineHeight: "1" }}
       >
-        <span style={{ color: "#FFFFFF" }}>F</span>
+        <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>F</span>
         <span style={{ color: TOKEN.brand }}>R</span>
       </span>
 
       {/* Wordmark */}
       <div className="min-w-0">
         <div
-          className="text-white font-black select-none"
+          className="font-black select-none"
           style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: "20px", letterSpacing: "-0.04em", lineHeight: "1" }}
         >
-          FOR<span style={{ color: TOKEN.green }}>REAL</span>
+          <span style={{ color: "#000000", WebkitTextStroke: "1px #ffffff" }}>FOR</span><span style={{ color: TOKEN.brand }}>REAL</span>
         </div>
         <div
           className="text-[9px] tracking-[0.2em] uppercase mt-[4px] select-none"

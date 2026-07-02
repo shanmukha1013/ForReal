@@ -435,7 +435,7 @@ const ProfileCover = React.memo(({ profile }) => (
 ProfileCover.displayName = 'ProfileCover';
 
 const ProfileAvatar = React.memo(({ profile }) => {
-  const avatarSrc = profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.displayName || 'U'}&background=0F0F0F&color=C1121F&bold=true`;
+  const avatarSrc = profile?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${profile?.displayName || 'U'}&backgroundColor=050505&textColor=c1121f&fontWeight=700`;
   return (
     <div className="relative -mt-16 md:-mt-20 mb-4 flex justify-center md:justify-start md:pl-4">
       <motion.div
@@ -519,7 +519,7 @@ const FollowButton = React.memo(({ profile, isOwnProfile, onFollowChange }) => {
       className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-200 border ${
         following
           ? 'bg-brand/10 border-brand/40 text-brand hover:bg-brand/20'
-          : 'bg-brand text-white border-brand hover:bg-brand/90'
+          : 'bg-brand text-brand transition-colors duration-300 border-brand hover:bg-brand/90'
       } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {loading ? (

@@ -26,9 +26,9 @@ import { createPortal } from "react-dom";
 // (In a real codebase these would be imported from a tokens file)
 const COLORS = {
   brand:   "#C1121F",
-  success: "#22C55E",
+  success: "#C1121F",
   red:     "#ef4444",
-  amber:   "#f59e0b",
+  amber:   "#C1121F",
   blue:    "#60a5fa",
   purple:  "#a78bfa",
 };

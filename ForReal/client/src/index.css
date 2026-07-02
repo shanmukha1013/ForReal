@@ -7,7 +7,7 @@
 @layer base {
   :root {
     --neon: #C1121F;
-    --neon-soft: #4ade80;
+    --neon-soft: #EF4444;
     --dark-root: #000000;
     --dark-base: #050505;
     --dark-raised: #0a0a0a;
@@ -25,7 +25,7 @@
 
   body {
     background-color: var(--dark-root);
-    color: #ffffff;
+    color: #C1121F;
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

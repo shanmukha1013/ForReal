@@ -351,7 +351,7 @@ const Section = React.memo(({ title, icon: Icon, children, onSave, saving, saveL
             whileTap={{ scale: 0.98 }}
             onClick={onSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand text-white font-bold text-sm disabled:opacity-50 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold text-sm disabled:opacity-50 transition"
           >
             {saving === title ? (
               <>
@@ -515,7 +515,7 @@ export default function Settings() {
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="relative group w-16 h-16 flex-shrink-0">
                       <img 
-                        src={avatar || `https://ui-avatars.com/api/?name=${displayName || username}&background=0F0F0F&color=C1121F&bold=true`} 
+                        src={avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName || username}&backgroundColor=050505&textColor=c1121f&fontWeight=700`} 
                         alt="Avatar" 
                         className="w-16 h-16 rounded-full object-cover border-2 border-brand/30 bg-black/40" 
                       />
@@ -795,7 +795,7 @@ export default function Settings() {
                           whileTap={{ scale: 0.98 }}
                           onClick={changePassword}
                           disabled={savingSection === 'security'}
-                          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-brand text-white font-bold text-sm disabled:opacity-50"
+                          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold text-sm disabled:opacity-50"
                         >
                           {savingSection === 'security' ? (
                             <><Loader className="w-4 h-4 animate-spin" /> Saving...</>

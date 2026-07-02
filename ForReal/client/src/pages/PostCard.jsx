@@ -241,7 +241,7 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete }) => {
   const username = author?.username || 'user';
   const avatarSrc =
     author?.avatar ||
-    `https://ui-avatars.com/api/?name=${displayName}&background=0F0F0F&color=C1121F&bold=true`;
+    `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}&backgroundColor=050505&textColor=c1121f&fontWeight=700`;
 
   return (
     <div className="flex items-center justify-between">
@@ -525,7 +525,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
             <button
               onClick={onSubmitComment}
               disabled={!commentText.trim()}
-              className="px-3 py-2 rounded-xl bg-brand text-white text-sm font-bold disabled:opacity-50 transition-opacity"
+              className="px-3 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 text-sm font-bold disabled:opacity-50 transition-opacity"
             >
               Post
             </button>

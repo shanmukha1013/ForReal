@@ -505,7 +505,7 @@ const FilterTabs = React.memo(({ activeFilter, onChange, unreadCount }) => {
         >
           {label}
           {key === 'all' && unreadCount > 0 && (
-            <span className="ml-1.5 bg-brand text-white text-[10px] px-1.5 py-0.5 rounded-full">
+            <span className="ml-1.5 bg-brand text-brand transition-colors duration-300 text-[10px] px-1.5 py-0.5 rounded-full">
               {unreadCount}
             </span>
           )}

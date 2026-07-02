@@ -62,7 +62,7 @@ export default function EvidenceUpload({ evidenceList, setEvidenceList }) {
                 ) : ev.type === 'image' || ev.type === 'video' ? (
                   <PhotoIcon className="w-4 h-4 text-brand" />
                 ) : (
-                  <LinkIcon className="w-4 h-4 text-green-400" />
+                  <LinkIcon className="w-4 h-4 text-brand" />
                 )}
                 <span className="truncate">{ev.url}</span>
               </div>

@@ -244,7 +244,7 @@ export default function Home() {
             {!isAuthenticated && (
               <Link
                 to="/login"
-                className="px-4 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:bg-brand/90 transition"
+                className="px-4 py-2.5 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold text-sm hover:bg-brand/90 transition"
               >
                 Sign in to participate
               </Link>
@@ -279,7 +279,7 @@ export default function Home() {
                   <button
                     onClick={handleCreateTalk}
                     disabled={!composeText.trim() || isSubmitting}
-                    className="px-5 py-2 bg-brand text-white font-bold rounded-full text-sm disabled:opacity-50 hover:bg-brand/90 transition shadow-glow-sm disabled:shadow-none flex items-center gap-2"
+                    className="px-5 py-2 bg-brand text-brand transition-colors duration-300 font-bold rounded-full text-sm disabled:opacity-50 hover:bg-brand/90 transition shadow-glow-sm disabled:shadow-none flex items-center gap-2"
                   >
                     {isSubmitting ? (
                       <><div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> Publishing...</>
@@ -304,7 +304,7 @@ export default function Home() {
               <div className="mt-5">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand text-white font-bold hover:bg-brand/90 transition"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand text-brand transition-colors duration-300 font-bold hover:bg-brand/90 transition"
                 >
                   <Plus className="w-4 h-4" /> Sign in
                 </Link>

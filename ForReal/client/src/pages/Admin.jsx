@@ -415,7 +415,7 @@ const UserRow = React.memo(({ user, onAction }) => (
   <motion.div variants={itemVariant} className="border-b border-white/5 p-4 hover:bg-white/5 transition-colors flex items-center justify-between gap-4">
     <div className="flex items-center gap-3">
       <img
-        src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=0F0F0F&color=C1121F`}
+        src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}&backgroundColor=050505&textColor=c1121f&fontWeight=700`}
         alt=""
         className="w-10 h-10 rounded-full border border-white/20"
       />

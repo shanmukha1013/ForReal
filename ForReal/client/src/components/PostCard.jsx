@@ -309,8 +309,8 @@ const TalkHeader = ({ author, createdAt, onDelete, showDelete, isAnonymous }) =>
   const displayName = isAnonymous ? 'Anonymous Voice' : (author?.displayName || author?.username || 'Anonymous');
   const username = isAnonymous ? 'anonymous' : (author?.username || 'user');
   const avatarSrc = isAnonymous
-    ? `https://ui-avatars.com/api/?name=A&background=0F0F0F&color=C1121F&bold=true`
-    : (author?.avatar || `https://ui-avatars.com/api/?name=${displayName}&background=0F0F0F&color=C1121F&bold=true`);
+    ? `https://api.dicebear.com/7.x/initials/svg?seed=A&backgroundColor=050505&textColor=c1121f&fontWeight=700`
+    : (author?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}&backgroundColor=050505&textColor=c1121f&fontWeight=700`);
   const { score, rank } = useCredibility(author?._id || author?.username);
   const profilePath = !isAnonymous ? getProfilePath(author) : null;
 
@@ -643,7 +643,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
       <AnimatePresence initial={false}>
         {visibleComments.map((comment, idx) => {
           const isAnon = comment.isAnonymous;
-          const cAvatar = isAnon ? 'https://ui-avatars.com/api/?name=A&background=0F0F0F&color=C1121F&bold=true' : (comment.author?.avatar || `https://ui-avatars.com/api/?name=${comment.author?.username || 'U'}&background=0F0F0F&color=C1121F&bold=true`);
+          const cAvatar = isAnon ? 'https://api.dicebear.com/7.x/initials/svg?seed=A&backgroundColor=050505&textColor=c1121f&fontWeight=700' : (comment.author?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${comment.author?.username || 'U'}&backgroundColor=050505&textColor=c1121f&fontWeight=700`);
           
           return (
           <motion.div
@@ -721,7 +721,7 @@ const CommentsPreview = ({ comments, onViewAll, timeAgoFn, showInput, commentTex
             <button
               onClick={submitCommentWrapper}
               disabled={!commentText.trim()}
-              className="px-3 py-2 rounded-xl bg-brand text-white text-sm font-bold disabled:opacity-50 transition-opacity"
+              className="px-3 py-2 rounded-xl bg-brand text-brand transition-colors duration-300 text-sm font-bold disabled:opacity-50 transition-opacity"
             >
               Post
             </button>

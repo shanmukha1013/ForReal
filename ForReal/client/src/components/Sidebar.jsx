@@ -93,7 +93,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
           <button
             type="button"
             onClick={onNewDebate}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:bg-brand/90 active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand text-brand transition-colors duration-300 font-semibold text-sm hover:bg-brand/90 active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/50"
             aria-label="Start a new debate"
           >
             <PlusCircle className="w-5 h-5" />
@@ -146,7 +146,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
 
                         {/* Badge for messages / notifications */}
                         {!isLoading && item.badgeKey && user?.[item.badgeKey] > 0 && (
-                          <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-brand text-white rounded-full shadow-glow-sm">
+                          <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-brand text-brand transition-colors duration-300 rounded-full shadow-glow-sm">
                             {user[item.badgeKey]}
                           </span>
                         )}
@@ -176,7 +176,7 @@ const DesktopSidebar = React.memo(({ user, isLoading, onNewDebate }) => {
             </div>
           ) : user ? (
             <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-white/5 backdrop-blur-sm">
-              <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName || user.username || 'U'}&background=0F0F0F&color=C1121F&bold=true`} alt="Avatar" className="w-8 h-8 rounded-full border border-brand/30 object-cover bg-black" />
+              <img src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.displayName || user.username || 'U'}&backgroundColor=050505&textColor=c1121f&fontWeight=700`} alt="Avatar" className="w-8 h-8 rounded-full border border-brand/30 object-cover bg-black" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-brand truncate">{user.displayName}</p>
                 <p className="text-[10px] text-gray-400 truncate">@{user.username}</p>
@@ -240,7 +240,7 @@ const MobileBottomBar = React.memo(({ user, isLoading }) => {
 
                       {/* Badge for messages / notifications */}
                       {item.badgeKey && user?.[item.badgeKey] > 0 && (
-                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 text-[9px] font-bold bg-brand text-white rounded-full shadow-glow-sm">
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 text-[9px] font-bold bg-brand text-brand transition-colors duration-300 rounded-full shadow-glow-sm">
                           {user[item.badgeKey]}
                         </span>
                       )}

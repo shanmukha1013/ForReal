@@ -423,7 +423,7 @@ const CreatorCard = React.memo(({ creator }) => {
     <Link to={`/profile/${encodeURIComponent(safeCreator.username)}`} className="block p-4 hover:bg-white/5 transition-colors group">
       <div className="flex items-center gap-3">
         <img
-          src={safeCreator.avatar || `https://ui-avatars.com/api/?name=${safeCreator.username || 'user'}&background=0F0F0F&color=C1121F`}
+          src={safeCreator.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${safeCreator.username || 'user'}&backgroundColor=050505&textColor=c1121f&fontWeight=700`}
           alt={safeCreator.username}
           className="w-10 h-10 rounded-full border border-brand/30 object-cover"
         />
@@ -577,7 +577,7 @@ export default function Explore() {
                   <button
                     key={tab.id}
                     onClick={() => setSearchTab(tab.id)}
-                    className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-all ${searchTab === tab.id ? 'text-brand border-b-2 border-brand bg-brand/5' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-all ${searchTab === tab.id ? 'text-brand border-b-2 border-brand bg-brand/5' : 'text-gray-400 hover:text-brand transition-colors duration-300 hover:bg-white/5'}`}
                   >
                     {tab.label}
                   </button>

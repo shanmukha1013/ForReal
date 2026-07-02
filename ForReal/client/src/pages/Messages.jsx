@@ -47,7 +47,7 @@ const MessageBubble = ({ message, isMine, senderUsername, time, onReact }) => (
       <div
         className={`rounded-2xl px-4 py-2.5 shadow-lg cursor-pointer transition-transform active:scale-95 ${
           isMine
-            ? 'bg-[#C1121F]/80 text-white'
+            ? 'bg-[#C1121F]/80 text-brand transition-colors duration-300'
             : 'bg-white/10 backdrop-blur-sm border border-white/10 text-brand'
         }`}
         title="Double click to like"
@@ -77,7 +77,7 @@ const MessageBubble = ({ message, isMine, senderUsername, time, onReact }) => (
 const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, unreadCount }) => {
   const otherParticipant = conversation.participants?.find(p => String(p._id || p.id || p) !== String(myId)) || conversation.otherUser || {};
   const title = otherParticipant.displayName || otherParticipant.username || 'Unknown User';
-  const avatar = otherParticipant.avatar || `https://ui-avatars.com/api/?name=${title}&background=0F0F0F&color=C1121F`;
+  const avatar = otherParticipant.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${title}&backgroundColor=050505&textColor=c1121f&fontWeight=700`;
   const isOnline = otherParticipant.status === 'online' || ['smarty', 'test'].includes(otherParticipant.username?.toLowerCase());
   const profilePath = profilePathFor(otherParticipant);
 
@@ -122,7 +122,7 @@ const ConversationItem = ({ conversation, isActive, onClick, lastMessage, myId, 
               <p className="text-sm text-brand font-medium truncate">{title}</p>
             )}
             {unreadCount > 0 && (
-              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-brand text-white text-[10px] font-bold rounded-full">
+              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-brand text-brand transition-colors duration-300 text-[10px] font-bold rounded-full">
                 {unreadCount}
               </span>
             )}
@@ -621,7 +621,7 @@ export default function Messages() {
                            onClick={() => { setRecipientId(u._id || u.id || u.username); setActiveConversationId(null); localStorage.removeItem('forreal_active_conv'); setSearchQuery(''); }}
                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer transition-colors"
                          >
-                           <img src={u.avatar || `https://ui-avatars.com/api/?name=${u.displayName || u.username || 'U'}&background=0F0F0F&color=C1121F`} className="w-10 h-10 rounded-full object-cover" />
+                           <img src={u.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${u.displayName || u.username || 'U'}&backgroundColor=050505&textColor=c1121f&fontWeight=700`} className="w-10 h-10 rounded-full object-cover" />
                            <div>
                              <p className="text-brand font-bold text-sm">{u.displayName || u.username}</p>
                              <p className="text-gray-500 text-xs">@{u.username}</p>
@@ -731,7 +731,7 @@ export default function Messages() {
                   whileTap={{ scale: 0.98 }}
                   onClick={sendMessage}
                   disabled={!text.trim() || (!activeConversationId && !recipientId.trim())}
-                  className="px-5 py-3 rounded-xl bg-brand text-white font-bold flex items-center gap-2 hover:bg-brand/90 transition disabled:opacity-50"
+                  className="px-5 py-3 rounded-xl bg-brand text-brand transition-colors duration-300 font-bold flex items-center gap-2 hover:bg-brand/90 transition disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                   <span className="hidden sm:inline">Send</span>

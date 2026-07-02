@@ -179,7 +179,7 @@ export class ErrorBoundary extends React.Component {
               </button>
               <button
                 onClick={this.handleReload}
-                className="flex-1 px-6 py-3 bg-[#C1121F] hover:bg-[#DC2626] text-white font-semibold rounded-lg transition-colors"
+                className="flex-1 px-6 py-3 bg-[#C1121F] hover:bg-[#DC2626] text-brand transition-colors duration-300 font-semibold rounded-lg transition-colors"
               >
                 Reload App
               </button>
@@ -230,7 +230,7 @@ export function RouteErrorFallback({ error, resetErrorBoundary }) {
         <div className="flex gap-3 flex-col sm:flex-row">
           <button
             onClick={resetErrorBoundary}
-            className="flex-1 px-4 py-3 bg-[#C1121F] hover:bg-[#DC2626] text-white font-semibold rounded-lg transition-colors"
+            className="flex-1 px-4 py-3 bg-[#C1121F] hover:bg-[#DC2626] text-brand transition-colors duration-300 font-semibold rounded-lg transition-colors"
           >
             Retry
           </button>

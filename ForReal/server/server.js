@@ -658,11 +658,9 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 // Server Initialization
 // ============================================================================
 
-// Ensure MONGO_URI exists; fail fast with clear log if missing
 if (!process.env.MONGO_URI) {
-  console.error('[Server] MONGO_URI is not set. Please set MONGO_URI in Render environment variables and redeploy.');
-  // Exit with non-zero so Render marks the deployment as failed with logs visible
-  process.exit(1);
+  console.warn('[Server] MONGO_URI is not set. Defaulting to local mongodb://127.0.0.1:27017/forreal');
+  process.env.MONGO_URI = 'mongodb://127.0.0.1:27017/forreal';
 }
 
 // Connect using process.env.MONGO_URI and start server only after success.

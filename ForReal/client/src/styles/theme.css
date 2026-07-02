@@ -13,10 +13,10 @@
    -------------------------------------------------------------------------- */
 :root {
   /* ---- Backgrounds ---- */
-  --bg-primary:      #050505;
-  --bg-secondary:    #090909;
-  --surface:         #0D0D0D;
-  --surface-elevated:#141414;
+  --bg-primary:      #000000;
+  --bg-secondary:    #000000;
+  --surface:         #030303;
+  --surface-elevated:#050505;
 
   /* ---- Brand (Crimson) ---- */
   --brand-primary:   #C1121F;
@@ -35,10 +35,10 @@
   --border-subtle:   rgba(255,255,255,0.04);
   
   /* ---- States & Badges ---- */
-  --ai:              #F59E0B;
+  --ai:              #C1121F;
   --success:         #C1121F;
-  --warning:         #F59E0B;
-  --info:            #3B82F6;
+  --warning:         #C1121F;
+  --info:            #C1121F;
   --error:           #EF4444;
 
   /* ---- Shadows & Glows ---- */

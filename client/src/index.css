@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-primary: #dc143c; /* Deep Crimson Red */
+  --color-primary-hover: #b01030;
+  
+  --color-bg-dark: #0a0a0a; /* Almost Black */
+  --color-card-dark: #121212; /* Dark Gray */
+  --color-border-subtle: #27272a; /* Subtle Gray */
+  
+  --color-text-main: #ffffff; /* Pure White */
+  --color-text-muted: #a1a1aa; /* Light Gray */
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Spacing */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 15px rgba(220, 20, 60, 0.3);
+  --shadow-strong: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+
+  /* Transitions & Animations */
+  --transition-property-common: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  --transition-timing-function-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-duration-fast: 150ms;
+  --transition-duration-normal: 300ms;
+  --transition-duration-slow: 500ms;
+
+  /* Z-Index */
+  --z-index-dropdown: 100;
+  --z-index-sticky: 200;
+  --z-index-fixed: 300;
+  --z-index-modal: 400;
+  --z-index-popover: 500;
+  --z-index-toast: 600;
+
+  /* Container */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-dark text-text-main font-sans antialiased selection:bg-primary selection:text-white;
+  }
+  
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  #root {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-bg-dark;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-subtle rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-card-dark;
+  }
+}

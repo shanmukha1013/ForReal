@@ -1,27 +1,77 @@
-import React from 'react';
+import React, { forwardRef, useState } from 'react';
+import { motion } from 'framer-motion';
 
-export const Input = React.forwardRef(({
-  label,
-  error,
-  id,
-  className = '',
-  ...props
+export const Input = forwardRef(({ 
+  label, 
+  error, 
+  className = '', 
+  id, 
+  type = 'text', 
+  ...props 
 }, ref) => {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
-    <div className="w-full flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-text-muted">
+        <label 
+          htmlFor={id} 
+          className={`text-sm font-medium transition-colors duration-300 ${isFocused ? 'text-white' : 'text-text-muted'}`}
+        >
           {label}
         </label>
       )}
-      <input
-        ref={ref}
-        id={id}
-        className={`w-full bg-card-dark border ${error ? 'border-error focus:border-error focus:ring-error/20' : 'border-border-subtle focus:border-primary focus:ring-primary/20'} rounded-md px-4 py-2.5 text-white placeholder:text-text-muted/50 transition-property-common duration-fast focus:outline-none focus:ring-4 ${className}`}
-        {...props}
-      />
+      
+      <div className="relative">
+        <input
+          id={id}
+          ref={ref}
+          type={type}
+          onFocus={(e) => {
+            setIsFocused(true);
+            if (props.onFocus) props.onFocus(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            if (props.onBlur) props.onBlur(e);
+          }}
+          className={`
+            w-full 
+            h-12
+            bg-[#0F0F0F] 
+            border 
+            ${error ? 'border-error' : isFocused ? 'border-primary' : 'border-white/[0.04]'}
+            text-text-main 
+            rounded-2xl 
+            px-4
+            text-sm
+            outline-none
+            transition-all duration-300
+            hover:border-white/[0.08]
+            placeholder:text-transparent
+            autofill:bg-[#0F0F0F] autofill:text-white
+            ${className}
+          `}
+          {...props}
+        />
+        
+        {/* Subtle glow on focus */}
+        {isFocused && !error && (
+          <motion.div 
+            layoutId={`glow-${id}`}
+            className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_12px_rgba(193,18,31,0.3)]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+        )}
+      </div>
+
       {error && (
-        <span className="text-xs text-error mt-0.5">{error}</span>
+        <span className="text-error text-xs font-medium mt-1">
+          {error}
+        </span>
       )}
     </div>
   );

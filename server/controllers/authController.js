@@ -46,9 +46,11 @@ const registerUser = async (req, res, next) => {
 // @access  Public
 const loginUser = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ 
+      $or: [{ email: identifier }, { username: identifier }] 
+    });
 
     if (user && (await user.matchPassword(password))) {
       generateToken(res, user._id);
@@ -61,7 +63,7 @@ const loginUser = async (req, res, next) => {
       });
     } else {
       res.status(401);
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid username, email, or password');
     }
   } catch (error) {
     next(error);

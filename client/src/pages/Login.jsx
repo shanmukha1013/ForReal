@@ -5,7 +5,10 @@ import useAuthStore from '@/store/useAuthStore';
 import { Button, Input, Card } from '@/components';
 import { toast } from 'react-hot-toast';
 
+import { usePageTitle } from '@/hooks';
+
 export const Login = () => {
+  usePageTitle('Login');
   const { register, handleSubmit, formState: { errors } } = useForm();
   const { login, isLoading } = useAuthStore();
 
@@ -20,39 +23,32 @@ export const Login = () => {
 
   return (
     <Card className="w-full">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">Log in</h2>
-        <p className="text-sm text-text-muted mt-1">Enter your credentials to continue</p>
+      <div className="mb-8 text-center">
+        <h2 className="text-[28px] font-black text-white tracking-tight leading-tight">Welcome back</h2>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
         <Input
-          label="Email address"
-          type="email"
-          id="email"
-          placeholder="you@example.com"
-          error={errors.email?.message}
-          {...register('email', { 
-            required: 'Email is required',
-            pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' }
+          label="Username or Email"
+          type="text"
+          id="identifier"
+          error={errors.identifier?.message}
+          {...register('identifier', { 
+            required: 'Username or email is required'
           })}
         />
 
-        <Input
-          label="Password"
-          type="password"
-          id="password"
-          placeholder="••••••••"
-          error={errors.password?.message}
-          {...register('password', { required: 'Password is required' })}
-        />
-
-        <div className="flex justify-between items-center text-sm">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input type="checkbox" className="rounded border-border-subtle bg-bg-dark text-primary focus:ring-primary focus:ring-offset-bg-dark transition-property-common" />
-            <span className="text-text-muted group-hover:text-white transition-property-common">Remember me</span>
-          </label>
-          <a href="#" className="text-primary hover:text-primary-hover transition-property-common">Forgot password?</a>
+        <div className="flex flex-col gap-2">
+          <Input
+            label="Password"
+            type="password"
+            id="password"
+            error={errors.password?.message}
+            {...register('password', { required: 'Password is required' })}
+          />
+          <div className="flex justify-end">
+            <a href="#" className="text-sm text-text-muted hover:text-white transition-property-common">Forgot password?</a>
+          </div>
         </div>
 
         <Button type="submit" isLoading={isLoading} className="mt-2 w-full">
@@ -60,7 +56,7 @@ export const Login = () => {
         </Button>
       </form>
 
-      <div className="mt-6 text-center text-sm text-text-muted">
+      <div className="mt-8 text-center text-sm text-text-muted">
         Don't have an account?{' '}
         <Link to="/register" className="text-primary hover:text-primary-hover font-medium transition-property-common">
           Sign up

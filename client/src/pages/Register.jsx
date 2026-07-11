@@ -5,7 +5,10 @@ import useAuthStore from '@/store/useAuthStore';
 import { Button, Input, Card } from '@/components';
 import { toast } from 'react-hot-toast';
 
+import { usePageTitle } from '@/hooks';
+
 export const Register = () => {
+  usePageTitle('Register');
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
   const { register: registerUser, isLoading } = useAuthStore();
   
@@ -26,17 +29,15 @@ export const Register = () => {
 
   return (
     <Card className="w-full">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">Create an account</h2>
-        <p className="text-sm text-text-muted mt-1">Join the conversation</p>
+      <div className="mb-8 text-center">
+        <h2 className="text-[28px] font-black text-white tracking-tight leading-tight">Create account</h2>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
         <Input
           label="Username"
           type="text"
           id="username"
-          placeholder="johndoe"
           error={errors.username?.message}
           {...register('username', { 
             required: 'Username is required',
@@ -48,7 +49,6 @@ export const Register = () => {
           label="Email address"
           type="email"
           id="email"
-          placeholder="you@example.com"
           error={errors.email?.message}
           {...register('email', { 
             required: 'Email is required',
@@ -60,7 +60,6 @@ export const Register = () => {
           label="Password"
           type="password"
           id="password"
-          placeholder="••••••••"
           error={errors.password?.message}
           {...register('password', { 
             required: 'Password is required',
@@ -72,7 +71,6 @@ export const Register = () => {
           label="Confirm Password"
           type="password"
           id="confirmPassword"
-          placeholder="••••••••"
           error={errors.confirmPassword?.message}
           {...register('confirmPassword', { 
             required: 'Please confirm your password',
@@ -80,15 +78,15 @@ export const Register = () => {
           })}
         />
 
-        <Button type="submit" isLoading={isLoading} className="mt-2 w-full">
+        <Button type="submit" isLoading={isLoading} className="mt-4 w-full">
           Sign Up
         </Button>
       </form>
 
-      <div className="mt-6 text-center text-sm text-text-muted">
+      <div className="mt-8 text-center text-sm text-text-muted">
         Already have an account?{' '}
         <Link to="/login" className="text-primary hover:text-primary-hover font-medium transition-property-common">
-          Log in
+          Sign in
         </Link>
       </div>
     </Card>

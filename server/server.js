@@ -15,6 +15,7 @@ const { connectDB } = require('./config/db');
 const { initSocket } = require('./sockets');
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
+const talkRoutes = require('./routes/talkRoutes');
 const logger = require('./utils/logger');
 
 // Connect to database
@@ -54,8 +55,13 @@ if (config.app.env === 'development') {
   }));
 }
 
+// Serve static uploads
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/talks', talkRoutes);
 
 // Error Handling
 app.use(notFound);

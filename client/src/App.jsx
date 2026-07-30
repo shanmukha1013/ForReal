@@ -10,10 +10,7 @@ import useThemeStore from '@/store/useThemeStore';
 function App() {
   const { checkAuth } = useAuthStore();
   const { theme } = useThemeStore();
-  const [showIntro, setShowIntro] = useState(() => {
-    const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
-    return !hasSeenIntro;
-  });
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -28,7 +25,6 @@ function App() {
   }, [checkAuth]);
 
   const handleIntroComplete = () => {
-    sessionStorage.setItem('hasSeenIntro', 'true');
     setShowIntro(false);
   };
 

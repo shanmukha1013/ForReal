@@ -23,7 +23,26 @@ const errorResponse = (res, statusCode, message, errors = null) => {
   });
 };
 
+/**
+ * Returns a plain response object (for use in res.json(apiResponse(...)))
+ * @param {boolean} success - Whether the operation succeeded
+ * @param {string} message - Response message
+ * @param {*} data - Response payload
+ * @param {Array} errors - Error details (optional)
+ * @returns {Object} - Formatted response object
+ */
+const apiResponse = (success, message, data = null, errors = null) => {
+  return {
+    success,
+    message,
+    data,
+    errors,
+    timestamp: new Date().toISOString(),
+  };
+};
+
 module.exports = {
   successResponse,
   errorResponse,
+  apiResponse,
 };

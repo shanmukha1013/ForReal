@@ -16,6 +16,9 @@ const { initSocket } = require('./sockets');
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const talkRoutes = require('./routes/talkRoutes');
+const debateRoutes = require('./routes/debateRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 const logger = require('./utils/logger');
 
 // Connect to database
@@ -62,6 +65,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/talks', talkRoutes);
+app.use('/api/debates', debateRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Error Handling
 app.use(notFound);

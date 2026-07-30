@@ -1,36 +1,100 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { talkService } from '@/services/talkService';
+import toast from 'react-hot-toast';
 
 export const useTalkActions = (updateTalkInFeed, removeTalkFromFeed) => {
+  // Track in-flight reaction requests to prevent rapid double-clicks
+  const pendingReactions = useRef(new Set());
 
   const handleReaction = useCallback(async (talkId, type, talks) => {
-    const talk = talks.find(t => t._id === talkId);
-    if (!talk) return;
+    // Prevent rapid double-click spam
+    const key = `${talkId}-${type}`;
+    if (pendingReactions.current.has(key)) return;
+    pendingReactions.current.add(key);
 
-    // We don't have the current user's reaction readily available locally without more complex state
-    // So we will just call the API and update the counts based on the response to ensure accuracy
-    // Optimistic UI for reactions requires knowing exactly what to toggle. We'll do a quick API call 
-    // and update. For a truly optimistic approach, we'd need to store userReactions locally.
-    
+    const talk = talks.find(t => t._id === talkId);
+    if (!talk) {
+      pendingReactions.current.delete(key);
+      return;
+    }
+
+    // Optimistic update: compute new counts locally
+    const currentUserReaction = talk.userReaction || null;
+    let newReactionsCount = { ...talk.reactionsCount };
+    let newUserReaction = null;
+
+    if (currentUserReaction === type) {
+      // Toggle off
+      newReactionsCount[type] = Math.max(0, (newReactionsCount[type] || 0) - 1);
+      newUserReaction = null;
+    } else {
+      // Remove previous if any
+      if (currentUserReaction) {
+        newReactionsCount[currentUserReaction] = Math.max(0, (newReactionsCount[currentUserReaction] || 0) - 1);
+      }
+      // Add new
+      newReactionsCount[type] = (newReactionsCount[type] || 0) + 1;
+      newUserReaction = type;
+    }
+
+    // Apply optimistic update immediately
+    updateTalkInFeed(talkId, {
+      reactionsCount: newReactionsCount,
+      userReaction: newUserReaction,
+    });
+
     try {
       const res = await talkService.toggleReaction(talkId, type);
       if (res.success) {
-        // Update the talk with the new data from server
-        updateTalkInFeed(talkId, { reactionsCount: res.data.reactionsCount });
+        // Reconcile with server truth
+        updateTalkInFeed(talkId, {
+          reactionsCount: res.data.reactionsCount,
+          userReaction: newUserReaction, // server doesn't return userReaction, keep our optimistic
+        });
       }
     } catch (error) {
       console.error('Reaction failed:', error);
+      // Rollback optimistic update
+      updateTalkInFeed(talkId, {
+        reactionsCount: talk.reactionsCount,
+        userReaction: currentUserReaction,
+      });
+      toast.error('Could not update reaction. Please try again.');
+    } finally {
+      pendingReactions.current.delete(key);
     }
   }, [updateTalkInFeed]);
 
-  const handleBookmark = useCallback(async (talkId) => {
+  const handleBookmark = useCallback(async (talkId, talks) => {
+    const talk = talks ? talks.find(t => t._id === talkId) : null;
+    
+    // Optimistic: toggle bookmark state
+    const isCurrentlyBookmarked = talk?.isBookmarked || false;
+    if (talk) {
+      updateTalkInFeed(talkId, {
+        isBookmarked: !isCurrentlyBookmarked,
+        bookmarksCount: Math.max(0, (talk.bookmarksCount || 0) + (isCurrentlyBookmarked ? -1 : 1)),
+      });
+    }
+
     try {
       const res = await talkService.toggleBookmark(talkId);
       if (res.success) {
-        updateTalkInFeed(talkId, { bookmarksCount: res.data.bookmarksCount });
+        updateTalkInFeed(talkId, {
+          bookmarksCount: res.data.bookmarksCount,
+          isBookmarked: !isCurrentlyBookmarked,
+        });
       }
     } catch (error) {
       console.error('Bookmark failed:', error);
+      // Rollback
+      if (talk) {
+        updateTalkInFeed(talkId, {
+          isBookmarked: isCurrentlyBookmarked,
+          bookmarksCount: talk.bookmarksCount,
+        });
+      }
+      toast.error('Could not update bookmark. Please try again.');
     }
   }, [updateTalkInFeed]);
 
@@ -41,8 +105,9 @@ export const useTalkActions = (updateTalkInFeed, removeTalkFromFeed) => {
       await talkService.deleteTalk(talkId);
     } catch (error) {
       console.error('Delete failed:', error);
-      // In a robust app, we'd rollback the deletion here
-      alert('Failed to delete talk');
+      toast.error('Failed to delete Talk. Please try again.');
+      // Note: In a more robust system, we would restore the talk to the feed here.
+      // For now, the user will see it's gone and can refresh.
     }
   }, [removeTalkFromFeed]);
 
@@ -54,6 +119,7 @@ export const useTalkActions = (updateTalkInFeed, removeTalkFromFeed) => {
       }
     } catch (error) {
       console.error('Update failed:', error);
+      toast.error('Failed to update Talk. Please try again.');
     }
   }, [updateTalkInFeed]);
 

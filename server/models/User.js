@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      lowercase: true,
     },
     email: {
       type: String,
@@ -36,6 +37,24 @@ const userSchema = new mongoose.Schema(
       followerCount: { type: Number, default: 0 },
       followingCount: { type: Number, default: 0 },
     },
+    refreshToken: { type: String, default: '' },
+    isOnline: { type: Boolean, default: false },
+    lastSeen: { type: Date, default: Date.now },
+    credibilityScore: { type: Number, default: 50 },
+    logicScore: { type: Number, default: 50 },
+    evidenceScore: { type: Number, default: 50 },
+    sportsmanshipScore: { type: Number, default: 50 },
+    debateStats: {
+      wins: { type: Number, default: 0 },
+      losses: { type: Number, default: 0 },
+      totalVotesReceived: { type: Number, default: 0 }
+    },
+    badges: [{ type: String }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    privacySettings: {
+      allowDMs: { type: String, enum: ['everyone', 'following', 'none'], default: 'following' }
+    },
     status: {
       type: String,
       enum: ['Active', 'Suspended', 'Banned'],
@@ -55,11 +74,16 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 // Encrypt password using bcrypt
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
 
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 const User = mongoose.model('User', userSchema);

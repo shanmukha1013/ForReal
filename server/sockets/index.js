@@ -16,7 +16,39 @@ const initSocket = (server) => {
   io.on('connection', (socket) => {
     logger.info(`Socket connected: ${socket.id}`);
 
-    // Basic socket foundation events
+    // User authentication/joining their personal room
+    socket.on('join', (userId) => {
+      socket.join(userId);
+      logger.info(`User ${userId} joined personal room`);
+    });
+
+    // Debate specific rooms
+    socket.on('join_debate', (debateId) => {
+      socket.join(`debate_${debateId}`);
+    });
+
+    socket.on('leave_debate', (debateId) => {
+      socket.leave(`debate_${debateId}`);
+    });
+
+    // Typing indicators
+    socket.on('typing', ({ conversationId, userId }) => {
+      socket.to(`conv_${conversationId}`).emit('typing', { conversationId, userId });
+    });
+    
+    socket.on('stop_typing', ({ conversationId, userId }) => {
+      socket.to(`conv_${conversationId}`).emit('stop_typing', { conversationId, userId });
+    });
+
+    // Join conversation room
+    socket.on('join_conversation', (conversationId) => {
+      socket.join(`conv_${conversationId}`);
+    });
+
+    socket.on('leave_conversation', (conversationId) => {
+      socket.leave(`conv_${conversationId}`);
+    });
+
     socket.on('disconnect', () => {
       logger.info(`Socket disconnected: ${socket.id}`);
     });

@@ -1,12 +1,17 @@
 import React from 'react';
-import { Heart, ThumbsDown, CheckCircle, XCircle, MessageCircle, Bookmark, Share } from 'lucide-react';
+import { Heart, ThumbsDown, CheckCircle, XCircle, MessageCircle, Bookmark, Link2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-export const ReactionBar = React.memo(({ talk, onReaction, onBookmark }) => {
-  // Using generic states, optimistic updates handled by parent or context
-  // Here we just dispatch
-  const handleReaction = (type) => {
-    onReaction(talk._id, type);
-  };
+const REACTION_CONFIG = {
+  like:     { icon: Heart,       label: 'Like',     activeColor: 'text-primary-bright', activeBg: 'bg-primary/10' },
+  dislike:  { icon: ThumbsDown,  label: 'Dislike',  activeColor: 'text-primary',        activeBg: 'bg-primary/5' },
+  agree:    { icon: CheckCircle, label: 'Agree',    activeColor: 'text-white',          activeBg: 'bg-white/10' },
+  disagree: { icon: XCircle,     label: 'Disagree', activeColor: 'text-text-muted',     activeBg: 'bg-bg-dark' },
+};
+
+export const ReactionBar = React.memo(({ talk, onReaction, onBookmark, onCommentToggle }) => {
+  const userReaction = talk.userReaction || null;
+  const isBookmarked = talk.isBookmarked || false;
 
   const handleShare = async () => {
     const url = `${window.location.origin}/talks/${talk._id}`;
@@ -14,63 +19,102 @@ export const ReactionBar = React.memo(({ talk, onReaction, onBookmark }) => {
       try {
         await navigator.share({
           title: 'ForReal Talk',
-          text: `Check out this talk by ${talk.author.username}`,
-          url: url,
+          text: `Check out this Talk by @${talk.author?.username}`,
+          url,
         });
       } catch (err) {
-        console.error('Error sharing:', err);
+        // User cancelled share — not an error
+        if (err.name !== 'AbortError') {
+          navigator.clipboard.writeText(url).then(() => {
+            toast.success('Talk link copied.');
+          });
+        }
       }
     } else {
-      navigator.clipboard.writeText(url);
-      // Need a toast here ideally
-      alert('Link copied to clipboard!');
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success('Talk link copied.');
+      } catch {
+        toast.error('Could not copy link.');
+      }
     }
-  };
-
-  const ReactionButton = ({ type, icon: Icon, colorClass }) => {
-    // In a real app we need to know the current user's reaction from the backend
-    // For now we'll rely on counts
-    const count = talk.reactionsCount[type] || 0;
-    
-    return (
-      <button 
-        onClick={() => handleReaction(type)}
-        className={`flex items-center gap-1.5 text-text-muted hover:${colorClass} transition-colors group p-2 -ml-2 rounded-full`}
-      >
-        <div className="relative">
-          <Icon size={18} className="group-hover:scale-110 transition-transform" />
-        </div>
-        {count > 0 && <span className="text-sm font-medium">{count}</span>}
-      </button>
-    );
   };
 
   return (
     <div className="flex items-center justify-between border-t border-border-subtle pt-3 mt-2">
-      <div className="flex items-center gap-4 sm:gap-6">
-        <ReactionButton type="like" icon={Heart} colorClass="text-error" />
-        <ReactionButton type="dislike" icon={ThumbsDown} colorClass="text-primary" />
-        <ReactionButton type="agree" icon={CheckCircle} colorClass="text-success" />
-        <ReactionButton type="disagree" icon={XCircle} colorClass="text-warning" />
+      {/* Left: Reactions + Comments */}
+      <div className="flex items-center gap-1 sm:gap-2">
+        {Object.entries(REACTION_CONFIG).map(([type, config]) => {
+          const Icon = config.icon;
+          const isActive = userReaction === type;
+          const count = talk.reactionsCount?.[type] || 0;
+          
+          return (
+            <button
+              key={type}
+              onClick={() => onReaction(talk._id, type)}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-full text-sm font-medium transition-all duration-150 group ${
+                isActive
+                  ? `${config.activeColor} ${config.activeBg}`
+                  : 'text-text-muted hover:text-white hover:bg-white/5'
+              }`}
+              aria-label={`${config.label}: ${count}`}
+              aria-pressed={isActive}
+              title={config.label}
+            >
+              <Icon 
+                size={16} 
+                className={`transition-transform group-active:scale-110 ${isActive ? 'fill-current' : ''}`}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+              {count > 0 && (
+                <span className="text-xs tabular-nums">{count}</span>
+              )}
+            </button>
+          );
+        })}
         
-        <button className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors group p-2 rounded-full">
-          <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
-          {talk.commentsCount > 0 && <span className="text-sm font-medium">{talk.commentsCount}</span>}
+        {/* Comment button */}
+        <button 
+          onClick={() => onCommentToggle && onCommentToggle()}
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-sm font-medium text-text-muted hover:text-primary hover:bg-primary/10 transition-all duration-150 group"
+          aria-label={`Comments: ${talk.commentsCount || 0}`}
+          title="Comment"
+        >
+          <MessageCircle size={16} strokeWidth={2} className="group-active:scale-110 transition-transform" />
+          {talk.commentsCount > 0 && (
+            <span className="text-xs tabular-nums">{talk.commentsCount}</span>
+          )}
         </button>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Right: Bookmark + Share */}
+      <div className="flex items-center gap-1">
         <button 
           onClick={() => onBookmark(talk._id)}
-          className="p-2 text-text-muted hover:text-primary rounded-full transition-colors group"
+          className={`p-2 rounded-full transition-all duration-150 group ${
+            isBookmarked
+              ? 'text-primary bg-primary/10'
+              : 'text-text-muted hover:text-primary hover:bg-primary/10'
+          }`}
+          aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
+          aria-pressed={isBookmarked}
+          title={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
         >
-          <Bookmark size={18} className="group-hover:scale-110 transition-transform" />
+          <Bookmark 
+            size={16} 
+            strokeWidth={isBookmarked ? 2.5 : 2}
+            className={`transition-transform group-active:scale-110 ${isBookmarked ? 'fill-current' : ''}`}
+          />
         </button>
+        
         <button 
           onClick={handleShare}
-          className="p-2 text-text-muted hover:text-primary rounded-full transition-colors group"
+          className="p-2 text-text-muted hover:text-primary hover:bg-primary/10 rounded-full transition-all duration-150 group"
+          aria-label="Share Talk"
+          title="Share"
         >
-          <Share size={18} className="group-hover:scale-110 transition-transform" />
+          <Link2 size={16} strokeWidth={2} className="group-active:scale-110 transition-transform" />
         </button>
       </div>
     </div>

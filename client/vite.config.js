@@ -18,6 +18,11 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
       },
+      // Proxy static uploads from the backend
+      '/uploads': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
     },
   },
 })

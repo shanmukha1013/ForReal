@@ -2,12 +2,9 @@ import { apiClient } from './api';
 
 export const talkService = {
   createTalk: async (formData) => {
-    // We must omit the 'Content-Type' header to let browser set it with boundary for multipart/form-data
-    return apiClient.post('/talks', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    // DO NOT set Content-Type header manually for FormData. 
+    // The browser must automatically set it along with the boundary string.
+    return apiClient.post('/talks', formData);
   },
   
   getTalks: async ({ cursor = null, limit = 10 } = {}) => {

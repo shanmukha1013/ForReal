@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
-import useAuthStore from '@/store/useAuthStore';
 import { Button } from '../Button';
 
-export const TalkContent = React.memo(({ talk, onUpdate }) => {
-  const { user } = useAuthStore();
-
-  const [isEditing, setIsEditing] = useState(false);
+export const TalkContent = React.memo(({ talk, onUpdate, isEditing, setIsEditing }) => {
   const [editContent, setEditContent] = useState(talk.content);
 
   const handleSave = () => {
     if (editContent.trim() !== talk.content) {
       onUpdate(talk._id, editContent);
     }
-    setIsEditing(false);
+    if (setIsEditing) setIsEditing(false);
   };
 
   if (isEditing) {

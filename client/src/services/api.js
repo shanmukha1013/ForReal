@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+let accessToken = null;
+
+export const setAccessToken = (token) => {
+  accessToken = token;
+};
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  withCredentials: true, // For sending cookies (JWT)
+  withCredentials: true, // For sending refresh cookie
   headers: {
     'Content-Type': 'application/json',
   },
@@ -11,7 +17,9 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // We can inject headers or tokens here if not using cookies
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
     return config;
   },
   (error) => {
@@ -19,14 +27,36 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor for token refresh
 api.interceptors.response.use(
-  (response) => {
-    // Return standard data directly from the unified response { success, message, data, errors, timestamp }
-    return response.data;
-  },
-  (error) => {
-    // Extract unified error message
+  (response) => response.data,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // If error is 401 and we haven't already retried
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh' && originalRequest.url !== '/auth/login') {
+      originalRequest._retry = true;
+      try {
+        const response = await axios.post('/api/auth/refresh', {}, {
+          baseURL: import.meta.env.VITE_API_URL || '/api',
+          withCredentials: true // send the httpOnly cookie
+        });
+        
+        const newAccessToken = response.data.data.accessToken;
+        setAccessToken(newAccessToken);
+        
+        // Retry original request
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        const finalResponse = await axios(originalRequest);
+        return finalResponse.data;
+      } catch (refreshError) {
+        // Refresh failed, user is actually logged out
+        setAccessToken(null);
+        // Note: Could dispatch a custom event here to force Zustand logout state if needed
+        return Promise.reject(new Error('Session expired. Please log in again.'));
+      }
+    }
+    
     const message = error.response?.data?.message || error.message || 'An unexpected error occurred';
     return Promise.reject(new Error(message));
   }

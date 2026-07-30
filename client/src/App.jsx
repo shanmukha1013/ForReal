@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthLayout, MainLayout } from '@/layouts';
-import { Login, Register, Home, NotFound } from '@/pages';
+import { Login, Register, Home, NotFound, Explore, Debates, DebateView, Messages, Notifications, Profile, Settings } from '@/pages';
 import { CinematicIntro } from '@/components/CinematicIntro';
 import useAuthStore from '@/store/useAuthStore';
 import useThemeStore from '@/store/useThemeStore';
@@ -11,13 +11,11 @@ function App() {
   const { checkAuth } = useAuthStore();
   const { theme } = useThemeStore();
   const [showIntro, setShowIntro] = useState(() => {
-    // Only show once per browser session
     const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
     return !hasSeenIntro;
   });
 
   useEffect(() => {
-    // Apply theme to document root
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -26,7 +24,6 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    // Check authentication on initial load
     checkAuth();
   }, [checkAuth]);
 
@@ -40,10 +37,14 @@ function App() {
       <Toaster 
         position="top-center" 
         toastOptions={{
+          duration: 3000,
           style: {
-            background: '#121212',
+            background: '#1a1a1a',
             color: '#fff',
-            border: '1px solid #27272a',
+            border: '1px solid #2A2A2A',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontWeight: '500',
           },
           success: {
             iconTheme: {
@@ -70,9 +71,21 @@ function App() {
             <Route path="/register" element={<Register />} />
           </Route>
 
-          {/* Protected Routes */}
+          {/* Protected App Routes */}
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
+            {/* Canonical home route */}
+            <Route path="/home" element={<Home />} />
+            {/* Redirect root to /home */}
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/debates" element={<Debates />} />
+            <Route path="/debates/:id" element={<DebateView />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/profile/:username" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            {/* Future: individual talk page */}
+            <Route path="/talks/:talkId" element={<Home />} />
           </Route>
 
           {/* 404 */}

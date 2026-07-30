@@ -4,3 +4,4 @@ export * from './Card';
 export * from './Loader';
 export * from './Logo';
 export * from './feed';
+export * from './ui';

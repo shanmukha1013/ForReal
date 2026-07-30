@@ -101,6 +101,9 @@ const sendMessage = async (req, res, next) => {
     const populatedMessage = await Message.findById(message._id)
       .populate('sender', 'username profile avatar');
 
+    const io = require('../sockets').getIo();
+    io.to(`conv_${conversation._id}`).emit('new_message', populatedMessage);
+
     return successResponse(res, 201, 'Message sent', populatedMessage);
   } catch (error) {
     next(error);

@@ -85,6 +85,7 @@ const loginUser = async (req, res, next) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        profile: user.profile,
         accessToken,
       });
     } else {
@@ -169,7 +170,8 @@ const getUserProfile = async (req, res, next) => {
         email: user.email,
         role: user.role,
         credibilityScore: user.credibilityScore,
-        badges: user.badges
+        badges: user.badges,
+        profile: user.profile
       });
     } else {
       res.status(404);

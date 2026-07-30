@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { TalkHeader } from './TalkHeader';
 import { TalkContent } from './TalkContent';
@@ -10,9 +10,13 @@ export const TalkCard = React.memo(({ talk, onReaction, onBookmark, onDelete, on
   const [isEditing, setIsEditing] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
 
-  const handleCommentToggle = () => {
+  const handleCommentToggle = useCallback(() => {
     setCommentsOpen(prev => !prev);
-  };
+  }, []);
+
+  const handleEditOpen = useCallback(() => {
+    setIsEditing(true);
+  }, []);
 
   return (
     <motion.div
@@ -24,7 +28,7 @@ export const TalkCard = React.memo(({ talk, onReaction, onBookmark, onDelete, on
         talk.isOptimistic ? 'pointer-events-none' : ''
       }`}
     >
-      <TalkHeader talk={talk} onDelete={onDelete} onEdit={() => setIsEditing(true)} />
+      <TalkHeader talk={talk} onDelete={onDelete} onEdit={handleEditOpen} />
       <TalkContent talk={talk} onUpdate={onUpdate} isEditing={isEditing} setIsEditing={setIsEditing} />
       <TalkMedia media={talk.media} />
       <ReactionBar 

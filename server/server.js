@@ -19,6 +19,8 @@ const talkRoutes = require('./routes/talkRoutes');
 const debateRoutes = require('./routes/debateRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const userRoutes = require('./routes/userRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 const logger = require('./utils/logger');
 
 // Connect to database
@@ -51,6 +53,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Data Sanitization
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+
+// Prevent NoSQL injection
+// app.use(mongoSanitize());
+// Prevent XSS attacks
+// app.use(xss());
+
 // Logging
 if (config.app.env === 'development') {
   app.use(morgan('dev', {
@@ -68,6 +79,8 @@ app.use('/api/talks', talkRoutes);
 app.use('/api/debates', debateRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/search', searchRoutes);
 
 // Error Handling
 app.use(notFound);

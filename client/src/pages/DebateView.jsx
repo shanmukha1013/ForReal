@@ -1,27 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import useAuthStore from '@/store/useAuthStore';
 import useDebateStore from '@/store/useDebateStore';
+import apiClient from '@/services/api';
 import { Loader } from '@/components';
-import { StatusBadge, CredibilityBadge } from '@/components/ui';
+import { StatusBadge, CredibilityBadge, Avatar } from '@/components/ui';
+import { Trash2 } from 'lucide-react';
 import { VotePanel } from '@/features/debates/VotePanel';
 import { AIAnalysisPanel } from '@/features/debates/AIAnalysisPanel';
 import { DebateComment } from '@/features/debates/DebateComment';
 import { DebateCommentForm } from '@/features/debates/DebateCommentForm';
 import { toast } from 'react-hot-toast';
 
+import { socketService } from '@/services/socket';
+
 export const DebateView = () => {
   const { id } = useParams();
   const { currentDebate, getDebate, addComment, isLoading, error } = useDebateStore();
   const [comments, setComments] = useState([]);
+  const [typingUser, setTypingUser] = useState(null);
   
   useEffect(() => {
     const fetchDebateData = async () => {
       try {
         await getDebate(id);
-        // Also fetch comments (stubbed here, should go through store/api)
-        // const res = await apiClient.get(`/debates/${id}/comments`);
-        // setComments(res.data);
+        const res = await useDebateStore.getState().fetchComments(id);
+        setComments(res.comments || []);
       } catch (err) {
         // handled in store
       }
@@ -29,9 +34,45 @@ export const DebateView = () => {
     fetchDebateData();
   }, [id]);
 
+  useEffect(() => {
+    const socket = socketService.getSocket();
+    if (socket) {
+      socket.emit('join_debate', id);
+
+      socket.on('new_comment', (comment) => {
+        setComments((prev) => [comment, ...prev]);
+      });
+
+      socket.on('debate_updated', (updatedDebate) => {
+        useDebateStore.setState({ currentDebate: updatedDebate });
+      });
+      
+      socket.on('debate_typing', (data) => {
+        if (data.username !== useAuthStore.getState().user?.username) {
+          setTypingUser(data.username);
+        }
+      });
+      
+      socket.on('debate_stop_typing', () => {
+        setTypingUser(null);
+      });
+
+      return () => {
+        socket.emit('leave_debate', id);
+        socket.off('new_comment');
+        socket.off('debate_updated');
+        socket.off('debate_typing');
+        socket.off('debate_stop_typing');
+      };
+    }
+  }, [id]);
+
   if (isLoading && !currentDebate) return <Loader fullScreen />;
   if (error) return <div className="p-8 text-center text-error">Failed to load debate: {error}</div>;
   if (!currentDebate) return <div className="p-8 text-center text-text-muted">Debate not found</div>;
+
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   const handlePostComment = async (data) => {
     try {
@@ -43,6 +84,20 @@ export const DebateView = () => {
     }
   };
 
+  const handleDeleteDebate = async () => {
+    if (window.confirm('Are you sure you want to permanently delete this debate?')) {
+      try {
+        await apiClient.delete(`/debates/${id}`);
+        toast.success('Debate deleted successfully');
+        navigate('/debates');
+      } catch (err) {
+        toast.error(err.message || 'Failed to delete debate');
+      }
+    }
+  };
+
+  const isCreator = user?._id === currentDebate?.creator?._id;
+
   return (
     <div className="max-w-4xl mx-auto pb-20">
       {/* Header */}
@@ -51,9 +106,20 @@ export const DebateView = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <div className="flex items-center gap-3 mb-4">
-          <StatusBadge status={currentDebate.status} />
-          <span className="text-sm font-medium text-text-muted uppercase tracking-widest">{currentDebate.category}</span>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <StatusBadge status={currentDebate.status} />
+            <span className="text-sm font-medium text-text-muted uppercase tracking-widest">{currentDebate.category}</span>
+          </div>
+          {isCreator && (
+            <button 
+              onClick={handleDeleteDebate}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-error bg-error/10 hover:bg-error/20 rounded-lg transition-colors border border-error/20"
+            >
+              <Trash2 size={14} />
+              Delete
+            </button>
+          )}
         </div>
         
         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-6">
@@ -61,15 +127,7 @@ export const DebateView = () => {
         </h1>
         
         <div className="flex items-center gap-4 text-sm bg-surface p-4 rounded-xl border border-border-subtle shadow-subtle">
-          <div className="w-10 h-10 rounded-full bg-border-subtle overflow-hidden">
-            {currentDebate.creator?.profile?.avatar ? (
-               <img src={currentDebate.creator.profile.avatar} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
-               <div className="w-full h-full bg-primary/20 flex items-center justify-center font-bold text-primary">
-                 {currentDebate.creator?.username?.charAt(0).toUpperCase()}
-               </div>
-            )}
-          </div>
+          <Avatar src={currentDebate.creator?.profile?.avatar} username={currentDebate.creator?.username} size="md" />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-white">{currentDebate.creator?.username}</span>
@@ -112,6 +170,24 @@ export const DebateView = () => {
           debateOptions={currentDebate.options} 
           onSubmit={handlePostComment} 
         />
+
+        <AnimatePresence>
+          {typingUser && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }} 
+              animate={{ opacity: 1, height: 'auto' }} 
+              exit={{ opacity: 0, height: 0 }}
+              className="text-xs text-text-muted italic mb-4 flex items-center gap-2 px-2"
+            >
+              <span className="flex gap-1">
+                <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"></span>
+                <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+              </span>
+              {typingUser} is drafting an argument...
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="space-y-4">
           {comments.length > 0 ? (

@@ -62,10 +62,16 @@ export const Debates = () => {
             <DebateCard key={debate._id} debate={debate} />
           ))
         ) : (
-          <div className="text-center py-20 border border-dashed border-border-subtle rounded-xl bg-surface">
-             <div className="text-text-muted mb-4">No debates found in this category.</div>
-             <AnimatedButton variant="secondary" onClick={() => setIsCreateModalOpen(true)}>
-               Start one now
+          <div className="text-center py-24 border border-dashed border-border-subtle rounded-2xl bg-card-dark flex flex-col items-center justify-center">
+             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+               <Plus size={24} className="text-text-muted" />
+             </div>
+             <h3 className="text-xl font-bold text-white mb-2 tracking-tight">The floor is open.</h3>
+             <p className="text-text-muted text-sm max-w-sm mx-auto mb-6 leading-relaxed">
+               There are no debates happening here right now. Be the first to spark a meaningful, logic-driven conversation.
+             </p>
+             <AnimatedButton variant="primary" onClick={() => setIsCreateModalOpen(true)}>
+               Start a Debate
              </AnimatedButton>
           </div>
         )}

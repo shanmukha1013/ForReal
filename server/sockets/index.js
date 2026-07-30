@@ -13,6 +13,24 @@ const initSocket = (server) => {
     },
   });
 
+  const jwt = require('jsonwebtoken');
+
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (!token) {
+      return next(new Error('Authentication error: Token missing'));
+    }
+
+    try {
+      const secret = process.env.JWT_SECRET || 'supersecretjwtkey_replace_me_in_production';
+      const decoded = jwt.verify(token, secret);
+      socket.user = decoded; // Store userId in socket.user.userId
+      next();
+    } catch (err) {
+      return next(new Error('Authentication error: Invalid token'));
+    }
+  });
+
   io.on('connection', (socket) => {
     logger.info(`Socket connected: ${socket.id}`);
 
@@ -29,6 +47,14 @@ const initSocket = (server) => {
 
     socket.on('leave_debate', (debateId) => {
       socket.leave(`debate_${debateId}`);
+    });
+
+    socket.on('debate_typing', ({ debateId, username }) => {
+      socket.to(`debate_${debateId}`).emit('debate_typing', { username });
+    });
+
+    socket.on('debate_stop_typing', ({ debateId, username }) => {
+      socket.to(`debate_${debateId}`).emit('debate_stop_typing', { username });
     });
 
     // Typing indicators

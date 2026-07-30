@@ -108,10 +108,8 @@ export const Home = () => {
               <AlertCircle size={24} className="text-error" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white mb-1">Feed unavailable</h2>
-              <p className="text-text-muted text-sm max-w-xs mx-auto">
-                Could not load your feed right now.
-              </p>
+              <h2 className="text-lg font-bold text-white mb-1">Reconnecting to the network...</h2>
+              <p className="text-text-muted text-sm mb-4">We're experiencing temporary turbulence. Your feed will resume shortly.</p>
             </div>
             <button
               onClick={() => fetchTalks(true)}

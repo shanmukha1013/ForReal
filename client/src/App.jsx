@@ -11,6 +11,7 @@ function App() {
   const { checkAuth } = useAuthStore();
   const { theme } = useThemeStore();
   const [showIntro, setShowIntro] = useState(true);
+  const isFirstLaunch = !localStorage.getItem('hasSeenCinematicIntro_v5');
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -22,9 +23,19 @@ function App() {
 
   useEffect(() => {
     checkAuth();
+    
+    const handleUnauthorized = () => {
+      useAuthStore.getState().logout();
+    };
+    
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, [checkAuth]);
 
   const handleIntroComplete = () => {
+    if (isFirstLaunch) {
+      localStorage.setItem('hasSeenCinematicIntro_v5', 'true');
+    }
     setShowIntro(false);
   };
 
@@ -58,7 +69,7 @@ function App() {
       />
       
       {showIntro ? (
-        <CinematicIntro onComplete={handleIntroComplete} />
+        <CinematicIntro isFirstLaunch={isFirstLaunch} onComplete={handleIntroComplete} />
       ) : (
         <Routes>
           {/* Public Auth Routes */}

@@ -40,10 +40,15 @@ export const useFeed = () => {
       }
     } catch (error) {
       console.error('Failed to fetch feed:', error);
-      setFeedError(error.message || 'Failed to load feed');
-      // Stop infinite scroll on repeated errors
-      hasMoreRef.current = false;
-      setHasMore(false);
+      setFeedError(error.message || 'We couldn\'t refresh your feed right now. Retrying...');
+      
+      // Auto-retry once after 3 seconds if not refreshing
+      if (!isRefresh) {
+        setTimeout(() => {
+          isFetchingRef.current = false;
+          fetchTalks(false);
+        }, 3000);
+      }
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

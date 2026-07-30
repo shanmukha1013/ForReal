@@ -14,6 +14,7 @@ import {
   LogOut,
   ChevronUp
 } from 'lucide-react';
+import { Avatar } from '@/components/ui';
 
 const navItems = [
   { to: '/home', icon: Home,          label: 'Home'          },
@@ -180,9 +181,7 @@ export const MainLayout = () => {
             aria-expanded={showAccountMenu}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary shrink-0 text-sm border border-primary/20">
-                {userInitial}
-              </div>
+              <Avatar src={user?.profile?.avatar} username={user?.username} size="sm" />
               <div className="hidden lg:block min-w-0 text-left">
                 <p className="text-sm font-semibold text-white truncate max-w-[120px]">
                   {user?.displayName || user?.username}
@@ -219,10 +218,10 @@ export const MainLayout = () => {
             </NavLink>
             <NavLink 
               to={profilePath}
-              className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-sm border border-primary/20"
+              className="w-8 h-8 rounded-full overflow-hidden"
               aria-label="Profile"
             >
-              {userInitial}
+              <Avatar src={user?.profile?.avatar} username={user?.username} size="sm" />
             </NavLink>
           </div>
         </header>

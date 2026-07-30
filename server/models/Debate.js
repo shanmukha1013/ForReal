@@ -105,6 +105,9 @@ const debateSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 debateSchema.index({ 'lifecycle.endsAt': 1 });
+debateSchema.index({ status: 1, createdAt: -1 });
+debateSchema.index({ category: 1, createdAt: -1 });
+debateSchema.index({ creator: 1, createdAt: -1 });
 
 const Debate = mongoose.model('Debate', debateSchema);
 

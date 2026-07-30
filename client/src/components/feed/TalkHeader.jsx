@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MoreHorizontal, Trash2, AlertCircle, Edit2 } from 'lucide-react';
 import useAuthStore from '@/store/useAuthStore';
 import { Button } from '../Button';
+import { Avatar } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const formatRelativeTime = (dateString) => {
@@ -48,9 +49,7 @@ export const TalkHeader = React.memo(({ talk, onDelete, onEdit }) => {
     <div className="flex justify-between items-start mb-3 relative">
       <div className="flex items-center gap-3 min-w-0">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary shrink-0">
-          {authorUsername[0]?.toUpperCase()}
-        </div>
+        <Avatar src={talk.author?.profile?.avatar} username={authorUsername} size="md" />
         {/* Author info */}
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">

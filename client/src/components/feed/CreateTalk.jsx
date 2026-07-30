@@ -204,7 +204,7 @@ export const CreateTalk = ({ onTalkCreated, composerRef: externalRef }) => {
             onFocus={() => setIsExpanded(true)}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="What's real?"
+            placeholder="SAY WHAT YOU MEAN."
             aria-label="Compose a Talk"
             className={`w-full bg-transparent text-white text-base placeholder:text-text-muted/60 focus:outline-none resize-none transition-all duration-300 leading-relaxed ${
               isExpanded ? 'min-h-[80px] pt-0.5' : 'h-7 overflow-hidden pt-0.5'

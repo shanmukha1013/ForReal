@@ -71,6 +71,10 @@ const debateCommentSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+debateCommentSchema.index({ debate: 1, createdAt: -1 });
+debateCommentSchema.index({ debate: 1, optionId: 1 });
+debateCommentSchema.index({ parentComment: 1, createdAt: -1 });
+
 const DebateComment = mongoose.model('DebateComment', debateCommentSchema);
 
 module.exports = DebateComment;

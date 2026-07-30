@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AnimatedButton } from '@/components/ui';
+import { socketService } from '@/services/socket';
+
+import useAuthStore from '@/store/useAuthStore';
 
 export const DebateCommentForm = ({ debateId, debateOptions, onSubmit }) => {
   const { register, handleSubmit, reset } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuthStore();
 
   const submitHandler = async (data) => {
     setIsSubmitting(true);
     try {
       await onSubmit(data);
       reset();
+      socketService.getSocket()?.emit('debate_stop_typing', { debateId, username: user?.username });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleKeyDown = () => {
+    socketService.getSocket()?.emit('debate_typing', { debateId, username: user?.username });
   };
 
   return (
@@ -33,6 +42,7 @@ export const DebateCommentForm = ({ debateId, debateOptions, onSubmit }) => {
           className="w-full bg-bg-dark border border-border-muted rounded-xl p-3 text-white placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all resize-y min-h-[100px] text-sm"
           placeholder="Present your argument. Logic engine will fact-check references..."
           {...register('content', { required: true })}
+          onKeyDown={handleKeyDown}
         ></textarea>
       </div>
       

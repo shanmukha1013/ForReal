@@ -62,6 +62,15 @@ const useDebateStore = create((set, get) => ({
      } catch (error) {
        throw error;
      }
+  },
+
+  fetchComments: async (id, page = 1) => {
+    try {
+      const response = await apiClient.get(`/debates/${id}/comments?page=${page}&limit=50`);
+      return response.data; // { comments, page, pages, total }
+    } catch (error) {
+      throw error;
+    }
   }
 }));
 

@@ -6,6 +6,10 @@ export const setAccessToken = (token) => {
   accessToken = token;
 };
 
+export const getAccessToken = () => {
+  return accessToken;
+};
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   withCredentials: true, // For sending refresh cookie
@@ -52,7 +56,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed, user is actually logged out
         setAccessToken(null);
-        // Note: Could dispatch a custom event here to force Zustand logout state if needed
+        window.dispatchEvent(new Event('auth:unauthorized'));
         return Promise.reject(new Error('Session expired. Please log in again.'));
       }
     }

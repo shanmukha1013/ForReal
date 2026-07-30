@@ -5,7 +5,12 @@ const {
   getDebates,
   getDebate,
   voteOnDebate,
-  addDebateComment
+  addDebateComment,
+  getDebateComments,
+  getDebateCommentReplies,
+  updateDebateComment,
+  deleteDebateComment,
+  deleteDebate
 } = require('../controllers/debateController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -14,9 +19,19 @@ router.route('/')
   .get(getDebates);
 
 router.route('/:id')
-  .get(getDebate);
+  .get(getDebate)
+  .delete(protect, deleteDebate);
 
 router.post('/:id/vote', protect, voteOnDebate);
-router.post('/:id/comments', protect, addDebateComment);
+router.route('/:id/comments')
+  .get(getDebateComments)
+  .post(protect, addDebateComment);
+
+router.route('/:id/comments/:commentId')
+  .put(protect, updateDebateComment)
+  .delete(protect, deleteDebateComment);
+
+router.route('/:id/comments/:commentId/replies')
+  .get(getDebateCommentReplies);
 
 module.exports = router;

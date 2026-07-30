@@ -19,8 +19,8 @@ const formatRelativeTime = (dateString) => {
 export const TalkHeader = React.memo(({ talk, onDelete, onEdit }) => {
   const { user } = useAuthStore();
   // Compare as strings since MongoDB ObjectIds may not ===
-  const isOwner = user?.id 
-    ? user.id.toString() === (talk.author?._id || talk.author)?.toString()
+  const isOwner = user?._id 
+    ? user._id.toString() === (talk.author?._id || talk.author)?.toString()
     : false;
     
   const [showMenu, setShowMenu] = useState(false);

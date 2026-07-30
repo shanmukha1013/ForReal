@@ -276,7 +276,9 @@ export const MainLayout = () => {
               aria-label="Profile"
             >
               {({ isActive }) => (
-                <User size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <div className={`p-0.5 rounded-full ${isActive ? 'border-2 border-primary' : 'border-2 border-transparent'}`}>
+                  <Avatar src={user?.profile?.avatar} username={user?.username} size="sm" />
+                </div>
               )}
             </NavLink>
           </div>

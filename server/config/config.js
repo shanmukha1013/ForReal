@@ -16,7 +16,7 @@ const config = {
   },
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.RATE_LIMIT_MAX || 100,
+    max: process.env.RATE_LIMIT_MAX || 5000,
   }
 };
 

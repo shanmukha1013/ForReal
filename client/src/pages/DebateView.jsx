@@ -67,12 +67,12 @@ export const DebateView = () => {
     }
   }, [id]);
 
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+
   if (isLoading && !currentDebate) return <Loader fullScreen />;
   if (error) return <div className="p-8 text-center text-error">Failed to load debate: {error}</div>;
   if (!currentDebate) return <div className="p-8 text-center text-text-muted">Debate not found</div>;
-
-  const navigate = useNavigate();
-  const { user } = useAuthStore();
 
   const handlePostComment = async (data) => {
     try {

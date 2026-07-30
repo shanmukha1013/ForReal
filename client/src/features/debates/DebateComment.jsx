@@ -8,7 +8,7 @@ import useAuthStore from '@/store/useAuthStore';
 
 export const DebateComment = React.memo(({ comment, debateOptions, debateId }) => {
   const { user } = useAuthStore();
-  const isOwner = user?.id === (comment.author?._id || comment.author);
+  const isOwner = user?._id === (comment.author?._id || comment.author);
 
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState('');

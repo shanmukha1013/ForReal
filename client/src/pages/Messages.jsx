@@ -6,11 +6,15 @@ import apiClient from '@/services/api';
 import { socketService } from '@/services/socket';
 import useAuthStore from '@/store/useAuthStore';
 import { toast } from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 
 export const Messages = () => {
   usePageTitle('Messages | ForReal');
   
   const { user } = useAuthStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const targetUserId = searchParams.get('user');
+
   const [conversations, setConversations] = useState([]);
   const [activeConv, setActiveConv] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -30,6 +34,32 @@ export const Messages = () => {
     };
     fetchConversations();
   }, []);
+
+  // Handle starting a new conversation from query param
+  useEffect(() => {
+    const startConversation = async () => {
+      if (targetUserId) {
+        try {
+          const res = await apiClient.post('/messages/conversations', { userId: targetUserId });
+          const newConv = res.data;
+          
+          setConversations(prev => {
+            const exists = prev.find(c => c._id === newConv._id);
+            if (!exists) return [newConv, ...prev];
+            return prev;
+          });
+          setActiveConv(newConv);
+          
+          // Clear query param so we don't trigger this again on re-renders
+          searchParams.delete('user');
+          setSearchParams(searchParams);
+        } catch (err) {
+          toast.error('Failed to start conversation');
+        }
+      }
+    };
+    startConversation();
+  }, [targetUserId, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!activeConv) return;

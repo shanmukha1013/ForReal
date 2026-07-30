@@ -110,8 +110,36 @@ const sendMessage = async (req, res, next) => {
   }
 };
 
+
+// @desc    Get or create conversation with a user
+// @route   POST /api/messages/conversations
+// @access  Private
+const getOrCreateConversation = async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    let conversation = await Conversation.findOne({
+      participants: { $all: [req.user.id, userId] }
+    }).populate('participants', 'username profile avatar isOnline lastSeen').populate('lastMessage');
+
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [req.user.id, userId],
+        unreadCounts: { [req.user.id]: 0, [userId]: 0 }
+      });
+      conversation = await Conversation.findById(conversation._id)
+        .populate('participants', 'username profile avatar isOnline lastSeen');
+    }
+
+    return successResponse(res, 200, 'Conversation fetched', conversation);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
+  getOrCreateConversation,
   getConversations,
   getMessages,
   sendMessage
 };
+

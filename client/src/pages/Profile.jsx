@@ -83,9 +83,14 @@ export const Profile = () => {
         {/* Actions */}
         <div className="absolute -bottom-14 right-6 flex gap-2">
           {!isOwnProfile ? (
-            <AnimatedButton variant={isFollowing ? "outline" : "primary"} onClick={handleFollow}>
-              {isFollowing ? 'Unfollow' : 'Follow'}
-            </AnimatedButton>
+            <>
+              <Link to={`/messages?user=${profileData._id}`}>
+                <AnimatedButton variant="outline">Message</AnimatedButton>
+              </Link>
+              <AnimatedButton variant={isFollowing ? "outline" : "primary"} onClick={handleFollow}>
+                {isFollowing ? 'Unfollow' : 'Follow'}
+              </AnimatedButton>
+            </>
           ) : (
             <Link to="/settings">
               <AnimatedButton variant="outline">Edit Profile</AnimatedButton>

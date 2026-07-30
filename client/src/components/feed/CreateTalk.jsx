@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import useAuthStore from '@/store/useAuthStore';
 import { Button } from '../Button';
+import { Avatar } from '@/components/ui';
 import { talkService } from '@/services/talkService';
 import toast from 'react-hot-toast';
 
@@ -193,9 +194,7 @@ export const CreateTalk = ({ onTalkCreated, composerRef: externalRef }) => {
     >
       <div className="flex gap-3">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-base flex-shrink-0 mt-0.5">
-          {user?.username?.[0]?.toUpperCase()}
-        </div>
+        <Avatar src={user?.profile?.avatar} username={user?.username} size="md" className="mt-0.5" />
         
         <div className="flex-1 min-w-0 flex flex-col">
           <textarea

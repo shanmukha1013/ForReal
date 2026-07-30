@@ -38,7 +38,7 @@ exports.createTalk = async (req, res, next) => {
       media
     });
 
-    const populatedTalk = await Talk.findById(talk._id).populate('author', 'username email');
+    const populatedTalk = await Talk.findById(talk._id).populate('author', 'username email profile');
 
     res.status(201).json(apiResponse(true, 'Talk created successfully', populatedTalk));
   } catch (error) {
@@ -63,7 +63,7 @@ exports.getTalks = async (req, res, next) => {
     const talks = await Talk.find(query)
       .sort({ _id: -1 }) // Sort by newest first
       .limit(limit)
-      .populate('author', 'username email');
+      .populate('author', 'username email profile');
 
     const nextCursor = talks.length > 0 ? talks[talks.length - 1]._id : null;
     const hasMore = talks.length === limit;
@@ -103,7 +103,7 @@ exports.updateTalk = async (req, res, next) => {
     
     await talk.save();
     
-    talk = await Talk.findById(talkId).populate('author', 'username email');
+    talk = await Talk.findById(talkId).populate('author', 'username email profile');
 
     res.status(200).json(apiResponse(true, 'Talk updated successfully', talk));
   } catch (error) {
@@ -225,7 +225,7 @@ exports.addComment = async (req, res, next) => {
         }
     }
 
-    const populatedComment = await Comment.findById(comment._id).populate('author', 'username email');
+    const populatedComment = await Comment.findById(comment._id).populate('author', 'username email profile');
 
     res.status(201).json(apiResponse(true, 'Comment added successfully', populatedComment));
   } catch (error) {
@@ -243,7 +243,7 @@ exports.getComments = async (req, res, next) => {
       
       const comments = await Comment.find({ talk: talkId, parentComment: null })
         .sort({ createdAt: 1 })
-        .populate('author', 'username email');
+        .populate('author', 'username email profile');
   
       res.status(200).json(apiResponse(true, 'Comments fetched successfully', comments));
     } catch (error) {

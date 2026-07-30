@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePageTitle } from '@/hooks';
 import {
   Search, TrendingUp, Flame, Users, MessageSquare,
-  Scale, Hash, Loader2, ArrowRight, ChevronRight
+  Scale, Hash, Loader2, ArrowRight, ChevronRight,
+  Cpu, Landmark, Lightbulb, FlaskConical, TrendingUp as ChartUp, 
+  Scale as ScaleIcon, Trophy, Globe
 } from 'lucide-react';
 import apiClient from '@/services/api';
 import { Link } from 'react-router-dom';
@@ -11,14 +13,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─── Category pills ──────────────────────────────────── */
 const CATEGORIES = [
-  { label: 'Technology', emoji: '💻' },
-  { label: 'Politics', emoji: '🏛️' },
-  { label: 'Philosophy', emoji: '🧠' },
-  { label: 'Science', emoji: '🔬' },
-  { label: 'Economics', emoji: '📈' },
-  { label: 'Ethics', emoji: '⚖️' },
-  { label: 'Sports', emoji: '🏆' },
-  { label: 'Climate', emoji: '🌍' },
+  { label: 'Technology', icon: Cpu },
+  { label: 'Politics', icon: Landmark },
+  { label: 'Philosophy', icon: Lightbulb },
+  { label: 'Science', icon: FlaskConical },
+  { label: 'Economics', icon: ChartUp },
+  { label: 'Ethics', icon: ScaleIcon },
+  { label: 'Sports', icon: Trophy },
+  { label: 'Climate', icon: Globe },
 ];
 
 /* ─── Debate card ─────────────────────────────────────── */
@@ -265,16 +267,19 @@ export const Explore = () => {
       {/* ── Category chips ─────────────────────────────── */}
       {!query && (
         <div className="flex gap-2 overflow-x-auto pb-2 mb-10 scrollbar-hide">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.label}
-              onClick={() => { setQuery(cat.label); inputRef.current?.focus(); }}
-              className="shrink-0 flex items-center gap-2 px-4 py-2 bg-card-dark border border-border-subtle hover:border-primary/50 hover:bg-primary/5 rounded-full text-sm font-semibold text-text-muted hover:text-white transition-all duration-200 whitespace-nowrap"
-            >
-              <span>{cat.emoji}</span>
-              <span>{cat.label}</span>
-            </button>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.label}
+                onClick={() => { setQuery(cat.label); inputRef.current?.focus(); }}
+                className="shrink-0 flex items-center gap-2 px-4 py-2 bg-card-dark border border-border-subtle hover:border-primary/50 hover:bg-primary/5 rounded-full text-sm font-semibold text-text-muted hover:text-white transition-all duration-200 whitespace-nowrap"
+              >
+                <Icon size={16} />
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -407,16 +412,19 @@ export const Explore = () => {
                 Browse by Topic
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.label}
-                    onClick={() => { setQuery(cat.label); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="flex flex-col items-center justify-center gap-2 bg-card-dark border border-border-subtle hover:border-primary/40 hover:bg-primary/5 rounded-xl py-5 transition-all duration-200 group"
-                  >
-                    <span className="text-2xl">{cat.emoji}</span>
-                    <span className="text-xs font-bold text-text-muted group-hover:text-white transition-colors">{cat.label}</span>
-                  </button>
-                ))}
+                {CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <button
+                      key={cat.label}
+                      onClick={() => { setQuery(cat.label); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      className="flex flex-col items-center justify-center gap-2 bg-card-dark border border-border-subtle hover:border-primary/40 hover:bg-primary/5 rounded-xl py-5 transition-all duration-200 group"
+                    >
+                      <Icon size={24} className="text-text-muted group-hover:text-primary transition-colors" />
+                      <span className="text-xs font-bold text-text-muted group-hover:text-white transition-colors">{cat.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </section>
           </motion.div>

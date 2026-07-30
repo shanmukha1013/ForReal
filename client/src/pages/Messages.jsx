@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePageTitle } from '@/hooks';
 import { MessageCircle, Send, User } from 'lucide-react';
-import { AnimatedButton, CredibilityBadge } from '@/components/ui';
+import { AnimatedButton, CredibilityBadge, Avatar } from '@/components/ui';
 import apiClient from '@/services/api';
 import { socketService } from '@/services/socket';
 import useAuthStore from '@/store/useAuthStore';
@@ -151,12 +151,12 @@ export const Messages = () => {
                     onClick={() => setActiveConv(conv)}
                     className={`p-4 border-b border-border-subtle/50 cursor-pointer transition-colors flex items-center gap-3 ${activeConv?._id === conv._id ? 'bg-primary/10 border-l-2 border-l-primary' : 'hover:bg-white/5 border-l-2 border-l-transparent'}`}
                   >
-                    <div className="w-10 h-10 rounded-full bg-border-subtle overflow-hidden shrink-0 relative">
-                      {otherUser?.profile?.avatar ? (
-                        <img src={otherUser.profile.avatar} alt="avatar" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-primary">{otherUser?.username?.charAt(0).toUpperCase()}</div>
-                      )}
+                    <div className="relative shrink-0">
+                      <Avatar 
+                        src={otherUser?.profile?.avatar} 
+                        username={otherUser?.username || '?'} 
+                        size="md" 
+                      />
                       {otherUser?.isOnline && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-surface"></div>
                       )}
@@ -192,16 +192,14 @@ export const Messages = () => {
             <>
               {/* Chat Header */}
               <div className="p-4 border-b border-border-subtle bg-surface flex items-center gap-3 shrink-0 shadow-sm z-10">
-                <div className="w-10 h-10 rounded-full bg-border-subtle overflow-hidden shrink-0">
-                  {activeConv.participants.find(p => p._id !== user?._id)?.profile?.avatar ? (
-                    <img src={activeConv.participants.find(p => p._id !== user?._id).profile.avatar} alt="avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center font-bold text-primary">{activeConv.participants.find(p => p._id !== user?._id)?.username?.charAt(0).toUpperCase()}</div>
-                  )}
-                </div>
+                <Avatar 
+                  src={activeConv.participants.find(p => p._id !== user?._id)?.profile?.avatar} 
+                  username={activeConv.participants.find(p => p._id !== user?._id)?.username || '?'} 
+                  size="md" 
+                />
                 <div>
                   <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                    {activeConv.participants.find(p => p._id !== user?._id)?.username}
+                    {activeConv.participants.find(p => p._id !== user?._id)?.username || 'Unknown'}
                     <CredibilityBadge score={activeConv.participants.find(p => p._id !== user?._id)?.credibilityScore || 50} size="sm" />
                   </h3>
                   <span className="text-xs text-text-muted">

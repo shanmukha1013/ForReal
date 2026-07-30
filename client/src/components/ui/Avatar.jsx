@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 export const Avatar = ({ src, username, size = 'md', className = '' }) => {
   const [hasError, setHasError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setHasError(false);
-    setIsLoaded(false);
   }, [src]);
 
   const sizeClasses = {
@@ -18,33 +16,24 @@ export const Avatar = ({ src, username, size = 'md', className = '' }) => {
   };
 
   const initial = username ? username.charAt(0).toUpperCase() : '?';
-
-  // ALWAYS keep as relative path so Vite proxy correctly forwards to the backend.
-  // Never construct an absolute http://localhost URL here.
-  const rawSrc = src?.trim();
-  // If it starts with /uploads, keep it as-is (Vite proxy will handle it).
-  // If it's a full http/https URL (e.g., from a CDN), keep it as-is.
-  // If empty/null, no image.
-  const imgUrl = rawSrc || null;
-
+  const imgUrl = src?.trim() || null;
   const showFallback = !imgUrl || hasError;
 
   return (
     <div
-      className={`relative rounded-full bg-primary/10 shrink-0 overflow-hidden border border-border-subtle flex items-center justify-center ${sizeClasses[size] || sizeClasses.md} ${className}`}
+      className={`relative rounded-full shrink-0 overflow-hidden border border-border-subtle flex items-center justify-center bg-primary/10 ${sizeClasses[size] || sizeClasses.md} ${className}`}
     >
-      {/* Initials fallback - always present as background */}
-      <span className="font-bold text-primary select-none" aria-hidden="true">
+      {/* Initials fallback */}
+      <span className="font-bold text-primary select-none absolute" aria-hidden="true">
         {initial}
       </span>
 
-      {/* Image overlaid on top — hides the initials when loaded */}
+      {/* Image overlaid on top */}
       {!showFallback && (
         <img
           src={imgUrl}
           alt={username ? `${username}'s avatar` : 'User avatar'}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setIsLoaded(true)}
+          className="absolute inset-0 w-full h-full object-cover z-10 bg-bg-dark"
           onError={() => setHasError(true)}
         />
       )}

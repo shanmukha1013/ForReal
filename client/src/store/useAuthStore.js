@@ -2,16 +2,17 @@ import { create } from 'zustand';
 import apiClient, { setAccessToken } from '@/services/api';
 import { socketService } from '@/services/socket';
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: true, // Start true to check auth on load
+  isLoading: true,
   error: null,
 
   login: async (credentials) => {
     set({ isLoading: true, error: null });
     try {
       const response = await apiClient.post('/auth/login', credentials);
+      // response = { success, message, data: { _id, username, email, role, profile, accessToken } }
       const token = response.data.accessToken;
       setAccessToken(token);
       socketService.connect(token);
@@ -43,7 +44,7 @@ const useAuthStore = create((set) => ({
     try {
       await apiClient.post('/auth/logout');
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
     } finally {
       setAccessToken(null);
       socketService.disconnect();
@@ -54,20 +55,35 @@ const useAuthStore = create((set) => ({
   checkAuth: async () => {
     set({ isLoading: true, error: null });
     try {
-      // First try to refresh the token, which will set it in the api interceptor
       const refreshResponse = await apiClient.post('/auth/refresh');
       const token = refreshResponse.data.accessToken;
       setAccessToken(token);
       socketService.connect(token);
-      
+
       const response = await apiClient.get('/auth/me');
+      // response.data = { _id, username, email, role, profile, credibilityScore, badges }
       set({ user: response.data, isAuthenticated: true, isLoading: false });
     } catch {
-      // If unauthorized, just set state to null, don't throw
       setAccessToken(null);
       socketService.disconnect();
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
+  },
+
+  // Directly update user fields in the store — used after profile edits to avoid a full checkAuth round-trip
+  updateUser: (updates) => {
+    const currentUser = get().user;
+    if (!currentUser) return;
+    set({
+      user: {
+        ...currentUser,
+        ...updates,
+        profile: {
+          ...(currentUser.profile || {}),
+          ...(updates.profile || {}),
+        },
+      },
+    });
   },
 }));
 

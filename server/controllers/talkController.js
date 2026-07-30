@@ -284,3 +284,42 @@ exports.toggleBookmark = async (req, res, next) => {
       next(error);
     }
   };
+// @desc    Delete a comment
+// @route   DELETE /api/talks/:id/comments/:commentId
+// @access  Private
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const { id: talkId, commentId } = req.params;
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json(apiResponse(false, 'Comment not found', null, ['Comment not found']));
+    }
+
+    if (comment.author.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json(apiResponse(false, 'Not authorized to delete this comment', null, ['Forbidden']));
+    }
+
+    await comment.deleteOne();
+
+    const talk = await Talk.findById(talkId);
+    if (talk) {
+      talk.commentsCount = Math.max(0, talk.commentsCount - 1);
+      await talk.save();
+    }
+
+    // Update parent comment if it was a reply
+    if (comment.parentComment) {
+      const parent = await Comment.findById(comment.parentComment);
+      if (parent) {
+        parent.repliesCount = Math.max(0, parent.repliesCount - 1);
+        await parent.save();
+      }
+    }
+
+    res.status(200).json(apiResponse(true, 'Comment deleted successfully'));
+  } catch (error) {
+    logger.error(`Delete Comment Error: ${error.message}`);
+    next(error);
+  }
+};

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Outlet, Navigate, NavLink, Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '@/store/useAuthStore';
 import { Loader } from '@/components';
@@ -228,18 +228,7 @@ export const MainLayout = () => {
 
         {/* Page content */}
         <div className="flex-1 w-full px-4 pt-5 pb-24 md:pb-8 md:px-6 relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={window.location.pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="h-full"
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          <Outlet />
         </div>
         
         {/* Mobile bottom navigation */}

@@ -37,5 +37,9 @@ export const talkService = {
   
   addComment: async (id, content, parentComment = null) => {
     return apiClient.post(`/talks/${id}/comments`, { content, parentComment });
+  },
+
+  deleteComment: async (talkId, commentId) => {
+    return apiClient.delete(`/talks/${talkId}/comments/${commentId}`);
   }
 };

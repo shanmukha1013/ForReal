@@ -10,6 +10,7 @@ const {
   toggleReaction,
   addComment,
   getComments,
+  deleteComment,
   toggleBookmark
 } = require('../controllers/talkController');
 
@@ -30,5 +31,7 @@ router.post('/:id/bookmarks', toggleBookmark);
 router.route('/:id/comments')
   .post(addComment)
   .get(getComments);
+
+router.delete('/:id/comments/:commentId', deleteComment);
 
 module.exports = router;

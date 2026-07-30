@@ -7,13 +7,24 @@ export const useFeed = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [feedError, setFeedError] = useState(null);
-  
+
   const nextCursor = useRef(null);
   const isFetchingRef = useRef(false);
   const hasMoreRef = useRef(true);
+  const retryTimeoutRef = useRef(null);
+  const retryCountRef = useRef(0);
 
   const fetchTalks = useCallback(async (isRefresh = false) => {
-    if (isFetchingRef.current || (!hasMoreRef.current && !isRefresh)) return;
+    if (isFetchingRef.current) return;
+    if (!hasMoreRef.current && !isRefresh) return;
+
+    // Clear any pending retry
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    isFetchingRef.current = true;
 
     try {
       if (isRefresh) {
@@ -21,60 +32,58 @@ export const useFeed = () => {
         setFeedError(null);
         nextCursor.current = null;
         hasMoreRef.current = true;
+        retryCountRef.current = 0;
       } else {
         setIsLoading(true);
         setFeedError(null);
       }
-      isFetchingRef.current = true;
 
       const res = await talkService.getTalks({ cursor: nextCursor.current, limit: 10 });
-      
+
       if (res.success) {
         const { talks: newTalks, nextCursor: newCursor, hasMore: more } = res.data;
-        
+
         setTalks(prev => isRefresh ? newTalks : [...prev, ...newTalks]);
         nextCursor.current = newCursor;
         hasMoreRef.current = more;
         setHasMore(more);
         setFeedError(null);
+        retryCountRef.current = 0;
       }
     } catch (error) {
       console.error('Failed to fetch feed:', error);
-      setFeedError(error.message || 'We couldn\'t refresh your feed right now. Retrying...');
-      
-      // Auto-retry once after 3 seconds if not refreshing
-      if (!isRefresh) {
-        setTimeout(() => {
+      setFeedError(error.message || 'Your feed is taking a moment. Retrying...');
+
+      // Exponential backoff retry — max 3 retries, cap at 15s
+      if (retryCountRef.current < 3) {
+        const delay = Math.min(3000 * Math.pow(2, retryCountRef.current), 15000);
+        retryCountRef.current += 1;
+        retryTimeoutRef.current = setTimeout(() => {
           isFetchingRef.current = false;
           fetchTalks(false);
-        }, 3000);
+        }, delay);
+        // Don't fall through to isFetchingRef = false so we block new calls during backoff
+        if (isRefresh) setIsRefreshing(false);
+        setIsLoading(false);
+        return;
       }
     } finally {
+      isFetchingRef.current = false;
       setIsLoading(false);
       setIsRefreshing(false);
-      isFetchingRef.current = false;
     }
   }, []);
 
-  /**
-   * addTalkToFeed — handles three cases:
-   * 1. Plain new talk: prepend to feed
-   * 2. { replaceId } set: replace the optimistic placeholder with the real server talk
-   * 3. { removeId } set: remove an optimistic placeholder on rollback
-   */
   const addTalkToFeed = useCallback((newTalk) => {
     if (newTalk.removeId) {
-      // Rollback: remove optimistic talk by its temp ID
       setTalks(prev => prev.filter(t => t._id !== newTalk.removeId));
       return;
     }
 
     if (newTalk.replaceId) {
-      // Reconcile: replace the optimistic talk with the real server talk
       setTalks(prev => {
         const exists = prev.some(t => t._id === newTalk._id);
         if (exists) {
-          // Real talk already in feed somehow — just remove the optimistic one
           return prev.filter(t => t._id !== newTalk.replaceId);
         }
         return prev.map(t => t._id === newTalk.replaceId ? { ...newTalk } : t);
@@ -82,9 +91,7 @@ export const useFeed = () => {
       return;
     }
 
-    // Standard prepend (optimistic or fresh talk)
     setTalks(prev => {
-      // Prevent duplicate if somehow the same _id already exists
       if (prev.some(t => t._id === newTalk._id)) return prev;
       return [newTalk, ...prev];
     });

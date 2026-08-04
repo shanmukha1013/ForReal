@@ -5,9 +5,22 @@ const config = require('../config/config');
 let io;
 
 const initSocket = (server) => {
+  const clientUrlStr = config.app.clientUrl || '';
+  const cleanUrl = clientUrlStr.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const allowedOrigins = [
+    `https://${cleanUrl}`,
+    `http://${cleanUrl}`,
+    'http://localhost:5173'
+  ];
+
   io = new Server(server, {
     cors: {
-      origin: config.app.clientUrl,
+      origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        if (origin.endsWith('.vercel.app')) return callback(null, true);
+        callback(new Error('Not allowed by CORS'));
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },

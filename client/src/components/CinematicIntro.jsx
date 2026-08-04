@@ -67,6 +67,15 @@ export const CinematicIntro = ({ isFirstLaunch, onComplete }) => {
   const chaosWords = ['Fake', 'Bias', 'Noise', 'Misinformation', 'Opinions', 'Clickbait', 'Echo Chamber', 'Hate', 'Spam', 'Lies'];
   const intelligenceNodes = ['Truth', 'Logic', 'Evidence', 'Reason'];
 
+  // Pre-calculate random positions to prevent hydration mismatch/re-renders
+  const chaosPositions = React.useMemo(() => {
+    return chaosWords.map(() => ({
+      x: (Math.random() - 0.5) * 400,
+      y: (Math.random() - 0.5) * 400,
+      rotate: (Math.random() - 0.5) * 45
+    }));
+  }, [chaosWords.length]);
+
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -87,7 +96,7 @@ export const CinematicIntro = ({ isFirstLaunch, onComplete }) => {
             {chaosWords.map((word, i) => (
               <motion.span
                 key={`chaos-${i}`}
-                initial={{ opacity: 0, scale: 0, x: (Math.random() - 0.5) * 400, y: (Math.random() - 0.5) * 400 }}
+                initial={{ opacity: 0, scale: 0, x: chaosPositions[i].x, y: chaosPositions[i].y }}
                 animate={{ 
                   opacity: [0, 0.8, 1], 
                   scale: [0.5, 2, 4], 
@@ -100,7 +109,7 @@ export const CinematicIntro = ({ isFirstLaunch, onComplete }) => {
                 }}
                 className="absolute text-3xl md:text-5xl font-black text-white/40 uppercase tracking-tighter"
                 style={{
-                  transform: `rotate(${(Math.random() - 0.5) * 45}deg)`,
+                  transform: `rotate(${chaosPositions[i].rotate}deg)`,
                 }}
               >
                 {word}

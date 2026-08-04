@@ -35,8 +35,31 @@ initSocket(server);
 // Security and Performance Middleware
 app.use(helmet());
 app.use(compression());
+// Robust CORS configuration to handle Render/Vercel URL formats
+const clientUrlStr = config.app.clientUrl || '';
+const cleanUrl = clientUrlStr.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const allowedOrigins = [
+  `https://${cleanUrl}`,
+  `http://${cleanUrl}`,
+  'http://localhost:5173'
+];
+
 app.use(cors({
-  origin: config.app.clientUrl,
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    // Check exact match
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow vercel preview deployments if the base domain matches
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 

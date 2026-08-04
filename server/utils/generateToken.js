@@ -17,10 +17,11 @@ const generateTokens = (res, userId, rememberMe = false) => {
 
   // Set refresh token in httpOnly cookie
   const maxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+  const isProduction = process.env.NODE_ENV !== 'development';
   res.cookie('jwt_refresh', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development', // Use secure cookies in production
-    sameSite: 'strict', // Prevent CSRF attacks
+    secure: isProduction, // Use secure cookies in production
+    sameSite: isProduction ? 'none' : 'lax', // Allow cross-site cookies in production
     maxAge,
   });
 

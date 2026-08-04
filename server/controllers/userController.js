@@ -97,7 +97,21 @@ const updateProfile = async (req, res, next) => {
     const user = await User.findById(req.user.id);
 
     if (user) {
-      user.profile.bio = req.body.bio || user.profile.bio;
+      logger.info(`Updating profile for user ${req.user.id}. Body: ${JSON.stringify(req.body)}`);
+      
+      if (req.body.username) {
+        const normalizedUsername = req.body.username.trim().toLowerCase();
+        if (normalizedUsername !== user.username) {
+          const existing = await User.findOne({ username: normalizedUsername });
+          if (existing) {
+            res.status(400);
+            throw new Error('Username is already taken');
+          }
+          user.username = normalizedUsername;
+        }
+      }
+
+      user.profile.bio = req.body.bio !== undefined ? req.body.bio : user.profile.bio;
       user.profile.socialLinks = req.body.socialLinks || user.profile.socialLinks;
       
       if (req.body.password) {
@@ -105,6 +119,7 @@ const updateProfile = async (req, res, next) => {
       }
 
       const updatedUser = await user.save();
+      logger.info(`Profile updated in MongoDB for user ${req.user.id}`);
       return successResponse(res, 200, 'Profile updated', {
         _id: updatedUser._id,
         username: updatedUser.username,
@@ -112,6 +127,7 @@ const updateProfile = async (req, res, next) => {
         profile: updatedUser.profile
       });
     } else {
+      logger.error(`Failed to update profile: User not found for ID ${req.user.id}`);
       res.status(404);
       throw new Error('User not found');
     }

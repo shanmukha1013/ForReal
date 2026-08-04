@@ -29,6 +29,7 @@ export const Settings = () => {
   const [activeSection, setActiveSection] = useState('account');
   const { user, updateUser, checkAuth } = useAuthStore();
 
+  const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -38,6 +39,7 @@ export const Settings = () => {
 
   useEffect(() => {
     if (user?.profile) {
+      setUsername(user.username || '');
       setBio(user.profile.bio || '');
       // Only reset preview from server if we don't have a local file selected
       if (!avatarFile) {
@@ -73,11 +75,12 @@ export const Settings = () => {
         newAvatarUrl = avatarRes.data?.avatarUrl || newAvatarUrl;
       }
 
-      // 2. Save bio
-      await apiClient.put('/users/profile', { bio });
+      // 2. Save bio and username
+      const updateRes = await apiClient.put('/users/profile', { bio, username });
 
-      // 3. Immediately patch the store so all components re-render with new avatar
+      // 3. Immediately patch the store so all components re-render with new avatar and username
       updateUser({
+        username: updateRes.data?.data?.username || username,
         profile: {
           ...(user?.profile || {}),
           avatar: newAvatarUrl,
@@ -187,6 +190,18 @@ export const Settings = () => {
                       </p>
                     )}
                   </div>
+                </div>
+
+                {/* Username */}
+                <div>
+                  <label className="block text-white font-bold text-sm mb-2">Username</label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Your username"
+                    className="w-full bg-bg-dark border border-border-muted rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                  />
                 </div>
 
                 {/* Bio */}

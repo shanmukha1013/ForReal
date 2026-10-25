@@ -51,11 +51,11 @@ The entire interface — including focus rings, toasts, charts, badges and the i
 | Token | Hex | Role |
 |---|---|---|
 | `ember` (burnt orange) | `#CA6230` | ~60% · brand surfaces, selection, emphasis |
-| `ivory` (warm ivory) | `#F5EBDD` | ~30% · reading surfaces, cards, forms |
+| `ivory` (warm ivory) | `#F2E2C5` | ~30% · reading surfaces, cards, forms |
 | `ink` (soft black) | `#171614` | ~10% · text, rules, dark accents |
 
 - **Single source of truth:** `client/src/index.css` defines the tokens and *removes Tailwind’s default palette*, so classes like `bg-blue-500` or `text-white` generate no CSS at all.
-- **Accessible by measurement:** the orange was tuned from `#C65D2E` to `#CA6230` so ink text on orange passes WCAG AA (4.56:1). Ink on ivory is 15.3:1. Ivory on orange is reserved for large display type.
+- **Accessible by measurement:** the orange was tuned from `#C65D2E` to `#CA6230` so ink text on orange passes WCAG AA (4.56:1). Ink on ivory is 14.2:1. The ivory is a deliberately warm cream (`#F2E2C5`) so it never reads as white. Ivory on orange is reserved for large display type.
 - **Status without extra hues:** errors use dashed borders, an icon and text; debate sides are distinguished by solid and hatched tones plus letter labels.
 - **Typography:** Archivo (variable width/weight) for UI and condensed display type; Instrument Serif italic for editorial accents.
 - `prefers-reduced-motion` is respected everywhere; reduced-motion visitors see the static landing page instead of the intro.

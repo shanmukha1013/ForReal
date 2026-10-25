@@ -12,15 +12,15 @@
  * `text-white` simply generates no CSS.
  *
  * Contrast rules (WCAG 2.2, measured):
- *   ink on ivory 15.3:1 · ink on ember 4.56:1 · ember on ink 4.56:1
- *   ivory on ember 3.36:1 → large display type only
+ *   ink on ivory 14.2:1 · ink on ember 4.56:1 · ember on ink 4.56:1
+ *   ivory on ember 3.11:1 → large display type only
  *   muted text: ink/70 on ivory, ivory/65 on ink; never muted ink on ember
  */
 
 @theme {
   --color-*: initial;
   --color-ember: #CA6230;
-  --color-ivory: #F5EBDD;
+  --color-ivory: #F2E2C5;
   --color-ink: #171614;
 
   --font-*: initial;
@@ -115,6 +115,39 @@
     font: inherit;
     color: inherit;
     accent-color: var(--color-ink);
+  }
+
+  /* Native controls are restyled so the browser never paints default white. */
+  input[type='checkbox'] {
+    appearance: none;
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 2px solid var(--color-ink);
+    border-radius: 3px;
+    background-color: var(--color-ivory);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 78%;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+  }
+
+  input[type='checkbox']:checked {
+    background-color: var(--color-ember);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23171614' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  }
+
+  select option,
+  select optgroup {
+    background-color: var(--color-ivory);
+    color: var(--color-ink);
+  }
+
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   ::placeholder {

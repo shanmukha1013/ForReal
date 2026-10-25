@@ -91,7 +91,7 @@ export const ArgumentComposer = ({ debate, onPosted }) => {
               <label
                 key={s.value || 'neutral'}
                 className={`inline-flex cursor-pointer items-center gap-2 rounded-[4px] border-2 px-3 py-1.5 text-sm font-bold transition-colors ${
-                  active ? 'border-ink bg-ink text-ivory' : 'border-ink hover:bg-ink/8'
+                  active ? 'border-ink bg-ember text-ink' : 'border-ink hover:bg-ink/8'
                 } ${s.index < 0 ? 'border-dashed' : ''}`}
               >
                 <input type="radio" name="side" value={s.value} checked={active} onChange={() => setSide(s.value)} className="sr-only" />

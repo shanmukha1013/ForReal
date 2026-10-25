@@ -38,12 +38,12 @@ export const ReactionBar = React.memo(({ talk, onReaction, onBookmark, onComment
               key={type}
               type="button"
               onClick={() => onReaction(talk._id, type)}
-              className={`${chip} ${active ? 'border-ink bg-ink text-ivory' : 'border-transparent hover:border-ink'}`}
+              className={`${chip} ${active ? 'border-ink bg-ember text-ink' : 'border-transparent hover:border-ink'}`}
               aria-pressed={active}
               aria-label={`${label}${count ? ` (${count})` : ''}`}
               title={label}
             >
-              <Icon size={15} strokeWidth={2.5} className={active ? 'text-ember' : ''} aria-hidden="true" />
+              <Icon size={15} strokeWidth={2.5} className={active ? 'stroke-[3]' : ''} aria-hidden="true" />
               <span className={type === 'agree' || type === 'disagree' ? 'hidden sm:inline' : 'sr-only'}>{label}</span>
               {count > 0 && <span className="tabular">{count}</span>}
             </button>
@@ -65,11 +65,11 @@ export const ReactionBar = React.memo(({ talk, onReaction, onBookmark, onComment
         <button
           type="button"
           onClick={() => onBookmark(talk._id)}
-          className={`${chip} ${talk.isBookmarked ? 'border-ink bg-ink text-ivory' : 'border-transparent hover:border-ink'}`}
+          className={`${chip} ${talk.isBookmarked ? 'border-ink bg-ember text-ink' : 'border-transparent hover:border-ink'}`}
           aria-pressed={Boolean(talk.isBookmarked)}
           aria-label={talk.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
         >
-          <Bookmark size={15} strokeWidth={2.5} className={talk.isBookmarked ? 'fill-ember text-ember' : ''} aria-hidden="true" />
+          <Bookmark size={15} strokeWidth={2.5} className={talk.isBookmarked ? 'fill-ink' : ''} aria-hidden="true" />
         </button>
         <button type="button" onClick={share} className={`${chip} border-transparent hover:border-ink`} aria-label="Share talk">
           <Share2 size={15} strokeWidth={2.5} aria-hidden="true" />

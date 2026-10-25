@@ -44,7 +44,7 @@ const AccountMenu = ({ user, onLogout }) => {
     };
   }, [open]);
 
-  const item = 'flex w-full items-center gap-2.5 rounded-[3px] px-3 py-2.5 text-sm font-semibold hover:bg-ink hover:text-ivory';
+  const item = 'flex w-full items-center gap-2.5 rounded-[3px] px-3 py-2.5 text-sm font-semibold hover:bg-ember';
 
   return (
     <div ref={ref} className="relative">
@@ -140,7 +140,7 @@ export const MainLayout = () => {
               to={to}
               className={({ isActive }) =>
                 `group relative flex items-center gap-3 rounded-[4px] border-2 px-3 py-2.5 text-[15px] font-bold transition-colors ${
-                  isActive ? 'border-ink bg-ink text-ivory' : 'border-transparent text-ink hover:border-ink'
+                  isActive ? 'border-ink bg-ivory text-ink shadow-hard-sm' : 'border-transparent text-ink hover:border-ink'
                 } justify-center lg:justify-start`
               }
               aria-label={label}
@@ -158,7 +158,7 @@ export const MainLayout = () => {
             to={profilePath}
             className={({ isActive }) =>
               `flex items-center justify-center gap-3 rounded-[4px] border-2 px-3 py-2.5 text-[15px] font-bold lg:justify-start ${
-                isActive ? 'border-ink bg-ink text-ivory' : 'border-transparent hover:border-ink'
+                isActive ? 'border-ink bg-ivory text-ink shadow-hard-sm' : 'border-transparent hover:border-ink'
               }`
             }
             aria-label="Profile"
@@ -212,8 +212,8 @@ export const MainLayout = () => {
 
       {/* Right rail */}
       <aside className="sticky top-0 hidden h-dvh w-80 shrink-0 flex-col gap-4 overflow-y-auto px-5 py-8 xl:flex">
-        <section className="on-ink rounded-[var(--radius-card)] border-2 border-ink bg-ink p-5 text-ivory shadow-hard">
-          <p className="eyebrow text-ember">House rules</p>
+        <section className="card p-5">
+          <p className="eyebrow">House rules</p>
           <ol className="mt-4 space-y-4">
             {[
               ['Challenge ideas.', 'Question the claim, not the person making it.'],
@@ -224,7 +224,7 @@ export const MainLayout = () => {
                 <span className="font-display text-3xl text-ember">0{i + 1}</span>
                 <span>
                   <span className="block font-bold">{rule}</span>
-                  <span className="block text-sm text-ivory/75">{detail}</span>
+                  <span className="block text-sm text-ink/75">{detail}</span>
                 </span>
               </li>
             ))}
@@ -252,7 +252,7 @@ export const MainLayout = () => {
       </aside>
 
       {/* Mobile bottom navigation */}
-      <nav className="on-ink safe-bottom fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink bg-ink md:hidden" aria-label="Primary">
+      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink bg-ivory md:hidden" aria-label="Primary">
         <div className="flex justify-around px-2 pt-2">
           {[...NAV.filter((n) => n.to !== '/notifications'), { to: profilePath, icon: User, label: 'Profile' }].map(({ to, icon: Icon, label }) => (
             <NavLink
@@ -260,7 +260,7 @@ export const MainLayout = () => {
               to={to}
               className={({ isActive }) =>
                 `flex min-w-14 flex-col items-center gap-0.5 rounded-[4px] px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider ${
-                  isActive ? 'text-ember' : 'text-ivory'
+                  isActive ? 'bg-ember text-ink' : 'text-ink'
                 }`
               }
             >

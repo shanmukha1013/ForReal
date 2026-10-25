@@ -24,7 +24,7 @@ export const ErrorState = ({ title = 'Something broke on our side.', message, on
       <button
         type="button"
         onClick={onRetry}
-        className="mt-5 inline-flex h-10 items-center rounded-[4px] border-2 border-ink px-4 text-sm font-bold hover:bg-ink hover:text-ivory"
+        className="mt-5 inline-flex h-10 items-center rounded-[4px] border-2 border-ink px-4 text-sm font-bold hover:bg-ember"
       >
         Try again
       </button>
@@ -83,7 +83,7 @@ export const Tabs = ({ tabs, value, onChange, label, className = '' }) => (
           aria-selected={active}
           onClick={() => onChange(tab.value)}
           className={`eyebrow h-9 shrink-0 rounded-[4px] border-2 px-3.5 transition-colors ${
-            active ? 'border-ink bg-ink text-ivory' : 'border-ink/0 text-ink hover:border-ink'
+            active ? 'border-ink bg-ivory text-ink shadow-hard-sm' : 'border-ink/0 text-ink hover:border-ink'
           }`}
         >
           {tab.label}

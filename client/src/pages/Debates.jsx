@@ -88,7 +88,7 @@ export default function Debates() {
                 type="button"
                 onClick={() => updateParam('category', c)}
                 aria-pressed={active}
-                className={`h-8 shrink-0 rounded-full border-2 border-ink px-3 text-xs font-bold transition-colors ${active ? 'bg-ink text-ivory' : 'bg-ivory hover:bg-ink hover:text-ivory'}`}
+                className={`h-8 shrink-0 rounded-full border-2 border-ink px-3 text-xs font-bold transition-colors ${active ? 'bg-ivory text-ink shadow-hard-sm' : 'bg-transparent hover:bg-ivory'}`}
               >
                 {c || 'All topics'}
               </button>

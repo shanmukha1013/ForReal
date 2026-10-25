@@ -50,7 +50,7 @@ const References = ({ references }) =>
             href={ref.url}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="inline-flex items-center gap-1 rounded-[3px] border-2 border-ink bg-ember px-2 py-0.5 text-xs font-extrabold text-ink hover:bg-ink hover:text-ivory"
+            className="inline-flex items-center gap-1 rounded-[3px] border-2 border-ink bg-ember px-2 py-0.5 text-xs font-extrabold text-ink hover:bg-ivory"
           >
             <ArrowUpRight size={13} strokeWidth={3} aria-hidden="true" />
             Source: {ref.title || hostname(ref.url) || 'link'}
@@ -88,10 +88,10 @@ const EndorseButton = ({ comment, debateId, isOwn, onChange }) => {
       title={isOwn ? 'You can’t endorse your own argument' : 'Endorse as a strong point'}
       aria-pressed={Boolean(comment.isEndorsed)}
       className={`inline-flex h-8 items-center gap-1.5 rounded-[4px] border-2 px-2 text-xs font-bold disabled:opacity-60 ${
-        comment.isEndorsed ? 'border-ink bg-ink text-ivory' : 'border-transparent hover:border-ink'
+        comment.isEndorsed ? 'border-ink bg-ember text-ink' : 'border-transparent hover:border-ink'
       }`}
     >
-      <ThumbsUp size={14} strokeWidth={2.5} className={comment.isEndorsed ? 'fill-ember text-ember' : ''} aria-hidden="true" />
+      <ThumbsUp size={14} strokeWidth={2.5} className={comment.isEndorsed ? 'fill-ink' : ''} aria-hidden="true" />
       <span className="hidden sm:inline">Strong point</span>
       {count > 0 && <span className="tabular">{count}</span>}
     </button>
@@ -286,7 +286,7 @@ export const ArgumentCard = React.memo(({ comment, debate, onPatch, onDeleted, l
                     type="button"
                     role="menuitem"
                     onClick={() => { setMenuOpen(false); setDraft(comment.content); setEditing(true); }}
-                    className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ink hover:text-ivory"
+                    className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ember"
                   >
                     <Pencil size={15} /> Edit
                   </button>
@@ -295,7 +295,7 @@ export const ArgumentCard = React.memo(({ comment, debate, onPatch, onDeleted, l
                   type="button"
                   role="menuitem"
                   onClick={remove}
-                  className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ink hover:text-ivory"
+                  className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ember"
                 >
                   <Trash2 size={15} /> Delete
                 </button>
@@ -380,7 +380,7 @@ export const ArgumentCard = React.memo(({ comment, debate, onPatch, onDeleted, l
                   <span className="flex shrink-0 items-center gap-1.5 text-xs text-ink/70">
                     {timeAgo(reply.createdAt, { short: true })}
                     {canDeleteReply && (
-                      <button type="button" onClick={() => removeReply(reply._id)} className="rounded p-0.5 hover:bg-ink hover:text-ivory" aria-label="Delete reply">
+                      <button type="button" onClick={() => removeReply(reply._id)} className="rounded p-0.5 hover:bg-ember" aria-label="Delete reply">
                         <Trash2 size={12} />
                       </button>
                     )}

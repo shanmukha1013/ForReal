@@ -7,11 +7,11 @@ const VARIANTS = {
   primary: 'bg-ink text-ivory border-2 border-ink hover:bg-ink/88 shadow-hard-sm hover:shadow-hard active:shadow-none active:translate-x-[2px] active:translate-y-[2px]',
   // Ember call-to-action with ink text (4.56:1).
   accent: 'bg-ember text-ink border-2 border-ink shadow-hard-sm hover:shadow-hard active:shadow-none active:translate-x-[2px] active:translate-y-[2px]',
-  outline: 'bg-transparent text-ink border-2 border-ink hover:bg-ink hover:text-ivory',
+  outline: 'bg-transparent text-ink border-2 border-ink hover:bg-ivory hover:shadow-hard-sm',
   ivory: 'bg-ivory text-ink border-2 border-ink shadow-hard-sm hover:shadow-hard active:shadow-none active:translate-x-[2px] active:translate-y-[2px]',
   ghost: 'bg-transparent text-ink border-2 border-transparent hover:bg-ink/8',
   'ghost-ivory': 'bg-transparent text-ivory border-2 border-transparent hover:bg-ivory/10',
-  danger: 'bg-ivory text-ink border-2 border-dashed border-ink hover:bg-ink hover:text-ivory hover:border-solid',
+  danger: 'bg-ivory text-ink border-2 border-dashed border-ink hover:bg-ember hover:border-solid',
 };
 
 const SIZES = {

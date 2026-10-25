@@ -33,7 +33,7 @@ const toastOptions = {
   duration: 3200,
   style: {
     background: '#171614',
-    color: '#F5EBDD',
+    color: '#F2E2C5',
     border: '2px solid #171614',
     borderRadius: '4px',
     boxShadow: '4px 4px 0 0 #CA6230',
@@ -43,7 +43,7 @@ const toastOptions = {
     maxWidth: '420px',
   },
   success: { iconTheme: { primary: '#CA6230', secondary: '#171614' } },
-  error: { iconTheme: { primary: '#F5EBDD', secondary: '#171614' }, duration: 4500 },
+  error: { iconTheme: { primary: '#F2E2C5', secondary: '#171614' }, duration: 4500 },
 };
 
 function App() {

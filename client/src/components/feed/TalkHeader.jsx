@@ -58,7 +58,7 @@ export const TalkHeader = React.memo(({ talk, isOwner, onEdit, onDelete }) => {
                 type="button"
                 role="menuitem"
                 onClick={() => { setMenuOpen(false); onEdit(); }}
-                className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ink hover:text-ivory"
+                className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ember"
               >
                 <Pencil size={15} /> Edit
               </button>
@@ -66,7 +66,7 @@ export const TalkHeader = React.memo(({ talk, isOwner, onEdit, onDelete }) => {
                 type="button"
                 role="menuitem"
                 onClick={() => { setMenuOpen(false); onDelete(talk._id); }}
-                className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ink hover:text-ivory"
+                className="flex w-full items-center gap-2 rounded-[3px] px-3 py-2 text-left text-sm font-semibold hover:bg-ember"
               >
                 <Trash2 size={15} /> Delete
               </button>

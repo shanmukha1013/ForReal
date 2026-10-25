@@ -42,7 +42,7 @@ const ConversationList = ({ conversations, activeId, userId, onSelect, status, o
             <button
               type="button"
               onClick={() => onSelect(c._id)}
-              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${active ? 'bg-ink text-ivory' : 'hover:bg-ink/[0.05]'}`}
+              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${active ? 'bg-ember text-ink' : 'hover:bg-ink/[0.05]'}`}
               aria-current={active ? 'true' : undefined}
             >
               <Avatar src={other?.profile?.avatar} username={other?.username} size="md" />
@@ -50,17 +50,17 @@ const ConversationList = ({ conversations, activeId, userId, onSelect, status, o
                 <span className="flex items-baseline justify-between gap-2">
                   <span className={`truncate text-sm ${c.unread ? 'font-extrabold' : 'font-bold'}`}>{displayName(other)}</span>
                   {c.lastMessage && (
-                    <span className={`shrink-0 text-[11px] font-semibold ${active ? 'text-ivory/70' : 'text-ink/70'}`}>
+                    <span className={`shrink-0 text-[11px] font-semibold ${active ? 'text-ink' : 'text-ink/70'}`}>
                       {timeAgo(c.lastMessage.createdAt, { short: true })}
                     </span>
                   )}
                 </span>
                 <span className="flex items-center justify-between gap-2">
-                  <span className={`truncate text-xs ${active ? 'text-ivory/75' : c.unread ? 'font-bold' : 'text-ink/70'}`}>
+                  <span className={`truncate text-xs ${active ? 'text-ink' : c.unread ? 'font-bold' : 'text-ink/70'}`}>
                     {c.lastMessage ? `${sameId(c.lastMessage.sender, userId) ? 'You: ' : ''}${c.lastMessage.content}` : 'Say hello'}
                   </span>
                   {c.unread > 0 && !active && (
-                    <span className="tabular inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-ember px-1 text-[10px] font-extrabold">
+                    <span className="tabular inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-ember px-1 text-[10px] font-extrabold">
                       {c.unread}
                     </span>
                   )}
@@ -182,7 +182,7 @@ const ChatPane = ({ conversation, userId, onBack, onSent }) => {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex items-center gap-3 border-b-2 border-ink px-4 py-3">
-        <button type="button" onClick={onBack} className="-ml-1 inline-flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-ink hover:text-ivory md:hidden" aria-label="Back to conversations">
+        <button type="button" onClick={onBack} className="-ml-1 inline-flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-ember md:hidden" aria-label="Back to conversations">
           <ArrowLeft size={18} strokeWidth={2.75} />
         </button>
         <Link to={`/profile/${other?.username}`} className="flex min-w-0 items-center gap-3 hover:underline">
@@ -206,11 +206,11 @@ const ChatPane = ({ conversation, userId, onBack, onSent }) => {
             <div key={m._id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`max-w-[80%] rounded-[6px] border-2 border-ink px-3.5 py-2 text-sm ${
-                  mine ? 'on-ink bg-ink text-ivory' : 'bg-ivory text-ink'
+                  mine ? 'bg-ember text-ink' : 'bg-ivory text-ink'
                 } ${m.pending ? 'opacity-60' : ''}`}
               >
                 <p className="whitespace-pre-wrap break-words leading-relaxed">{m.content}</p>
-                <time dateTime={m.createdAt} className={`mt-0.5 block text-right text-[10px] font-semibold ${mine ? 'text-ivory/65' : 'text-ink/70'}`}>
+                <time dateTime={m.createdAt} className={`mt-0.5 block text-right text-[10px] font-semibold ${mine ? 'text-ink' : 'text-ink/70'}`}>
                   {m.pending ? 'Sending…' : formatTime(m.createdAt)}
                 </time>
               </div>

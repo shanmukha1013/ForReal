@@ -236,7 +236,7 @@ export default function Explore() {
           <button
             type="button"
             onClick={() => { update('', { immediate: true }); inputRef.current?.focus(); }}
-            className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[4px] hover:bg-ink hover:text-ivory"
+            className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[4px] hover:bg-ember"
             aria-label="Clear search"
           >
             <X size={18} strokeWidth={2.5} />

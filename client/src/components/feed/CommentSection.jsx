@@ -102,7 +102,7 @@ export const CommentSection = ({ talk, onCountChange }) => {
                   <div className="flex shrink-0 items-center gap-1.5 text-xs text-ink/70">
                     <time dateTime={comment.createdAt}>{timeAgo(comment.createdAt, { short: true })}</time>
                     {canDelete && (
-                      <button type="button" onClick={() => remove(comment._id)} className="rounded p-0.5 hover:bg-ink hover:text-ivory" aria-label="Delete comment">
+                      <button type="button" onClick={() => remove(comment._id)} className="rounded p-0.5 hover:bg-ember" aria-label="Delete comment">
                         <Trash2 size={12} />
                       </button>
                     )}
@@ -133,7 +133,7 @@ export const CommentSection = ({ talk, onCountChange }) => {
         <button
           type="submit"
           disabled={!draft.trim() || isSubmitting}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border-2 border-ink bg-ink text-ivory disabled:opacity-40"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border-2 border-ink bg-ember text-ink disabled:opacity-40"
           aria-label="Post comment"
         >
           {isSubmitting ? <Spinner size={16} /> : <Send size={16} />}

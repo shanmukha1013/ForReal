@@ -66,11 +66,11 @@ export const VotePanel = ({ debate, onUpdate }) => {
               onClick={() => vote(opt._id)}
               className={`group relative overflow-hidden rounded-[4px] border-2 border-ink p-4 text-left transition-[box-shadow,transform] duration-150 ${
                 selected ? 'shadow-hard' : open ? 'hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-hard' : ''
-              } ${selected ? 'bg-ink text-ivory' : 'bg-ivory'} disabled:cursor-default`}
+              } ${selected ? 'bg-ember text-ink' : 'bg-ivory'} disabled:cursor-default`}
             >
               {/* Share-of-vote fill */}
               <span
-                className={`absolute inset-y-0 left-0 ${selected ? 'bg-ember/25' : tone.hatched ? `${tone.swatch} opacity-20` : `${tone.swatch} opacity-20`} transition-[width] duration-700 ease-[var(--ease-out-expo)]`}
+                className={`absolute inset-y-0 left-0 ${selected ? 'bg-ink/10' : `${tone.swatch} opacity-20`} transition-[width] duration-700 ease-[var(--ease-out-expo)]`}
                 style={{ width: `${share}%` }}
                 aria-hidden="true"
               />
@@ -78,7 +78,7 @@ export const VotePanel = ({ debate, onUpdate }) => {
                 <span className="flex min-w-0 items-start gap-3">
                   <span
                     className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border-2 font-display text-lg ${
-                      selected ? 'border-ivory bg-ember text-ink' : `border-ink ${tone.chip}`
+                      selected ? 'border-ink bg-ivory text-ink' : `border-ink ${tone.chip}`
                     }`}
                     aria-hidden="true"
                   >
@@ -86,7 +86,7 @@ export const VotePanel = ({ debate, onUpdate }) => {
                   </span>
                   <span className="min-w-0">
                     <span className="block text-base font-extrabold leading-tight">{opt.label}</span>
-                    <span className={`tabular mt-1 block text-xs font-bold ${selected ? 'text-ivory/80' : 'text-ink/70'}`}>
+                    <span className={`tabular mt-1 block text-xs font-bold ${selected ? 'text-ink' : 'text-ink/70'}`}>
                       {plural(opt.votes, 'vote')}
                       {selected && ' · your side'}
                       {isWinner && ' · carried the room'}

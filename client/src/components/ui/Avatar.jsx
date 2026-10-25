@@ -19,7 +19,7 @@ export const Avatar = ({ src, username, size = 'md', className = '' }) => {
 
   return (
     <span
-      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-ink bg-ink font-display text-ivory ${SIZES[size] || SIZES.md} ${className}`}
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-ink bg-ember font-display text-ink ${SIZES[size] || SIZES.md} ${className}`}
     >
       <span aria-hidden="true" className="leading-none">{initial}</span>
       {showImage && (

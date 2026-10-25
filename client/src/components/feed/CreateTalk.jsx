@@ -125,7 +125,7 @@ export const CreateTalk = forwardRef(({ onOptimistic, onCreated, onFailed }, ref
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
-                    className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-ivory hover:bg-ink hover:text-ivory"
+                    className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-ivory hover:bg-ember"
                     aria-label={`Remove attachment ${i + 1}`}
                   >
                     <X size={14} strokeWidth={3} />

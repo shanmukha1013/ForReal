@@ -168,9 +168,9 @@ export default function Profile() {
   return (
     <div className="space-y-6">
       <section className="card overflow-hidden">
-        <div className="relative h-28 border-b-2 border-ink bg-ink sm:h-32">
-          <div className="absolute inset-0 text-ember/40 hatched" aria-hidden="true" />
-          <span className="font-display absolute bottom-2 right-4 text-5xl text-ember/80" aria-hidden="true">@{profile.username}</span>
+        <div className="relative h-28 border-b-2 border-ink bg-ember sm:h-32">
+          <div className="absolute inset-0 text-ink/15 hatched" aria-hidden="true" />
+          <span className="font-display absolute bottom-2 right-4 text-5xl text-ivory" aria-hidden="true">@{profile.username}</span>
         </div>
         <div className="px-5 pb-5 sm:px-6">
           <div className="-mt-12 flex flex-wrap items-end justify-between gap-3">

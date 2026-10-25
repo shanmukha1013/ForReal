@@ -301,7 +301,7 @@ export default function DebateView() {
               <span className="inline-flex items-center gap-1"><Users size={14} strokeWidth={2.5} aria-hidden="true" /> {plural(debate.stats?.participantCount || 0, 'participant')}</span>
               <span className="inline-flex items-center gap-1"><MessageSquare size={14} strokeWidth={2.5} aria-hidden="true" /> {plural(debate.stats?.totalComments || 0, 'post')}</span>
               {isCreator && (
-                <button type="button" onClick={deleteDebate} className="inline-flex items-center gap-1 rounded-[4px] border-2 border-dashed border-ink px-2 py-1 hover:bg-ink hover:text-ivory">
+                <button type="button" onClick={deleteDebate} className="inline-flex items-center gap-1 rounded-[4px] border-2 border-dashed border-ink px-2 py-1 hover:bg-ember">
                   <Trash2 size={13} strokeWidth={2.5} /> Delete
                 </button>
               )}

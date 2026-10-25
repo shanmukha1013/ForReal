@@ -53,7 +53,7 @@ export const Modal = ({ isOpen, onClose, title, description, children, footer, s
 
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-6">
-      <div className="absolute inset-0 bg-ink/70 animate-fade" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-ember/90 animate-fade" onClick={onClose} aria-hidden="true" />
       <div
         ref={panelRef}
         role="dialog"

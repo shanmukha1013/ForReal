@@ -107,22 +107,22 @@ const FragmentBody = ({ f }) => {
   if (f.kind === 'pill') {
     const Icon = f.icon;
     return (
-      <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-ember px-3.5 py-1.5 text-sm font-extrabold text-ink shadow-hard-sm">
+      <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-ivory px-3.5 py-1.5 text-sm font-extrabold text-ink shadow-hard-sm">
         <Icon size={15} strokeWidth={2.75} /> {f.text}
       </span>
     );
   }
   if (f.kind === 'counter') {
     return (
-      <div className="font-display text-ivory">
+      <div className="font-display text-ink">
         <div className="text-[clamp(2.2rem,7vw,5rem)]">
           <Ticker from={f.from} to={f.to} delay={f.delay} duration={3000} />
         </div>
-        <div className="eyebrow mt-1 text-ember">{f.text}</div>
+        <div className="eyebrow mt-1 text-ink">{f.text}</div>
       </div>
     );
   }
-  return <span className={`font-display block ${claimSize[f.size]} text-ivory`}>{f.text}</span>;
+  return <span className={`font-display block ${claimSize[f.size]} ${f.challenge ? 'text-ivory' : 'text-ink'}`}>{f.text}</span>;
 };
 
 const NoiseField = ({ phase }) => {
@@ -132,7 +132,7 @@ const NoiseField = ({ phase }) => {
   return (
     <m.div
       key="noise"
-      className="absolute inset-0 overflow-hidden bg-ink"
+      className="absolute inset-0 overflow-hidden bg-ember"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.35 } }}
     >
@@ -176,7 +176,7 @@ const NoiseField = ({ phase }) => {
                   <FragmentBody f={f} />
                   {!chaos && isChallenged && (
                     <m.span
-                      className="absolute left-[-4%] right-[-4%] top-1/2 h-[5px] origin-left bg-ember"
+                      className="absolute left-[-4%] right-[-4%] top-1/2 h-[5px] origin-left bg-ink"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: 0.4, ease: SNAP, delay: 0.25 + challenged.indexOf(f) * 0.28 }}
@@ -187,7 +187,7 @@ const NoiseField = ({ phase }) => {
 
               {!chaos && isChallenged && (
                 <m.span
-                  className="font-display absolute -right-2 -top-6 whitespace-nowrap rounded-[3px] border-[3px] border-ember bg-ink px-2.5 py-1 text-[clamp(1rem,2.6vw,1.6rem)] text-ember shadow-hard-sm sm:-right-6"
+                  className="font-display absolute -right-2 -top-6 whitespace-nowrap rounded-[3px] border-[3px] border-ink bg-ink px-2.5 py-1 text-[clamp(1rem,2.6vw,1.6rem)] text-ember shadow-[3px_3px_0_0_var(--color-ivory)] sm:-right-6"
                   initial={{ opacity: 0, scale: 2.6, rotate: -14 }}
                   animate={{ opacity: 1, scale: 1, rotate: -8 }}
                   transition={{ type: 'spring', stiffness: 520, damping: 16, delay: 0.15 + challenged.indexOf(f) * 0.28 }}
@@ -206,7 +206,7 @@ const NoiseField = ({ phase }) => {
         {chaos ? (
           <m.p
             key="cap-chaos"
-            className="eyebrow absolute left-1/2 top-[4.5rem] -translate-x-1/2 whitespace-nowrap text-ivory/70"
+            className="eyebrow absolute left-1/2 top-[4.5rem] -translate-x-1/2 whitespace-nowrap text-ink"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -217,13 +217,13 @@ const NoiseField = ({ phase }) => {
         ) : (
           <m.div
             key="cap-question"
-            className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-4 bg-gradient-to-t from-ink via-ink to-transparent px-5 pb-[8vh] pt-20 sm:gap-6"
+            className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-4 bg-gradient-to-t from-ember via-ember to-transparent px-5 pb-[8vh] pt-20 sm:gap-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}
           >
             <m.span
-              className="font-display shrink-0 text-[clamp(4.5rem,11vw,8rem)] leading-[0.8] text-ember"
+              className="font-display shrink-0 text-[clamp(4.5rem,11vw,8rem)] leading-[0.8] text-ink"
               initial={{ scale: 0, rotate: -30 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 14, delay: 1.5 }}
@@ -231,12 +231,12 @@ const NoiseField = ({ phase }) => {
               ?
             </m.span>
             <m.p
-              className="max-w-xl text-[clamp(1.15rem,2.6vw,1.9rem)] font-bold leading-snug text-ivory"
+              className="max-w-xl text-[clamp(1.15rem,2.6vw,1.9rem)] font-bold leading-snug text-ink"
               initial={{ opacity: 0, x: 18 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: EXPO, delay: 1.75 }}
             >
-              What if every claim had to <span className="font-accent text-[1.15em] text-ember">answer</span> a question?
+              What if every claim had to <span className="font-accent text-[1.15em] text-ivory">answer</span> a question?
             </m.p>
           </m.div>
         )}
@@ -269,11 +269,11 @@ const IdentityScene = () => {
   // huge scaled circle so the browser stops compositing an oversized layer.
   const [wiped, setWiped] = useState(false);
   return (
-  <m.div key="identity" className={`absolute inset-0 overflow-hidden ${wiped ? 'bg-ember' : 'bg-ink'}`} exit={{ opacity: 0, transition: { duration: 0.3 } }}>
+  <m.div key="identity" className={`absolute inset-0 overflow-hidden ${wiped ? 'bg-ivory' : 'bg-ember'}`} exit={{ opacity: 0, transition: { duration: 0.3 } }}>
     {/* The ember wipe grows out of the question mark. */}
     {!wiped && (
       <m.div
-        className="absolute left-1/2 top-[70%] h-[12vmax] w-[12vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember"
+        className="absolute left-1/2 top-[70%] h-[12vmax] w-[12vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ivory"
         initial={{ scale: 0 }}
         animate={{ scale: 18 }}
         transition={{ duration: 1, ease: [0.7, 0, 0.2, 1] }}
@@ -289,8 +289,8 @@ const IdentityScene = () => {
         transition={{ duration: 2.4, ease: EXPO, delay: 0.4 }}
         className="font-display text-[clamp(5.5rem,24vw,19rem)] leading-[0.82]"
       >
-        <MaskedWord word="FOR" className="text-ivory" startDelay={0.55} />
-        <MaskedWord word="REAL" className="text-ink" startDelay={0.75} />
+        <MaskedWord word="FOR" className="text-ink" startDelay={0.55} />
+        <MaskedWord word="REAL" className="text-ember" startDelay={0.75} />
       </m.div>
       <m.span
         className="mt-4 block h-[6px] w-[min(46rem,82vw)] origin-left bg-ink"
@@ -304,7 +304,7 @@ const IdentityScene = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: EXPO, delay: 1.5 }}
       >
-        A debate platform for people who <span className="font-accent text-[1.2em] text-ivory">mean</span> what they say.
+        A debate platform for people who <span className="font-accent text-[1.2em] text-ember">mean</span> what they say.
       </m.p>
     </div>
   </m.div>
@@ -314,18 +314,18 @@ const IdentityScene = () => {
 /* ── Scene 04: ideas collide ─────────────────────────────────────────────── */
 
 const Argument = ({ tag, text, evidence, delay, side }) => {
-  const onInk = side === 'against';
+  const fromRight = side === 'against';
   return (
     <m.div
-      className={`rounded-[4px] border-2 p-3 sm:p-4 ${onInk ? 'border-ivory/30 text-ivory' : 'border-ink bg-ivory text-ink shadow-hard-sm'}`}
-      initial={{ opacity: 0, x: onInk ? 60 : -60 }}
+      className={`rounded-[4px] border-2 p-3 sm:p-4 border-ink bg-ivory text-ink shadow-hard-sm`}
+      initial={{ opacity: 0, x: fromRight ? 60 : -60 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, ease: EXPO, delay }}
     >
-      <span className={`eyebrow ${onInk ? 'text-ember' : ''}`}>{tag}</span>
+      <span className="eyebrow">{tag}</span>
       <p className="mt-1 text-[clamp(0.95rem,1.6vw,1.2rem)] font-bold leading-snug">{text}</p>
       {evidence && (
-        <span className={`mt-2 inline-flex items-center gap-1 rounded-[3px] border-2 px-2 py-0.5 text-[11px] font-extrabold ${onInk ? 'border-ember text-ember' : 'border-ink bg-ember text-ink'}`}>
+        <span className={`mt-2 inline-flex items-center gap-1 rounded-[3px] border-2 px-2 py-0.5 text-[11px] font-extrabold border-ink bg-ember text-ink`}>
           <ArrowUpRight size={12} strokeWidth={3} /> Evidence cited
         </span>
       )}
@@ -357,12 +357,12 @@ const CollideScene = () => (
 
     {/* AGAINST */}
     <m.section
-      className="on-ink relative flex flex-1 flex-col justify-center gap-3 bg-ink px-5 pb-24 pt-20 md:items-end md:px-10 md:pb-24 md:pt-24 md:text-right lg:px-16"
+      className="relative flex flex-1 flex-col justify-center gap-3 bg-ember px-5 pb-24 pt-20 md:items-end md:px-10 md:pb-24 md:pt-24 md:text-right lg:px-16"
       initial={{ x: '100%' }}
       animate={{ x: 0 }}
       transition={{ duration: 0.7, ease: EXPO }}
     >
-      <span className="font-display text-[clamp(2.8rem,7vw,6rem)] text-ivory">Against</span>
+      <span className="font-display text-[clamp(2.8rem,7vw,6rem)] text-ink">Against</span>
       <div className="flex max-w-md flex-col gap-3 md:text-left">
         <Argument side="against" tag="Counter" text="Hiding the number won’t stop people following the crowd." evidence delay={1.6} />
       </div>
@@ -375,8 +375,8 @@ const CollideScene = () => (
       animate={{ opacity: 1, y: 0, rotate: -2 }}
       transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.45 }}
     >
-      <div className="rounded-[4px] border-2 border-ink bg-ember p-4 text-ink shadow-hard-lg">
-        <span className="eyebrow">The motion</span>
+      <div className="on-ink rounded-[4px] border-2 border-ink bg-ink p-4 text-ivory shadow-[7px_7px_0_0_var(--color-ivory)]">
+        <span className="eyebrow text-ember">The motion</span>
         <p className="font-display mt-1 text-[clamp(1.5rem,3.2vw,2.3rem)]">Social media should hide like counts.</p>
       </div>
       {/* Spark where the arguments collide */}
@@ -462,7 +462,7 @@ export default function CinematicIntro({ onFinish }) {
         role="dialog"
         aria-modal="true"
         aria-label="ForReal introduction"
-        className="fixed inset-0 z-[100] overflow-hidden bg-ink"
+        className="fixed inset-0 z-[100] overflow-hidden bg-ember"
         animate={{ opacity: scene >= SCENES.length ? 0 : 1 }}
         transition={{ duration: 0.45 }}
       >

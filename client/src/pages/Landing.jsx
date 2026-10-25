@@ -170,17 +170,17 @@ const Explainer = ({ isAuthed }) => (
     </section>
 
     {/* House rules */}
-    <section className="on-ink border-b-2 border-ink bg-ink px-5 py-20 text-ivory sm:px-10">
+    <section className="border-b-2 border-ink bg-ivory px-5 py-20 text-ink sm:px-10">
       <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
         {[
           ['Challenge ideas.', 'Question the claim, never the person making it.'],
           ['Defend your opinions.', 'If you believe it, show why — with reasons and sources.'],
           ['Respect the conversation.', 'Disagree as hard as you like. Never make it personal.'],
         ].map(([rule, detail], i) => (
-          <div key={rule} className="border-t-2 border-ember pt-5">
-            <span className="eyebrow text-ember">Rule 0{i + 1}</span>
+          <div key={rule} className="border-t-4 border-ember pt-5">
+            <span className="eyebrow">Rule 0{i + 1}</span>
             <h3 className="font-display mt-2 text-4xl">{rule}</h3>
-            <p className="mt-2 text-ivory/75">{detail}</p>
+            <p className="mt-2 text-ink/75">{detail}</p>
           </div>
         ))}
       </div>
@@ -241,7 +241,7 @@ export default function Landing() {
 
   if (playing) {
     return (
-      <Suspense fallback={<div className="fixed inset-0 bg-ink" />}>
+      <Suspense fallback={<div className="fixed inset-0 bg-ember" />}>
         <CinematicIntro onFinish={finish} />
       </Suspense>
     );

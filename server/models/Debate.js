@@ -31,8 +31,10 @@ const debateSchema = new mongoose.Schema({
     index: true
   },
   options: [{
-    label: { type: String, required: true },
-    color: { type: String, default: '#00C8FF' },
+    label: { type: String, required: true, trim: true, maxlength: 80 },
+    // Legacy field: option colours are now assigned by the client's
+    // three-colour design system, so new debates leave this empty.
+    color: { type: String, default: '' },
     votes: { type: Number, default: 0 }
   }],
   status: {

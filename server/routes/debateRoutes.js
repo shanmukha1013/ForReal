@@ -10,28 +10,33 @@ const {
   getDebateCommentReplies,
   updateDebateComment,
   deleteDebateComment,
-  deleteDebate
+  deleteDebate,
+  endorseArgument,
+  getUserArguments,
 } = require('../controllers/debateController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalAuth } = require('../middleware/authMiddleware');
 
 router.route('/')
   .post(protect, createDebate)
   .get(getDebates);
 
+router.get('/arguments/by/:username', getUserArguments);
+
 router.route('/:id')
-  .get(getDebate)
+  .get(optionalAuth, getDebate)
   .delete(protect, deleteDebate);
 
 router.post('/:id/vote', protect, voteOnDebate);
+
 router.route('/:id/comments')
-  .get(getDebateComments)
+  .get(optionalAuth, getDebateComments)
   .post(protect, addDebateComment);
 
 router.route('/:id/comments/:commentId')
   .put(protect, updateDebateComment)
   .delete(protect, deleteDebateComment);
 
-router.route('/:id/comments/:commentId/replies')
-  .get(getDebateCommentReplies);
+router.get('/:id/comments/:commentId/replies', optionalAuth, getDebateCommentReplies);
+router.post('/:id/comments/:commentId/endorse', protect, endorseArgument);
 
 module.exports = router;

@@ -1,98 +1,116 @@
-import React, { useEffect, useState } from 'react';
-import { usePageTitle } from '@/hooks';
-import { AnimatedButton, SkeletonCard } from '@/components/ui';
-import { Bell, Heart, MessageCircle, RefreshCw, UserPlus } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Bell, CheckCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
 import apiClient from '@/services/api';
-import { motion } from 'framer-motion';
+import useNotificationStore from '@/store/useNotificationStore';
+import { useSocketEvent, usePageTitle } from '@/hooks';
+import { Avatar, Button, EmptyState, ErrorState, PageHeader, SkeletonList } from '@/components/ui';
+import { describeNotification } from '@/lib/notifications';
+import { timeAgo } from '@/lib/format';
 
-export const Notifications = () => {
-  usePageTitle('Notifications | ForReal');
-  const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function Notifications() {
+  usePageTitle('Notifications');
+  const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
+  const [items, setItems] = useState([]);
+  const [state, setState] = useState({ status: 'loading', page: 1, pages: 1 });
 
-  const fetchNotifications = async () => {
-    setIsLoading(true);
+  const load = useCallback(async (page = 1) => {
+    setState((s) => ({ ...s, status: page === 1 ? 'loading' : 'more' }));
     try {
-      const res = await apiClient.get('/notifications');
-      setNotifications(res.data.notifications);
+      const res = await apiClient.get('/notifications', { params: { page, limit: 20 } });
+      setItems((prev) => (page === 1 ? res.data.notifications : [...prev, ...res.data.notifications]));
+      setUnreadCount(res.data.unreadCount);
+      setState({ status: 'ready', page, pages: res.data.pages });
     } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
+      setState((s) => ({ ...s, status: 'error', error: error.message }));
     }
-  };
+  }, [setUnreadCount]);
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    load(1);
+  }, [load]);
 
-  const markAllAsRead = async () => {
+  useSocketEvent('notification', (notification) => {
+    setItems((prev) => (prev.some((n) => n._id === notification._id) ? prev : [notification, ...prev]));
+    setUnreadCount(useNotificationStore.getState().unreadCount + 1);
+  });
+
+  const unread = items.filter((n) => !n.isRead).length;
+
+  const markAll = async () => {
+    const snapshot = items;
+    setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setUnreadCount(0);
     try {
       await apiClient.put('/notifications/read-all');
-      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     } catch (error) {
-      console.error(error);
+      setItems(snapshot);
+      toast.error(error.message);
     }
   };
 
-  const getIcon = (type) => {
-    switch (type) {
-      case 'like': return <Heart className="text-primary-bright" size={18} />;
-      case 'comment': return <MessageCircle className="text-primary" size={18} />;
-      case 'follow': return <UserPlus className="text-success" size={18} />;
-      default: return <Bell className="text-text-muted" size={18} />;
-    }
+  const markOne = (n) => {
+    if (n.isRead) return;
+    setItems((prev) => prev.map((item) => (item._id === n._id ? { ...item, isRead: true } : item)));
+    useNotificationStore.getState().decrement();
+    apiClient.put(`/notifications/${n._id}/read`).catch(() => {});
   };
 
   return (
-    <div className="max-w-2xl mx-auto pb-20">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-black text-white tracking-tight">Notifications</h1>
-        <AnimatedButton variant="ghost" onClick={markAllAsRead}>
-          Mark all read
-        </AnimatedButton>
-      </div>
-
-      <div className="space-y-3">
-        {isLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : notifications.length > 0 ? (
-          notifications.map((notif, index) => (
-            <motion.div
-              key={notif._id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className={`bg-card-dark rounded-xl border p-4 flex gap-4 transition-colors hover:bg-white/[0.02] ${
-                notif.isRead ? 'border-border-subtle' : 'border-primary/40 bg-primary/5'
-              }`}
-            >
-              <div className="shrink-0 pt-1">
-                {getIcon(notif.type)}
-              </div>
-              <div>
-                <p className="text-sm text-white">
-                  <span className="font-bold">{notif.sender?.username}</span> {notif.type === 'like' ? 'liked your argument' : notif.type === 'comment' ? 'replied to you' : 'interacted with you'}
-                </p>
-                <p className="text-xs text-text-muted mt-1">
-                  {new Date(notif.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </motion.div>
-          ))
-        ) : (
-          <div className="text-center py-20 border border-dashed border-border-subtle rounded-xl bg-surface">
-            <Bell size={48} className="mx-auto text-text-muted mb-4 opacity-50" />
-            <div className="text-text-muted mb-4">You're all caught up.</div>
-            <AnimatedButton variant="secondary" onClick={fetchNotifications}>
-              <RefreshCw size={14} /> Refresh
-            </AnimatedButton>
-          </div>
+    <div className="mx-auto max-w-2xl">
+      <PageHeader
+        eyebrow="Activity"
+        title="Notifications"
+        description="Replies, endorsements, follows and verdicts — when people engage with your ideas."
+        actions={unread > 0 && (
+          <Button variant="ivory" size="sm" onClick={markAll}>
+            <CheckCheck size={16} strokeWidth={2.75} /> Mark all read
+          </Button>
         )}
-      </div>
+      />
+
+      {state.status === 'loading' ? (
+        <SkeletonList count={3} />
+      ) : state.status === 'error' && items.length === 0 ? (
+        <ErrorState title="Notifications didn’t load." message={state.error} onRetry={() => load(1)} />
+      ) : items.length === 0 ? (
+        <EmptyState icon={Bell} title="All quiet." action={<Button to="/debates" variant="accent">Join a debate</Button>}>
+          When someone replies to your argument, endorses a point or follows you, it shows up here.
+        </EmptyState>
+      ) : (
+        <ul className="card divide-y-2 divide-ink/15 overflow-hidden">
+          {items.map((n) => {
+            const { text, link } = describeNotification(n);
+            return (
+              <li key={n._id}>
+                <Link
+                  to={link}
+                  onClick={() => markOne(n)}
+                  className={`flex items-start gap-3 px-4 py-4 transition-colors hover:bg-ink/[0.05] sm:px-5 ${n.isRead ? '' : 'bg-ember/15'}`}
+                >
+                  <Avatar src={n.sender?.profile?.avatar} username={n.sender?.username} size="md" />
+                  <span className="min-w-0 flex-1">
+                    <span className={`block text-sm leading-snug ${n.isRead ? 'font-medium' : 'font-extrabold'}`}>{text}</span>
+                    <time dateTime={n.createdAt} className="mt-1 block text-xs font-semibold text-ink/70">{timeAgo(n.createdAt)}</time>
+                  </span>
+                  {!n.isRead && (
+                    <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-ink bg-ember">
+                      <span className="sr-only">Unread</span>
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {state.page < state.pages && items.length > 0 && (
+        <div className="mt-5 flex justify-center">
+          <Button variant="ivory" onClick={() => load(state.page + 1)} isLoading={state.status === 'more'}>Load older</Button>
+        </div>
+      )}
     </div>
   );
-};
+}

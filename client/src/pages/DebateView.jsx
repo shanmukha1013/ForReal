@@ -1,305 +1,382 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, FileCheck2, MessageSquare, Trash2, Users } from 'lucide-react';
+import toast from 'react-hot-toast';
 import useAuthStore from '@/store/useAuthStore';
-import useDebateStore from '@/store/useDebateStore';
-import apiClient from '@/services/api';
-import { Loader } from '@/components';
-import { StatusBadge, CredibilityBadge, Avatar } from '@/components/ui';
-import { Trash2, Users, MessageSquare, ChevronLeft } from 'lucide-react';
+import { confirmAction } from '@/store/useConfirmStore';
+import { debateService } from '@/services/debateService';
+import { useSocket, useSocketEvent, usePageTitle } from '@/hooks';
+import { Avatar, Button, CountdownTimer, EmptyState, ErrorState, Skeleton, SkeletonList, StatusBadge, Tabs } from '@/components/ui';
+import { RichText } from '@/components/feed/TalkContent';
 import { VotePanel } from '@/features/debates/VotePanel';
-import { AIAnalysisPanel } from '@/features/debates/AIAnalysisPanel';
-import { DebateComment } from '@/features/debates/DebateComment';
-import { DebateCommentForm } from '@/features/debates/DebateCommentForm';
-import { toast } from 'react-hot-toast';
-import { socketService } from '@/services/socket';
+import { DebatePulse, VerdictPanel } from '@/features/debates/DebatePulse';
+import { ArgumentCard } from '@/features/debates/ArgumentCard';
+import { ArgumentComposer } from '@/features/debates/ArgumentComposer';
+import { displayName, plural, sameId, timeAgo } from '@/lib/format';
+import { sideLetter } from '@/lib/sides';
 
-// Skeleton while loading the debate
+// Keeps the aggregated "Debate pulse" in step with arguments added or removed
+// on this page, without refetching the debate.
+const adjustPulse = (pulse, comment, delta) => {
+  if (!pulse || !comment) return pulse;
+  const key = comment.optionId ? String(comment.optionId) : 'null';
+  const evidence = comment.references?.length ? delta : 0;
+  const sides = [...pulse.sides];
+  const index = sides.findIndex((s) => String(s.optionId ?? null) === key);
+  const base = index >= 0 ? sides[index] : { optionId: comment.optionId || null, arguments: 0, withEvidence: 0, endorsements: 0 };
+  const next = {
+    ...base,
+    arguments: Math.max(0, base.arguments + delta),
+    withEvidence: Math.max(0, base.withEvidence + evidence),
+    endorsements: delta < 0 ? Math.max(0, base.endorsements - (comment.reactionsCount?.like || 0)) : base.endorsements,
+  };
+  if (index >= 0) sides[index] = next;
+  else sides.push(next);
+  return {
+    ...pulse,
+    sides,
+    totalArguments: Math.max(0, pulse.totalArguments + delta),
+    evidenceBacked: Math.max(0, pulse.evidenceBacked + evidence),
+  };
+};
+
 const DebateSkeleton = () => (
-  <div className="max-w-4xl mx-auto pb-20 animate-pulse">
-    <div className="h-6 w-32 bg-border-subtle rounded-full mb-8" />
-    <div className="h-12 bg-border-subtle rounded-xl mb-4 w-3/4" />
-    <div className="h-4 bg-border-subtle rounded w-1/2 mb-8" />
-    <div className="h-32 bg-border-subtle rounded-xl mb-8" />
-    <div className="h-48 bg-border-subtle rounded-xl mb-8" />
+  <div className="space-y-5" aria-label="Loading debate" role="status">
+    <Skeleton className="h-5 w-40" />
+    <Skeleton className="h-16 w-full" />
+    <Skeleton className="h-4 w-2/3" />
+    <SkeletonList count={2} />
   </div>
 );
 
-export const DebateView = () => {
+export default function DebateView() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const { currentDebate, getDebate, addComment, isLoading, error } = useDebateStore();
-  const [comments, setComments] = useState([]);
+  const user = useAuthStore((s) => s.user);
+
+  const [debate, setDebate] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [args, setArgs] = useState([]);
+  const [argsState, setArgsState] = useState({ status: 'loading', page: 1, pages: 1, total: 0 });
+  const [filter, setFilter] = useState({ side: 'all', sort: 'newest' });
   const [typingUser, setTypingUser] = useState(null);
-  const [commentsLoading, setCommentsLoading] = useState(false);
-  const hasJoinedRef = useRef(false);
+  const [liveReplies, setLiveReplies] = useState({});
+  const typingTimeout = useRef(null);
+  const socket = useSocket();
 
-  // Fetch debate + comments
-  useEffect(() => {
-    let cancelled = false;
-    const fetchAll = async () => {
-      try {
-        await getDebate(id);
-        if (cancelled) return;
-        setCommentsLoading(true);
-        const res = await useDebateStore.getState().fetchComments(id);
-        if (!cancelled) {
-          setComments(res.comments || []);
-        }
-      } catch (err) {
-        // handled in store
-      } finally {
-        if (!cancelled) setCommentsLoading(false);
-      }
-    };
-    fetchAll();
-    return () => { cancelled = true; };
-  }, [id, getDebate]);
+  usePageTitle(debate?.title || 'Debate');
 
-  // Socket listeners — stable cleanup
-  useEffect(() => {
-    const socket = socketService.getSocket();
-    if (!socket) return;
+  const patchDebate = useCallback((updates) => setDebate((d) => (d ? { ...d, ...updates } : d)), []);
 
-    if (!hasJoinedRef.current) {
-      socket.emit('join_debate', id);
-      hasJoinedRef.current = true;
+  const loadDebate = useCallback(async () => {
+    setLoadError(null);
+    try {
+      const res = await debateService.get(id);
+      setDebate(res.data);
+    } catch (error) {
+      setLoadError(error);
     }
+  }, [id]);
 
-    const onNewComment = (comment) => {
-      setComments(prev => {
-        // Prevent duplicate if optimistically added
-        if (prev.some(c => c._id === comment._id)) return prev;
-        return [comment, ...prev];
+  const loadArguments = useCallback(async (page = 1) => {
+    setArgsState((s) => ({ ...s, status: page === 1 ? 'loading' : 'more' }));
+    try {
+      const res = await debateService.listArguments(id, {
+        page,
+        limit: 20,
+        sort: filter.sort,
+        side: filter.side === 'all' ? undefined : filter.side,
       });
-    };
+      setArgs((prev) => (page === 1 ? res.data.comments : [...prev, ...res.data.comments.filter((c) => !prev.some((p) => p._id === c._id))]));
+      setArgsState({ status: 'ready', page, pages: res.data.pages, total: res.data.total });
+    } catch (error) {
+      setArgsState((s) => ({ ...s, status: 'error', error: error.message }));
+    }
+  }, [id, filter]);
 
-    const onDebateUpdated = (updatedDebate) => {
-      useDebateStore.setState({ currentDebate: updatedDebate });
-    };
+  useEffect(() => {
+    setDebate(null);
+    loadDebate();
+  }, [loadDebate]);
 
-    const onTyping = (data) => {
-      if (data.username !== useAuthStore.getState().user?.username) {
-        setTypingUser(data.username);
-      }
-    };
+  useEffect(() => {
+    loadArguments(1);
+  }, [loadArguments]);
 
-    const onStopTyping = () => setTypingUser(null);
-
-    socket.on('new_comment', onNewComment);
-    socket.on('debate_updated', onDebateUpdated);
-    socket.on('debate_typing', onTyping);
-    socket.on('debate_stop_typing', onStopTyping);
-
+  // Real-time room membership (re-joined after reconnects).
+  useEffect(() => {
+    if (!socket) return undefined;
+    const join = () => socket.emit('join_debate', id);
+    join();
+    socket.on('connect', join);
     return () => {
-      socket.off('new_comment', onNewComment);
-      socket.off('debate_updated', onDebateUpdated);
-      socket.off('debate_typing', onTyping);
-      socket.off('debate_stop_typing', onStopTyping);
+      socket.off('connect', join);
       socket.emit('leave_debate', id);
-      hasJoinedRef.current = false;
     };
-  }, [id]);
+  }, [id, socket]);
 
-  const handlePostComment = useCallback(async (data) => {
-    try {
-      const newComment = await addComment(id, data);
-      // Optimistically add if socket doesn't deliver it fast enough
-      setComments(prev => {
-        if (prev.some(c => c._id === newComment._id)) return prev;
-        return [newComment, ...prev];
-      });
-      toast.success('Argument posted to the floor.');
-    } catch (err) {
-      toast.error('Failed to post argument. Try again.');
+  useEffect(() => () => clearTimeout(typingTimeout.current), []);
+
+  const matchesFilter = (comment) =>
+    filter.side === 'all' || (filter.side === 'neutral' ? !comment.optionId : String(comment.optionId) === filter.side);
+
+  useSocketEvent('debate_updated', (update) => {
+    if (String(update._id) !== id) return;
+    // Merge only the live fields; keep the populated creator and our own vote.
+    setDebate((d) => (d ? { ...d, ...update, creator: d.creator, userVote: d.userVote, pulse: d.pulse } : d));
+  });
+
+  useSocketEvent('new_comment', (comment) => {
+    if (String(comment.debate) !== id || sameId(comment.author?._id, user?._id)) return;
+    if (filter.sort === 'newest' && matchesFilter(comment)) {
+      setArgs((prev) => (prev.some((c) => c._id === comment._id) ? prev : [comment, ...prev]));
     }
-  }, [id, addComment]);
+    setDebate((d) => (d ? {
+      ...d,
+      stats: { ...d.stats, totalComments: (d.stats?.totalComments || 0) + 1 },
+      pulse: adjustPulse(d.pulse, comment, 1),
+    } : d));
+  });
 
-  const handleDeleteComment = useCallback(async (commentId) => {
-    if (!window.confirm('Permanently delete this argument?')) return;
-    try {
-      await apiClient.delete(`/debates/${id}/comments/${commentId}`);
-      setComments(prev => prev.filter(c => c._id !== commentId));
-      toast.success('Argument removed.');
-    } catch (err) {
-      toast.error('Could not delete argument. Try again.');
-    }
-  }, [id]);
+  useSocketEvent('new_reply', ({ parentId, reply }) => {
+    if (String(reply.debate) !== id || sameId(reply.author?._id, user?._id)) return;
+    setArgs((prev) => prev.map((c) => (String(c._id) === String(parentId) ? { ...c, repliesCount: (c.repliesCount || 0) + 1 } : c)));
+    setLiveReplies((prev) => ({ ...prev, [parentId]: [...(prev[parentId] || []), reply] }));
+    setDebate((d) => (d ? {
+      ...d,
+      stats: { ...d.stats, totalComments: (d.stats?.totalComments || 0) + 1 },
+      pulse: d.pulse ? { ...d.pulse, replies: d.pulse.replies + 1 } : d.pulse,
+    } : d));
+  });
 
-  const handleDeleteDebate = useCallback(async () => {
-    if (!window.confirm('Permanently delete this debate and all its arguments? This cannot be undone.')) return;
+  useSocketEvent('debate_typing', ({ username }) => {
+    if (!username || username === user?.username) return;
+    setTypingUser(username);
+    clearTimeout(typingTimeout.current);
+    typingTimeout.current = setTimeout(() => setTypingUser(null), 4000);
+  });
+
+  useSocketEvent('debate_stop_typing', () => setTypingUser(null));
+
+  const handlePosted = (comment) => {
+    if (matchesFilter(comment)) setArgs((prev) => [comment, ...prev.filter((c) => c._id !== comment._id)]);
+    setDebate((d) => {
+      if (!d) return d;
+      const newcomer = !d.userVote && !args.some((a) => sameId(a.author?._id, user?._id));
+      return {
+        ...d,
+        stats: {
+          ...d.stats,
+          totalComments: (d.stats?.totalComments || 0) + 1,
+          participantCount: (d.stats?.participantCount || 0) + (newcomer ? 1 : 0),
+        },
+        pulse: adjustPulse(d.pulse, comment, 1),
+      };
+    });
+    setArgsState((s) => ({ ...s, total: s.total + 1 }));
+  };
+
+  const argsRef = useRef(args);
+  argsRef.current = args;
+
+  const patchArgument = useCallback((commentId, updates, meta) => {
+    const before = argsRef.current.find((c) => c._id === commentId);
+    setArgs((prev) => prev.map((c) => (c._id === commentId ? { ...c, ...updates } : c)));
+
+    const endorseDelta = updates.reactionsCount && before
+      ? (updates.reactionsCount.like || 0) - (before.reactionsCount?.like || 0)
+      : 0;
+    if (!meta?.commentsDelta && !endorseDelta) return;
+
+    setDebate((d) => {
+      if (!d) return d;
+      let { pulse } = d;
+      if (pulse && meta?.commentsDelta) pulse = { ...pulse, replies: Math.max(0, pulse.replies + meta.commentsDelta) };
+      if (pulse && endorseDelta) {
+        const key = before.optionId ? String(before.optionId) : 'null';
+        pulse = {
+          ...pulse,
+          sides: pulse.sides.map((s) => (String(s.optionId ?? null) === key ? { ...s, endorsements: Math.max(0, s.endorsements + endorseDelta) } : s)),
+        };
+      }
+      return {
+        ...d,
+        pulse,
+        stats: meta?.commentsDelta
+          ? { ...d.stats, totalComments: Math.max(0, (d.stats?.totalComments || 0) + meta.commentsDelta) }
+          : d.stats,
+      };
+    });
+  }, []);
+
+  const handleDeleted = useCallback((commentId, removed = 1) => {
+    const removedComment = argsRef.current.find((c) => c._id === commentId);
+    setArgs((prev) => prev.filter((c) => c._id !== commentId));
+    setArgsState((s) => ({ ...s, total: Math.max(0, s.total - 1) }));
+    setDebate((d) => {
+      if (!d) return d;
+      const pulse = adjustPulse(d.pulse, removedComment, -1);
+      return {
+        ...d,
+        stats: { ...d.stats, totalComments: Math.max(0, (d.stats?.totalComments || 0) - removed) },
+        pulse: pulse ? { ...pulse, replies: Math.max(0, pulse.replies - (removed - 1)) } : pulse,
+      };
+    });
+  }, []);
+
+  const deleteDebate = async () => {
+    const ok = await confirmAction({
+      title: 'Delete this debate?',
+      message: 'The debate, every argument and every vote will be permanently removed.',
+      confirmLabel: 'Delete debate',
+      tone: 'danger',
+    });
+    if (!ok) return;
     try {
-      await apiClient.delete(`/debates/${id}`);
+      await debateService.remove(id);
       toast.success('Debate deleted.');
-      navigate('/debates');
-    } catch (err) {
-      toast.error(err.message || 'Failed to delete debate.');
+      navigate('/debates', { replace: true });
+    } catch (error) {
+      toast.error(error.message);
     }
-  }, [id, navigate]);
+  };
 
-  if (isLoading && !currentDebate) return <DebateSkeleton />;
-  if (error) return (
-    <div className="p-8 text-center">
-      <p className="text-error font-bold mb-4">Could not load this debate.</p>
-      <button onClick={() => navigate(-1)} className="text-primary underline text-sm">Go back</button>
-    </div>
-  );
-  if (!currentDebate || currentDebate._id !== id) return <DebateSkeleton />;
+  if (loadError) {
+    return (
+      <ErrorState
+        title={loadError.status === 404 ? 'This debate doesn’t exist.' : 'This debate didn’t load.'}
+        message={loadError.status === 404 ? 'It may have been deleted by its creator.' : loadError.message}
+        onRetry={loadError.status === 404 ? undefined : loadDebate}
+      />
+    );
+  }
+  if (!debate) return <DebateSkeleton />;
 
-  const isCreator = user?._id && currentDebate?.creator?._id &&
-    user._id.toString() === currentDebate.creator._id.toString();
+  const isOpen = debate.status === 'live' || debate.status === 'ending_soon';
+  const isCreator = sameId(user?._id, debate.creator?._id);
+  const sideTabs = [
+    { value: 'all', label: 'All' },
+    ...debate.options.map((opt, i) => ({ value: String(opt._id), label: `${sideLetter(i)} · ${opt.label}` })),
+    { value: 'neutral', label: 'Neutral' },
+  ];
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
-      {/* Back nav */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-text-muted hover:text-white transition-colors text-sm font-medium mb-6"
-      >
-        <ChevronLeft size={16} />
-        Back to Debates
-      </button>
+    <div className="space-y-6">
+      <Link to="/debates" className="inline-flex items-center gap-2 text-sm font-extrabold">
+        <ArrowLeft size={16} strokeWidth={2.75} /> All debates
+      </Link>
 
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <StatusBadge status={currentDebate.status} />
-            <span className="text-sm font-bold text-text-muted uppercase tracking-widest">{currentDebate.category}</span>
-          </div>
-          {isCreator && (
-            <button
-              onClick={handleDeleteDebate}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-error bg-error/10 hover:bg-error/20 rounded-lg transition-colors border border-error/20"
-            >
-              <Trash2 size={14} />
-              Delete Debate
-            </button>
+      {/* The motion */}
+      <header className="card overflow-hidden">
+        <div className="flex flex-wrap items-center gap-2 border-b-2 border-ink bg-ember px-5 py-3 sm:px-6">
+          <StatusBadge status={debate.status} />
+          <span className="eyebrow">{debate.category}</span>
+          {debate.settings?.evidenceRequired && (
+            <span className="eyebrow inline-flex items-center gap-1 rounded-[3px] border-2 border-ink bg-ivory px-1.5 py-0.5">
+              <FileCheck2 size={12} strokeWidth={3} aria-hidden="true" /> Evidence required
+            </span>
           )}
+          <span className="ml-auto">
+            {isOpen ? (
+              <CountdownTimer targetDate={debate.lifecycle?.endsAt} />
+            ) : (
+              <span className="text-xs font-bold">Closed {timeAgo(debate.lifecycle?.finishedAt || debate.lifecycle?.endsAt)}</span>
+            )}
+          </span>
         </div>
+        <div className="p-5 sm:p-6">
+          <p className="eyebrow mb-2">The motion</p>
+          <h1 className="font-display text-[2.6rem] leading-[0.92] text-balance sm:text-6xl">{debate.title}</h1>
+          <RichText text={debate.description} className="mt-4 text-[15px] leading-relaxed text-ink/85" />
 
-        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight mb-6">
-          {currentDebate.title}
-        </h1>
-
-        <div className="flex items-center gap-4 text-sm bg-surface p-4 rounded-xl border border-border-subtle">
-          <Avatar src={currentDebate.creator?.profile?.avatar} username={currentDebate.creator?.username} size="md" />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Link
-                to={`/profile/${currentDebate.creator?.username}`}
-                className="font-bold text-white hover:text-primary transition-colors"
-              >
-                {currentDebate.creator?.username}
-              </Link>
-              <CredibilityBadge score={currentDebate.creator?.credibilityScore || 50} size="sm" />
-            </div>
-            <span className="text-text-muted text-xs">Started this debate</span>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-text-muted shrink-0">
-            <span className="flex items-center gap-1">
-              <Users size={13} />
-              {currentDebate.stats?.participantCount || 0}
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageSquare size={13} />
-              {currentDebate.stats?.totalComments || 0}
-            </span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Context */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="bg-card-dark rounded-xl border border-border-subtle p-6 mb-8"
-      >
-        <h3 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">The Question</h3>
-        <p className="text-text-muted leading-relaxed">{currentDebate.description}</p>
-      </motion.div>
-
-      {/* AI Analysis */}
-      {currentDebate.aiAnalysis && (
-        <AIAnalysisPanel analysis={currentDebate.aiAnalysis} />
-      )}
-
-      {/* Voting */}
-      <VotePanel debate={currentDebate} />
-
-      {/* Debate Floor */}
-      <div className="mt-10">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-            The Floor
-            <span className="bg-border-subtle text-text-muted text-xs px-2.5 py-1 rounded-full font-semibold">
-              {currentDebate.stats?.totalComments || 0}
-            </span>
-          </h3>
-        </div>
-
-        <DebateCommentForm
-          debateId={currentDebate._id}
-          debateOptions={currentDebate.options}
-          onSubmit={handlePostComment}
-        />
-
-        {/* Typing indicator */}
-        <AnimatePresence>
-          {typingUser && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="text-xs text-text-muted italic mb-4 flex items-center gap-2 px-2"
-            >
-              <span className="flex gap-1">
-                {[0, 1, 2].map(i => (
-                  <span
-                    key={i}
-                    className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce"
-                    style={{ animationDelay: `${i * 0.15}s` }}
-                  />
-                ))}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink/15 pt-4">
+            <Link to={`/profile/${debate.creator?.username}`} className="flex items-center gap-2.5 hover:underline">
+              <Avatar src={debate.creator?.profile?.avatar} username={debate.creator?.username} size="sm" />
+              <span className="text-sm">
+                <span className="font-extrabold">{displayName(debate.creator)}</span>
+                <span className="text-ink/70"> opened this {timeAgo(debate.createdAt)}</span>
               </span>
-              <span>{typingUser} is drafting an argument…</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Arguments list */}
-        {commentsLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-card-dark border border-border-subtle rounded-xl p-4 animate-pulse h-24" />
-            ))}
+            </Link>
+            <div className="flex items-center gap-4 text-xs font-bold">
+              <span className="inline-flex items-center gap-1"><Users size={14} strokeWidth={2.5} aria-hidden="true" /> {plural(debate.stats?.participantCount || 0, 'participant')}</span>
+              <span className="inline-flex items-center gap-1"><MessageSquare size={14} strokeWidth={2.5} aria-hidden="true" /> {plural(debate.stats?.totalComments || 0, 'post')}</span>
+              {isCreator && (
+                <button type="button" onClick={deleteDebate} className="inline-flex items-center gap-1 rounded-[4px] border-2 border-dashed border-ink px-2 py-1 hover:bg-ink hover:text-ivory">
+                  <Trash2 size={13} strokeWidth={2.5} /> Delete
+                </button>
+              )}
+            </div>
           </div>
-        ) : comments.length > 0 ? (
+        </div>
+      </header>
+
+      <VerdictPanel debate={debate} />
+      <VotePanel debate={debate} onUpdate={patchDebate} />
+      <DebatePulse debate={debate} />
+
+      {/* The floor */}
+      <section aria-labelledby="floor-heading" className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
+          <h2 id="floor-heading" className="font-display text-5xl">
+            The floor <span className="font-accent text-ivory normal-case">({argsState.total})</span>
+          </h2>
+          <Tabs
+            label="Sort arguments"
+            tabs={[{ value: 'newest', label: 'Newest' }, { value: 'top', label: 'Strongest' }]}
+            value={filter.sort}
+            onChange={(sort) => setFilter((f) => ({ ...f, sort }))}
+          />
+        </div>
+
+        {isOpen ? (
+          <ArgumentComposer debate={debate} onPosted={handlePosted} />
+        ) : (
+          <p className="card border-dashed p-4 text-sm font-semibold">This debate is closed. Arguments are preserved as the public record.</p>
+        )}
+
+        {typingUser && (
+          <p className="flex items-center gap-2 text-sm font-bold" role="status">
+            <span className="inline-flex gap-1" aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <span key={i} className="h-1.5 w-1.5 rounded-full bg-ink motion-safe:animate-bounce" style={{ animationDelay: `${i * 120}ms` }} />
+              ))}
+            </span>
+            @{typingUser} is drafting an argument…
+          </p>
+        )}
+
+        <Tabs label="Filter by side" tabs={sideTabs} value={filter.side} onChange={(side) => setFilter((f) => ({ ...f, side }))} />
+
+        {argsState.status === 'loading' ? (
+          <SkeletonList count={2} />
+        ) : argsState.status === 'error' && args.length === 0 ? (
+          <ErrorState title="Arguments didn’t load." message={argsState.error} onRetry={() => loadArguments(1)} />
+        ) : args.length === 0 ? (
+          <EmptyState icon={MessageSquare} title={filter.side === 'all' ? 'The floor is open.' : 'Nothing on this side yet.'}>
+            {isOpen ? 'Be the first to make a case — reasons first, sources if you have them.' : 'No arguments were made here.'}
+          </EmptyState>
+        ) : (
           <div className="space-y-4">
-            {comments.map(comment => (
-              <DebateComment
+            {args.map((comment) => (
+              <ArgumentCard
                 key={comment._id}
                 comment={comment}
-                debateOptions={currentDebate.options}
-                debateId={id}
-                onDelete={handleDeleteComment}
+                debate={debate}
+                onPatch={patchArgument}
+                onDeleted={handleDeleted}
+                liveReplies={liveReplies[comment._id]}
               />
             ))}
-          </div>
-        ) : (
-          <div className="text-center py-16 text-text-muted border border-dashed border-border-subtle rounded-xl">
-            <MessageSquare size={32} className="mx-auto mb-3 opacity-30" />
-            <p className="font-bold text-white mb-1">The floor is open.</p>
-            <p className="text-sm">Be the first to make your case.</p>
+            {argsState.page < argsState.pages && (
+              <div className="flex justify-center">
+                <Button variant="ivory" onClick={() => loadArguments(argsState.page + 1)} isLoading={argsState.status === 'more'}>
+                  Load more arguments
+                </Button>
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
-};
+}

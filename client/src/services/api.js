@@ -1,68 +1,100 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+
 let accessToken = null;
+const tokenListeners = new Set();
+
+export const getAccessToken = () => accessToken;
 
 export const setAccessToken = (token) => {
   accessToken = token;
+  tokenListeners.forEach((listener) => listener(token));
 };
 
-export const getAccessToken = () => {
-  return accessToken;
+export const onAccessTokenChange = (listener) => {
+  tokenListeners.add(listener);
+  return () => tokenListeners.delete(listener);
 };
+
+// Errors thrown by the client always carry a readable message and the HTTP
+// status (0 for network failures).
+export class ApiError extends Error {
+  constructor(message, status = 0, data = null) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
-  withCredentials: true, // For sending refresh cookie
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL,
+  withCredentials: true, // sends the httpOnly refresh cookie
+  timeout: 45000, // free-tier hosts can take a while to wake up
 });
 
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Refresh requests are deduplicated: concurrent 401s (or React StrictMode's
+// double effects) share one in-flight refresh instead of racing each other,
+// which previously revoked the session.
+let refreshPromise = null;
 
-// Response interceptor for token refresh
+export const refreshAccessToken = () => {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post('/auth/refresh', {}, { baseURL, withCredentials: true, timeout: 45000 })
+      .then((res) => {
+        const token = res.data?.data?.accessToken;
+        if (!token) throw new ApiError('Session expired. Please sign in again.', 401);
+        setAccessToken(token);
+        return token;
+      })
+      .catch((error) => {
+        setAccessToken(null);
+        throw error;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
+const NO_REFRESH_PATHS = ['/auth/refresh', '/auth/login', '/auth/register', '/auth/logout'];
+
+api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response.data,
   async (error) => {
-    const originalRequest = error.config;
-    
-    // If error is 401 and we haven't already retried
-    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh' && originalRequest.url !== '/auth/login') {
-      originalRequest._retry = true;
+    const original = error.config || {};
+    const status = error.response?.status || 0;
+
+    if (status === 401 && !original._retry && !NO_REFRESH_PATHS.includes(original.url)) {
+      original._retry = true;
       try {
-        const response = await axios.post('/api/auth/refresh', {}, {
-          baseURL: import.meta.env.VITE_API_URL || '/api',
-          withCredentials: true // send the httpOnly cookie
-        });
-        
-        const newAccessToken = response.data.data.accessToken;
-        setAccessToken(newAccessToken);
-        
-        // Retry original request
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        const finalResponse = await axios(originalRequest);
-        return finalResponse.data;
-      } catch (refreshError) {
-        // Refresh failed, user is actually logged out
-        setAccessToken(null);
+        const token = await refreshAccessToken();
+        original.headers = { ...original.headers, Authorization: `Bearer ${token}` };
+        return api(original);
+      } catch {
+        // The session is gone: let the app clear its state (no network call).
         window.dispatchEvent(new Event('auth:unauthorized'));
-        return Promise.reject(new Error('Session expired. Please log in again.'));
+        return Promise.reject(new ApiError('Your session expired. Please sign in again.', 401));
       }
     }
-    
-    const message = error.response?.data?.message || error.message || 'An unexpected error occurred';
-    return Promise.reject(new Error(message));
+
+    let message = error.response?.data?.message;
+    if (!message) {
+      if (error.code === 'ECONNABORTED') message = 'The server took too long to respond. Please try again.';
+      else if (!error.response) message = 'Can’t reach ForReal right now. Check your connection and try again.';
+      else message = 'Something went wrong. Please try again.';
+    }
+    return Promise.reject(new ApiError(message, status, error.response?.data));
   }
 );
 

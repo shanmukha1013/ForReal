@@ -27,8 +27,8 @@ const userSchema = new mongoose.Schema(
       default: 'User',
     },
     profile: {
-      displayName: { type: String, default: '' },
-      bio: { type: String, default: '' },
+      displayName: { type: String, default: '', trim: true, maxlength: 50 },
+      bio: { type: String, default: '', trim: true, maxlength: 280 },
       avatar: { type: String, default: '' },
       coverImage: { type: String, default: '' },
     },
@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema(
       followingCount: { type: Number, default: 0 },
     },
     refreshToken: { type: String, default: '' },
+    // The token replaced by the latest rotation stays valid for a short grace
+    // period so concurrent refreshes (e.g. two open tabs) do not sign out.
+    previousRefreshToken: { type: String, default: '' },
+    refreshRotatedAt: { type: Date },
     isOnline: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
     credibilityScore: { type: Number, default: 50 },

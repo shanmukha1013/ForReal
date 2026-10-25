@@ -1,49 +1,37 @@
 import React from 'react';
-
-/**
- * Resolve a media URL to something the browser can display.
- * - blob: URLs (optimistic previews) → pass through
- * - /uploads/... (server media) → use as-is (Vite proxies /uploads in dev; nginx serves in prod)
- * - anything else → use VITE_BACKEND_URL env if available, else relative
- */
-const resolveMediaUrl = (url) => {
-  if (!url) return '';
-  if (url.startsWith('blob:') || url.startsWith('http')) return url;
-  // Relative path like /uploads/talk-xxx.jpg — works via Vite proxy in dev
-  return url;
-};
+import { resolveMediaUrl } from '@/lib/media';
 
 export const TalkMedia = React.memo(({ media }) => {
-  if (!media || media.length === 0) return null;
-
-  const gridClass =
-    media.length === 1
-      ? 'grid-cols-1'
-      : 'grid-cols-2';
+  if (!media?.length) return null;
+  const single = media.length === 1;
 
   return (
-    <div className={`grid ${gridClass} gap-1.5 mb-4 rounded-xl overflow-hidden`}>
+    <div className={`mb-3 grid gap-1.5 overflow-hidden rounded-[4px] border-2 border-ink ${single ? 'grid-cols-1' : 'grid-cols-2'}`}>
       {media.map((item, index) => {
-        const isThirdOf3 = index === 2 && media.length === 3;
         const src = resolveMediaUrl(item.url);
-
+        const spanTwo = media.length === 3 && index === 2;
         return (
-          <div
-            key={index}
-            className={`relative bg-card-dark aspect-video rounded-lg overflow-hidden ${
-              isThirdOf3 ? 'col-span-2' : ''
-            }`}
+          <a
+            key={item.url || index}
+            href={src || undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`relative block bg-ink/10 ${single ? 'aspect-[16/10]' : 'aspect-square'} ${spanTwo ? 'col-span-2 aspect-[2/1]' : ''}`}
+            aria-label={`Open image ${index + 1} in a new tab`}
           >
-            <img
-              src={src}
-              alt={`Talk media ${index + 1}`}
-              className="absolute inset-0 w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
-              loading="lazy"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
+            {src && (
+              <img
+                src={src}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.visibility = 'hidden';
+                }}
+              />
+            )}
+          </a>
         );
       })}
     </div>

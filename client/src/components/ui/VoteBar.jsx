@@ -1,30 +1,29 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { sideTone } from '@/lib/sides';
+import { percent } from '@/lib/format';
 
-export const VoteBar = ({ options, totalVotes }) => {
-  // Normalize options to ensure they sum to 100% in UI visually
-  return (
-    <div className="w-full flex h-2 rounded-full overflow-hidden bg-bg-dark border border-border-subtle/50 shadow-inner">
-      {options.map((option, idx) => {
-        const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
+// Stacked share of votes per side. Widths animate via transform-free CSS
+// transitions on flex-basis, which only runs when the numbers change.
+export const VoteBar = ({ options = [], totalVotes = 0, height = 'h-3', className = '' }) => (
+  <div
+    className={`flex w-full overflow-hidden rounded-[3px] border-2 border-ink bg-ivory ${height} ${className}`}
+    role="img"
+    aria-label={options.map((opt) => `${opt.label} ${percent(opt.votes, totalVotes)}%`).join(', ')}
+  >
+    {totalVotes === 0 ? (
+      <div className="h-full w-full text-ink/25 hatched" />
+    ) : (
+      options.map((opt, i) => {
+        const share = percent(opt.votes, totalVotes);
+        if (!share) return null;
         return (
-          <motion.div
-            key={option._id || idx}
-            initial={{ width: 0 }}
-            animate={{ width: `${percentage}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="h-full relative"
-            style={{ 
-              backgroundColor: option.color || '#00C8FF',
-              boxShadow: percentage > 0 ? `0 0 10px ${option.color || '#00C8FF'}` : 'none'
-            }}
-            title={`${option.label}: ${Math.round(percentage)}%`}
-          >
-            {/* Glossy overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-          </motion.div>
+          <div
+            key={opt._id || i}
+            className={`h-full ${sideTone(i).swatch} border-ink transition-[flex-basis] duration-700 ease-[var(--ease-out-expo)] [&:not(:last-child)]:border-r-2`}
+            style={{ flexBasis: `${share}%` }}
+          />
         );
-      })}
-    </div>
-  );
-};
+      })
+    )}
+  </div>
+);

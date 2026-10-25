@@ -2,59 +2,89 @@ const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const { successResponse } = require('../utils/apiResponse');
+const { emitToUser } = require('../sockets');
+const { httpError, isObjectId, asTrimmed, asString, clampInt } = require('../utils/validators');
 
-// @desc    Get all conversations for a user
+const PARTICIPANT_FIELDS = 'username profile.avatar profile.displayName isOnline lastSeen';
+const SENDER_FIELDS = 'username profile.avatar profile.displayName';
+
+const serializeConversation = (conversation, userId) => {
+  const unreadCounts = conversation.unreadCounts instanceof Map
+    ? Object.fromEntries(conversation.unreadCounts)
+    : conversation.unreadCounts || {};
+  return {
+    ...conversation,
+    unreadCounts,
+    unread: unreadCounts[userId.toString()] || 0,
+  };
+};
+
+const findRecipient = async (recipientId, senderId) => {
+  if (!isObjectId(recipientId)) throw httpError(400, 'Invalid recipient');
+  if (recipientId === senderId.toString()) throw httpError(400, 'You cannot message yourself.');
+  const recipient = await User.findOne({ _id: recipientId, status: 'Active' }).select('_id').lean();
+  if (!recipient) throw httpError(404, 'That user is not available.');
+  return recipient;
+};
+
+// @desc    Get all conversations for the signed-in user
 // @route   GET /api/messages/conversations
 // @access  Private
 const getConversations = async (req, res, next) => {
   try {
-    const conversations = await Conversation.find({ participants: req.user.id })
-      .populate('participants', 'username profile avatar isOnline lastSeen')
-      .populate('lastMessage')
-      .sort({ lastActivity: -1 });
+    const conversations = await Conversation.find({ participants: req.user._id })
+      .populate('participants', PARTICIPANT_FIELDS)
+      .populate('lastMessage', 'content sender createdAt')
+      .sort({ lastActivity: -1 })
+      .limit(100)
+      .lean();
 
-    return successResponse(res, 200, 'Conversations fetched', conversations);
+    return successResponse(res, 200, 'Conversations fetched', conversations.map((c) => serializeConversation(c, req.user._id)));
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
-// @desc    Get messages for a conversation
+// @desc    Get messages for a conversation (newest page first, returned oldest→newest)
 // @route   GET /api/messages/:conversationId
 // @access  Private
 const getMessages = async (req, res, next) => {
   try {
     const { conversationId } = req.params;
-    const limit = parseInt(req.query.limit, 10) || 50;
-    const cursor = req.query.cursor; // Last message ID seen
+    if (!isObjectId(conversationId)) throw httpError(400, 'Invalid conversation');
 
-    // Verify user is part of conversation
-    const conversation = await Conversation.findById(conversationId);
-    if (!conversation || !conversation.participants.includes(req.user.id)) {
-      res.status(403);
-      throw new Error('Not authorized to view these messages');
-    }
+    const limit = clampInt(req.query.limit, { fallback: 50, max: 100 });
+    const cursor = asString(req.query.cursor);
 
-    let query = { conversation: conversationId };
+    const isMember = await Conversation.exists({ _id: conversationId, participants: req.user._id });
+    if (!isMember) throw httpError(403, 'Not authorized to view these messages');
+
+    const query = { conversation: conversationId, isDeleted: false };
     if (cursor) {
+      if (!isObjectId(cursor)) throw httpError(400, 'Invalid cursor');
       query._id = { $lt: cursor };
     }
 
     const messages = await Message.find(query)
-      .sort({ _id: -1 }) // Newest first
+      .sort({ _id: -1 })
       .limit(limit)
-      .populate('sender', 'username profile avatar');
+      .populate('sender', SENDER_FIELDS)
+      .lean();
 
-    // Reset unread count for this user
-    conversation.unreadCounts.set(req.user.id.toString(), 0);
-    await conversation.save();
+    await Promise.all([
+      Conversation.updateOne({ _id: conversationId }, { $set: { [`unreadCounts.${req.user._id}`]: 0 } }),
+      Message.updateMany(
+        { conversation: conversationId, sender: { $ne: req.user._id }, isRead: false },
+        { isRead: true }
+      ),
+    ]);
 
     return successResponse(res, 200, 'Messages fetched', {
-      messages: messages.reverse(), // Send in chronological order
-      nextCursor: messages.length === limit ? messages[messages.length - 1]._id : null
+      messages: messages.reverse(),
+      nextCursor: messages.length === limit ? messages[0]._id : null,
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -63,76 +93,72 @@ const getMessages = async (req, res, next) => {
 // @access  Private
 const sendMessage = async (req, res, next) => {
   try {
-    const { recipientId, content, type } = req.body;
+    const senderId = req.user._id;
+    const content = asTrimmed(req.body.content);
+    if (!content) throw httpError(400, 'Message cannot be empty.');
+    if (content.length > 2000) throw httpError(400, 'Messages are limited to 2000 characters.');
 
-    // Check if conversation exists
-    let conversation = await Conversation.findOne({
-      participants: { $all: [req.user.id, recipientId] }
-    });
+    const recipient = await findRecipient(asString(req.body.recipientId), senderId);
 
+    let conversation = await Conversation.findOne({ participants: { $all: [senderId, recipient._id] } });
     if (!conversation) {
-      // Check privacy settings of recipient
-      const recipient = await User.findById(recipientId);
-      // Logic for privacy omitted for brevity, assuming allowed
-      
       conversation = await Conversation.create({
-        participants: [req.user.id, recipientId],
-        unreadCounts: { [req.user.id]: 0, [recipientId]: 0 }
+        participants: [senderId, recipient._id],
+        unreadCounts: { [senderId]: 0, [recipient._id]: 0 },
       });
     }
 
     const message = await Message.create({
       conversation: conversation._id,
-      sender: req.user.id,
+      sender: senderId,
       content,
-      type: type || 'text'
+      type: 'text',
     });
 
-    // Update conversation
-    conversation.lastMessage = message._id;
-    conversation.lastActivity = Date.now();
-    
-    // Increment unread count for recipient
-    const currentUnread = conversation.unreadCounts.get(recipientId.toString()) || 0;
-    conversation.unreadCounts.set(recipientId.toString(), currentUnread + 1);
-    
-    await conversation.save();
+    await Conversation.updateOne(
+      { _id: conversation._id },
+      {
+        $set: { lastMessage: message._id, lastActivity: new Date() },
+        $inc: { [`unreadCounts.${recipient._id}`]: 1 },
+      }
+    );
 
-    const populatedMessage = await Message.findById(message._id)
-      .populate('sender', 'username profile avatar');
+    const populated = await Message.findById(message._id).populate('sender', SENDER_FIELDS).lean();
 
-    const io = require('../sockets').getIo();
-    io.to(`conv_${conversation._id}`).emit('new_message', populatedMessage);
+    // Deliver to both participants' private rooms: the recipient sees it even
+    // when the conversation is not open, and the sender's other tabs stay in sync.
+    emitToUser(recipient._id.toString(), 'new_message', populated);
+    emitToUser(senderId.toString(), 'new_message', populated);
 
-    return successResponse(res, 201, 'Message sent', populatedMessage);
+    return successResponse(res, 201, 'Message sent', populated);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
-
-// @desc    Get or create conversation with a user
+// @desc    Get or create a conversation with a user
 // @route   POST /api/messages/conversations
 // @access  Private
 const getOrCreateConversation = async (req, res, next) => {
   try {
-    const { userId } = req.body;
-    let conversation = await Conversation.findOne({
-      participants: { $all: [req.user.id, userId] }
-    }).populate('participants', 'username profile avatar isOnline lastSeen').populate('lastMessage');
+    const recipient = await findRecipient(asString(req.body.userId), req.user._id);
 
+    let conversation = await Conversation.findOne({ participants: { $all: [req.user._id, recipient._id] } });
     if (!conversation) {
       conversation = await Conversation.create({
-        participants: [req.user.id, userId],
-        unreadCounts: { [req.user.id]: 0, [userId]: 0 }
+        participants: [req.user._id, recipient._id],
+        unreadCounts: { [req.user._id]: 0, [recipient._id]: 0 },
       });
-      conversation = await Conversation.findById(conversation._id)
-        .populate('participants', 'username profile avatar isOnline lastSeen');
     }
 
-    return successResponse(res, 200, 'Conversation fetched', conversation);
+    const populated = await Conversation.findById(conversation._id)
+      .populate('participants', PARTICIPANT_FIELDS)
+      .populate('lastMessage', 'content sender createdAt')
+      .lean();
+
+    return successResponse(res, 200, 'Conversation fetched', serializeConversation(populated, req.user._id));
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -142,4 +168,3 @@ module.exports = {
   getMessages,
   sendMessage
 };
-

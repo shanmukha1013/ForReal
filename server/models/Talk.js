@@ -9,9 +9,13 @@ const talkSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: true,
+    // Image-only talks are allowed; text is required otherwise.
+    required: function requiredWithoutMedia() {
+      return !this.media || this.media.length === 0;
+    },
     trim: true,
-    maxlength: 2000
+    maxlength: 2000,
+    default: ''
   },
   media: [{
     url: String,
@@ -41,7 +45,8 @@ const talkSchema = new mongoose.Schema({
   mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
-// Index for feed performance (sorting by latest)
+// Index for feed performance (sorting by latest) and profile timelines
 talkSchema.index({ createdAt: -1 });
+talkSchema.index({ author: 1, _id: -1 });
 
 module.exports = mongoose.model('Talk', talkSchema);

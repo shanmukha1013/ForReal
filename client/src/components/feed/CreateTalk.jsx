@@ -1,291 +1,178 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
-import useAuthStore from '@/store/useAuthStore';
-import { Button } from '../Button';
-import { Avatar } from '@/components/ui';
-import { talkService } from '@/services/talkService';
+import React, { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
+import { ImagePlus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import useAuthStore from '@/store/useAuthStore';
+import { talkService } from '@/services/talkService';
+import { Avatar } from '@/components/ui/Avatar';
+import { Button } from '@/components/ui/Button';
+import { MAX_TALK_LENGTH } from '@/lib/constants';
 
-export const CreateTalk = ({ onTalkCreated, composerRef: externalRef }) => {
-  const { user } = useAuthStore();
-  const [isExpanded, setIsExpanded] = useState(false);
+const MAX_IMAGES = 4;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+export const CreateTalk = forwardRef(({ onOptimistic, onCreated, onFailed }, ref) => {
+  const user = useAuthStore((s) => s.user);
   const [content, setContent] = useState('');
-  const [media, setMedia] = useState([]); // File objects
-  const [previewUrls, setPreviewUrls] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
+  const [files, setFiles] = useState([]); // [{ file, url }]
+  const [isPosting, setIsPosting] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-  const containerRef = useRef(null);
+  const filesRef = useRef(files);
+  filesRef.current = files;
 
-  const MAX_CHARS = 2000;
-  const currentLength = content.length;
-  const isNearLimit = currentLength > MAX_CHARS - 100;
-  const isAtLimit = currentLength >= MAX_CHARS;
-  const canSubmit = (content.trim().length > 0 || media.length > 0) && !isLoading && !isAtLimit;
+  useImperativeHandle(ref, () => ({ focus: () => textareaRef.current?.focus() }), []);
 
-  // Expose focus method via composerRef so parent can focus the textarea
+  // Release object URLs when the composer unmounts.
+  useEffect(() => () => filesRef.current.forEach((f) => URL.revokeObjectURL(f.url)), []);
+
+  // Auto-grow the textarea.
   useEffect(() => {
-    if (externalRef) {
-      externalRef.current = {
-        focus: () => {
-          textareaRef.current?.focus();
-          setIsExpanded(true);
-        }
-      };
-    }
-  }, [externalRef]);
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 320)}px`;
+  }, [content]);
 
-  // Auto-grow textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 300) + 'px';
-    }
-  }, [content, isExpanded]);
+  const length = content.length;
+  const canPost = (content.trim().length > 0 || files.length > 0) && length <= MAX_TALK_LENGTH && !isPosting;
 
-  // Click outside to collapse if empty
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        if (!content.trim() && media.length === 0) {
-          setIsExpanded(false);
-        }
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [content, media.length]);
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-
-    if (media.length + files.length > 4) {
-      toast.error('You can add up to 4 images per Talk');
-      return;
-    }
-
-    // Validate file sizes
-    const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
-    if (oversized.length > 0) {
-      toast.error('Each image must be under 5MB');
-      return;
-    }
-
-    const newMedia = [...media, ...files];
-    setMedia(newMedia);
-
-    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
-    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-    setIsExpanded(true);
-
-    // Reset input so same file can be re-selected after removal
-    e.target.value = '';
+  const addFiles = (event) => {
+    const picked = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!picked.length) return;
+    if (files.length + picked.length > MAX_IMAGES) return toast.error(`Up to ${MAX_IMAGES} images per talk.`);
+    if (picked.some((f) => !ACCEPTED.includes(f.type))) return toast.error('Use JPG, PNG, WEBP or GIF images.');
+    if (picked.some((f) => f.size > MAX_IMAGE_BYTES)) return toast.error('Each image must be under 5MB.');
+    setFiles((prev) => [...prev, ...picked.map((file) => ({ file, url: URL.createObjectURL(file) }))]);
+    return undefined;
   };
 
-  const removeMedia = (index) => {
-    const newMedia = [...media];
-    newMedia.splice(index, 1);
-    setMedia(newMedia);
-
-    const newPreviewUrls = [...previewUrls];
-    URL.revokeObjectURL(newPreviewUrls[index]);
-    newPreviewUrls.splice(index, 1);
-    setPreviewUrls(newPreviewUrls);
+  const removeFile = (index) => {
+    setFiles((prev) => {
+      URL.revokeObjectURL(prev[index].url);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
-    
-    // Prevent double-submission
-    setIsLoading(true);
+  const submit = async () => {
+    if (!canPost) return;
+    const text = content.trim();
+    const attached = files;
+    const tempId = `temp-${Date.now()}`;
 
-    const optimisticId = `temp-${Date.now()}`;
-    const optimisticTalk = {
-      _id: optimisticId,
-      content,
+    setIsPosting(true);
+    onOptimistic?.({
+      _id: tempId,
+      content: text,
       author: user,
-      media: previewUrls.map(url => ({ url, type: 'image' })),
+      media: attached.map((f) => ({ url: f.url, type: 'image' })),
       reactionsCount: { like: 0, dislike: 0, agree: 0, disagree: 0 },
       userReaction: null,
       commentsCount: 0,
       bookmarksCount: 0,
       isBookmarked: false,
       createdAt: new Date().toISOString(),
-      isOptimistic: true
-    };
-
-    // Save draft before clearing
-    const previousContent = content;
-    const previousMedia = [...media];
-    const previousPreviews = [...previewUrls];
-
-    // Optimistically add to feed
-    if (onTalkCreated) onTalkCreated(optimisticTalk);
-
-    // Clear composer immediately
+      isOptimistic: true,
+    });
     setContent('');
-    setMedia([]);
-    setPreviewUrls([]);
-    setIsExpanded(false);
+    setFiles([]);
 
     try {
       const formData = new FormData();
-      formData.append('content', previousContent);
-      
-      // Extract hashtags from content
-      const hashtags = previousContent.match(/#[a-zA-Z0-9_]+/g);
-      if (hashtags && hashtags.length > 0) {
-        formData.append('hashtags', JSON.stringify(hashtags));
-      }
-
-      // Attach media files
-      previousMedia.forEach(file => {
-        formData.append('media', file);
-      });
-
+      formData.append('content', text);
+      attached.forEach((f) => formData.append('media', f.file));
       const res = await talkService.createTalk(formData);
-      
-      if (res.success) {
-        // Replace the optimistic placeholder with the real server talk
-        if (onTalkCreated) {
-          onTalkCreated({ ...res.data, replaceId: optimisticId });
-        }
-      } else {
-        throw new Error(res.message || 'Failed to post Talk');
-      }
+      onCreated?.(tempId, res.data);
+      attached.forEach((f) => URL.revokeObjectURL(f.url));
     } catch (error) {
-      console.error('Failed to create talk:', error);
-      
-      // Remove the optimistic talk from feed
-      if (onTalkCreated) onTalkCreated({ removeId: optimisticId });
-      
-      // Restore composer content so user doesn't lose their text
-      setContent(previousContent);
-      setMedia(previousMedia);
-      setPreviewUrls(previousPreviews);
-      setIsExpanded(true);
-
-      const errorMessage = error.message && error.message !== 'Failed to post Talk'
-        ? error.message
-        : 'Could not post your Talk. Please try again.';
-      toast.error(errorMessage);
-      
-      // Refocus textarea after error
-      setTimeout(() => textareaRef.current?.focus(), 100);
+      onFailed?.(tempId);
+      // Give the draft back so nothing the user wrote is lost.
+      setContent(text);
+      setFiles(attached);
+      toast.error(error.message || 'Could not post your talk.');
+      textareaRef.current?.focus();
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    // Cmd/Ctrl + Enter to submit
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      e.preventDefault();
-      if (canSubmit) handleSubmit();
+      setIsPosting(false);
     }
   };
 
   return (
-    <div 
-      ref={containerRef} 
-      className="bg-card-dark rounded-xl border border-border-subtle p-4 mb-6 shadow-sm transition-all duration-300"
-    >
+    <section className="card p-4 sm:p-5" aria-label="Write a talk">
       <div className="flex gap-3">
-        {/* Avatar */}
-        <Avatar src={user?.profile?.avatar} username={user?.username} size="md" className="mt-0.5" />
-        
-        <div className="flex-1 min-w-0 flex flex-col">
+        <Avatar src={user?.profile?.avatar} username={user?.username} size="md" className="mt-0.5 hidden sm:inline-flex" />
+        <div className="min-w-0 flex-1">
+          <label htmlFor="composer" className="sr-only">What do you think — and why?</label>
           <textarea
+            id="composer"
             ref={textareaRef}
             value={content}
-            onFocus={() => setIsExpanded(true)}
             onChange={(e) => setContent(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="SAY WHAT YOU MEAN."
-            aria-label="Compose a Talk"
-            className={`w-full bg-transparent text-white text-base placeholder:text-text-muted/60 focus:outline-none resize-none transition-all duration-300 leading-relaxed ${
-              isExpanded ? 'min-h-[80px] pt-0.5' : 'h-7 overflow-hidden pt-0.5'
-            }`}
-            maxLength={MAX_CHARS}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit();
+            }}
+            rows={2}
+            maxLength={MAX_TALK_LENGTH}
+            placeholder="Say what you mean — and why."
+            className="block w-full resize-none bg-transparent text-[17px] font-medium leading-relaxed placeholder:font-medium focus-visible:outline-none"
           />
 
-          {/* Media preview grid */}
-          {isExpanded && previewUrls.length > 0 && (
-            <div className={`grid gap-2 mt-3 mb-2 rounded-xl overflow-hidden ${
-              previewUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
-            }`}>
-              {previewUrls.map((url, i) => (
-                <div key={i} className="relative aspect-video bg-black/40 rounded-lg overflow-hidden group">
-                  <img src={url} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
-                  <button 
-                    onClick={() => removeMedia(i)}
-                    className="absolute top-2 right-2 p-1.5 bg-black/70 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error"
-                    aria-label={`Remove image ${i + 1}`}
+          {files.length > 0 && (
+            <div className={`mt-3 grid gap-2 ${files.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              {files.map((f, i) => (
+                <div key={f.url} className="relative aspect-video overflow-hidden rounded-[4px] border-2 border-ink">
+                  <img src={f.url} alt={`Attachment ${i + 1}`} className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeFile(i)}
+                    className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-ivory hover:bg-ink hover:text-ivory"
+                    aria-label={`Remove attachment ${i + 1}`}
                   >
-                    <X size={14} />
+                    <X size={14} strokeWidth={3} />
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Composer actions */}
-          {isExpanded && (
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-subtle/50">
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2 text-text-muted hover:text-primary hover:bg-primary/10 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed relative group"
-                  disabled={media.length >= 4 || isLoading}
-                  aria-label="Add media"
-                  title="Add media (JPEG, PNG, WEBP)"
-                >
-                  <ImageIcon size={18} />
-                  <span className="sr-only">Add media</span>
-                </button>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  onChange={handleFileChange}
-                  aria-label="Upload images"
-                />
-              </div>
-              
-              <div className="flex items-center gap-3">
-                {/* Character counter */}
-                <span 
-                  className={`text-xs font-medium tabular-nums transition-colors ${
-                    isAtLimit 
-                      ? 'text-error font-bold' 
-                      : isNearLimit 
-                        ? 'text-orange-400' 
-                        : 'text-text-muted/40'
-                  }`}
-                  aria-live="polite"
-                  aria-label={`${currentLength} of ${MAX_CHARS} characters used`}
-                >
-                  {currentLength > 0 ? `${currentLength} / ${MAX_CHARS}` : ''}
-                </span>
-                
-                <Button 
-                  variant="primary" 
-                  size="sm"
-                  onClick={handleSubmit} 
-                  disabled={!canSubmit}
-                  className="min-w-[72px] h-8 text-sm rounded-full shadow-primary/20 shadow-md"
-                >
-                  {isLoading ? <Loader2 size={14} className="animate-spin" /> : 'Talk'}
-                </Button>
-              </div>
+          <div className="mt-3 flex items-center justify-between gap-3 border-t-2 border-ink/15 pt-3">
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={files.length >= MAX_IMAGES || isPosting}
+                className="inline-flex h-9 items-center gap-1.5 rounded-[4px] border-2 border-transparent px-2 text-xs font-bold hover:border-ink disabled:opacity-40"
+              >
+                <ImagePlus size={17} strokeWidth={2.25} aria-hidden="true" /> Image
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept={ACCEPTED.join(',')}
+                multiple
+                onChange={addFiles}
+                aria-label="Attach images"
+              />
             </div>
-          )}
+            <div className="flex items-center gap-3">
+              {length > 0 && (
+                <span
+                  className={`tabular text-xs font-bold ${length > MAX_TALK_LENGTH - 100 ? 'text-ink underline decoration-ember decoration-2' : 'text-ink/70'}`}
+                  aria-live="polite"
+                >
+                  {MAX_TALK_LENGTH - length}
+                </span>
+              )}
+              <Button variant="accent" size="sm" onClick={submit} disabled={!canPost} isLoading={isPosting}>
+                Post talk
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
-};
+});
+
+CreateTalk.displayName = 'CreateTalk';

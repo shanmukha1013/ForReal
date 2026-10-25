@@ -7,7 +7,7 @@ const {
   updateProfile,
   uploadProfilePicture
 } = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalAuth } = require('../middleware/authMiddleware');
 const { upload } = require('../middleware/uploadMiddleware');
 
 router.route('/profile')
@@ -15,7 +15,7 @@ router.route('/profile')
 
 router.post('/profile-picture', protect, upload.single('avatar'), uploadProfilePicture);
 
-router.route('/:username').get(getUserProfile);
+router.route('/:username').get(optionalAuth, getUserProfile);
 router.post('/:id/follow', protect, followUser);
 router.post('/:id/unfollow', protect, unfollowUser);
 

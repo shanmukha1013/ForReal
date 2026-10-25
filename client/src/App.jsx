@@ -1,104 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthLayout, MainLayout } from '@/layouts';
-import { Login, Register, Home, NotFound, Explore, Debates, DebateView, Messages, Notifications, Profile, Settings } from '@/pages';
-import { CinematicIntro } from '@/components/CinematicIntro';
+import { ConfirmHost, ErrorBoundary, Loader } from '@/components/ui';
 import useAuthStore from '@/store/useAuthStore';
-import useThemeStore from '@/store/useThemeStore';
+
+// Route-level code splitting: each page (and the animation library used by
+// the landing intro) is only downloaded when it is visited.
+const Landing = lazy(() => import('@/pages/Landing'));
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const Home = lazy(() => import('@/pages/Home'));
+const TalkView = lazy(() => import('@/pages/TalkView'));
+const Explore = lazy(() => import('@/pages/Explore'));
+const Debates = lazy(() => import('@/pages/Debates'));
+const DebateView = lazy(() => import('@/pages/DebateView'));
+const Messages = lazy(() => import('@/pages/Messages'));
+const Notifications = lazy(() => import('@/pages/Notifications'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
+
+// Signed-in visitors skip the landing page; guests see the intro.
+const RootRoute = () => {
+  const status = useAuthStore((s) => s.status);
+  if (status === 'checking') return <Loader fullScreen />;
+  if (status === 'authenticated') return <Navigate to="/debates" replace />;
+  return <Landing />;
+};
+
+const toastOptions = {
+  duration: 3200,
+  style: {
+    background: '#171614',
+    color: '#F5EBDD',
+    border: '2px solid #171614',
+    borderRadius: '4px',
+    boxShadow: '4px 4px 0 0 #CA6230',
+    fontSize: '14px',
+    fontWeight: 600,
+    padding: '10px 14px',
+    maxWidth: '420px',
+  },
+  success: { iconTheme: { primary: '#CA6230', secondary: '#171614' } },
+  error: { iconTheme: { primary: '#F5EBDD', secondary: '#171614' }, duration: 4500 },
+};
 
 function App() {
-  const { checkAuth } = useAuthStore();
-  const { theme } = useThemeStore();
-  const [showIntro, setShowIntro] = useState(true);
-  const isFirstLaunch = !localStorage.getItem('hasSeenCinematicIntro_v5');
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
+  const checkAuth = useAuthStore((s) => s.checkAuth);
+  const clearSession = useAuthStore((s) => s.clearSession);
+  const location = useLocation();
 
   useEffect(() => {
     checkAuth();
-    
-    const handleUnauthorized = () => {
-      useAuthStore.getState().logout();
-    };
-    
-    window.addEventListener('auth:unauthorized', handleUnauthorized);
-    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
-  }, [checkAuth]);
-
-  const handleIntroComplete = () => {
-    if (isFirstLaunch) {
-      localStorage.setItem('hasSeenCinematicIntro_v5', 'true');
-    }
-    setShowIntro(false);
-  };
+    // Fired by the API client when a refresh fails: clear local state only,
+    // never call the server again (that previously caused a logout loop).
+    const onUnauthorized = () => clearSession();
+    window.addEventListener('auth:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
+  }, [checkAuth, clearSession]);
 
   return (
     <>
-      <Toaster 
-        position="top-center" 
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#1a1a1a',
-            color: '#fff',
-            border: '1px solid #2A2A2A',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: '500',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
-      
-      {showIntro ? (
-        <CinematicIntro isFirstLaunch={isFirstLaunch} onComplete={handleIntroComplete} />
-      ) : (
-        <Routes>
-          {/* Public Auth Routes */}
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
+      <Toaster position="bottom-center" toastOptions={toastOptions} containerStyle={{ bottom: 88 }} />
+      <ConfirmHost />
+      <ErrorBoundary resetKey={location.pathname}>
+        <Suspense fallback={<Loader fullScreen />}>
+          <Routes>
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/welcome" element={<Landing />} />
 
-          {/* Protected App Routes */}
-          <Route element={<MainLayout />}>
-            {/* Canonical home route */}
-            <Route path="/home" element={<Home />} />
-            {/* Redirect root to /home */}
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/debates" element={<Debates />} />
-            <Route path="/debates/:id" element={<DebateView />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/profile/:username" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-            {/* Future: individual talk page */}
-            <Route path="/talks/:talkId" element={<Home />} />
-          </Route>
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Route>
 
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      )}
+            <Route element={<MainLayout />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/talks/:talkId" element={<TalkView />} />
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/debates" element={<Debates />} />
+              <Route path="/debates/:id" element={<DebateView />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/profile/:username" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 }

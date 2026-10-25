@@ -1,132 +1,109 @@
 import { useCallback, useRef } from 'react';
-import { talkService } from '@/services/talkService';
 import toast from 'react-hot-toast';
+import { talkService } from '@/services/talkService';
+import { confirmAction } from '@/store/useConfirmStore';
 
-export const useTalkActions = (updateTalkInFeed, removeTalkFromFeed) => {
-  // Track in-flight reaction requests to prevent rapid double-clicks
-  const pendingReactions = useRef(new Set());
+// Optimistic talk interactions. Callbacks are stable (they read the current
+// talks through a ref), so memoised TalkCards do not re-render on every
+// feed change.
+export const useTalkActions = ({ talks, updateTalk, removeTalk, prependTalk }) => {
+  const talksRef = useRef(talks);
+  talksRef.current = talks;
+  const pending = useRef(new Set());
 
-  const handleReaction = useCallback(async (talkId, type, talks) => {
-    // Prevent rapid double-click spam
-    const key = `${talkId}-${type}`;
-    if (pendingReactions.current.has(key)) return;
-    pendingReactions.current.add(key);
+  const findTalk = (id) => talksRef.current.find((t) => t._id === id);
 
-    const talk = talks.find(t => t._id === talkId);
-    if (!talk) {
-      pendingReactions.current.delete(key);
-      return;
-    }
+  const handleReaction = useCallback(async (talkId, type) => {
+    if (pending.current.has(talkId)) return;
+    const talk = findTalk(talkId);
+    if (!talk) return;
+    pending.current.add(talkId);
 
-    // Optimistic update: compute new counts locally
-    const currentUserReaction = talk.userReaction || null;
-    let newReactionsCount = { ...talk.reactionsCount };
-    let newUserReaction = null;
-
-    if (currentUserReaction === type) {
-      // Toggle off
-      newReactionsCount[type] = Math.max(0, (newReactionsCount[type] || 0) - 1);
-      newUserReaction = null;
+    const previous = { reactionsCount: talk.reactionsCount, userReaction: talk.userReaction || null };
+    const counts = { like: 0, dislike: 0, agree: 0, disagree: 0, ...talk.reactionsCount };
+    let next = type;
+    if (previous.userReaction === type) {
+      counts[type] = Math.max(0, counts[type] - 1);
+      next = null;
     } else {
-      // Remove previous if any
-      if (currentUserReaction) {
-        newReactionsCount[currentUserReaction] = Math.max(0, (newReactionsCount[currentUserReaction] || 0) - 1);
-      }
-      // Add new
-      newReactionsCount[type] = (newReactionsCount[type] || 0) + 1;
-      newUserReaction = type;
+      if (previous.userReaction) counts[previous.userReaction] = Math.max(0, counts[previous.userReaction] - 1);
+      counts[type] += 1;
     }
-
-    // Apply optimistic update immediately
-    updateTalkInFeed(talkId, {
-      reactionsCount: newReactionsCount,
-      userReaction: newUserReaction,
-    });
+    updateTalk(talkId, { reactionsCount: counts, userReaction: next });
 
     try {
       const res = await talkService.toggleReaction(talkId, type);
-      if (res.success) {
-        // Reconcile with server truth
-        updateTalkInFeed(talkId, {
-          reactionsCount: res.data.reactionsCount,
-          userReaction: newUserReaction, // server doesn't return userReaction, keep our optimistic
-        });
-      }
+      updateTalk(talkId, { reactionsCount: res.data.reactionsCount, userReaction: res.data.userReaction });
     } catch (error) {
-      console.error('Reaction failed:', error);
-      // Rollback optimistic update
-      updateTalkInFeed(talkId, {
-        reactionsCount: talk.reactionsCount,
-        userReaction: currentUserReaction,
-      });
-      toast.error('Could not update reaction. Please try again.');
+      updateTalk(talkId, previous);
+      toast.error(error.message || 'Could not save your reaction.');
     } finally {
-      pendingReactions.current.delete(key);
+      pending.current.delete(talkId);
     }
-  }, [updateTalkInFeed]);
+  }, [updateTalk]);
 
-  const handleBookmark = useCallback(async (talkId, talks) => {
-    const talk = talks ? talks.find(t => t._id === talkId) : null;
-    
-    // Optimistic: toggle bookmark state
-    const isCurrentlyBookmarked = talk?.isBookmarked || false;
-    if (talk) {
-      updateTalkInFeed(talkId, {
-        isBookmarked: !isCurrentlyBookmarked,
-        bookmarksCount: Math.max(0, (talk.bookmarksCount || 0) + (isCurrentlyBookmarked ? -1 : 1)),
-      });
-    }
+  const handleBookmark = useCallback(async (talkId) => {
+    const talk = findTalk(talkId);
+    if (!talk || pending.current.has(`b:${talkId}`)) return;
+    pending.current.add(`b:${talkId}`);
+
+    const previous = { isBookmarked: Boolean(talk.isBookmarked), bookmarksCount: talk.bookmarksCount || 0 };
+    updateTalk(talkId, {
+      isBookmarked: !previous.isBookmarked,
+      bookmarksCount: Math.max(0, previous.bookmarksCount + (previous.isBookmarked ? -1 : 1)),
+    });
 
     try {
       const res = await talkService.toggleBookmark(talkId);
-      if (res.success) {
-        updateTalkInFeed(talkId, {
-          bookmarksCount: res.data.bookmarksCount,
-          isBookmarked: !isCurrentlyBookmarked,
-        });
-      }
+      updateTalk(talkId, { isBookmarked: res.data.isBookmarked, bookmarksCount: res.data.bookmarksCount });
+      toast.success(res.data.isBookmarked ? 'Saved to bookmarks.' : 'Removed from bookmarks.');
     } catch (error) {
-      console.error('Bookmark failed:', error);
-      // Rollback
-      if (talk) {
-        updateTalkInFeed(talkId, {
-          isBookmarked: isCurrentlyBookmarked,
-          bookmarksCount: talk.bookmarksCount,
-        });
-      }
-      toast.error('Could not update bookmark. Please try again.');
+      updateTalk(talkId, previous);
+      toast.error(error.message || 'Could not update bookmark.');
+    } finally {
+      pending.current.delete(`b:${talkId}`);
     }
-  }, [updateTalkInFeed]);
+  }, [updateTalk]);
 
   const handleDelete = useCallback(async (talkId) => {
-    // Optimistically remove
-    removeTalkFromFeed(talkId);
+    const ok = await confirmAction({
+      title: 'Delete this talk?',
+      message: 'This permanently removes the talk, its reactions and every comment on it.',
+      confirmLabel: 'Delete talk',
+      tone: 'danger',
+    });
+    if (!ok) return;
+
+    const talk = findTalk(talkId);
+    const index = talksRef.current.findIndex((t) => t._id === talkId);
+    removeTalk(talkId);
     try {
       await talkService.deleteTalk(talkId);
+      toast.success('Talk deleted.');
     } catch (error) {
-      console.error('Delete failed:', error);
-      toast.error('Failed to delete Talk. Please try again.');
-      // Note: In a more robust system, we would restore the talk to the feed here.
-      // For now, the user will see it's gone and can refresh.
-    }
-  }, [removeTalkFromFeed]);
-
-  const handleUpdate = useCallback(async (talkId, newContent) => {
-    try {
-      const res = await talkService.updateTalk(talkId, { content: newContent });
-      if (res.success) {
-        updateTalkInFeed(talkId, { content: res.data.content, isEdited: res.data.isEdited });
+      // Restore the talk in its original position.
+      if (talk && prependTalk) {
+        prependTalk(talk);
+        if (index > 0) toast('Restored the talk at the top of your feed.');
       }
-    } catch (error) {
-      console.error('Update failed:', error);
-      toast.error('Failed to update Talk. Please try again.');
+      toast.error(error.message || 'Could not delete the talk.');
     }
-  }, [updateTalkInFeed]);
+  }, [removeTalk, prependTalk]);
 
-  return {
-    handleReaction,
-    handleBookmark,
-    handleDelete,
-    handleUpdate
-  };
+  const handleUpdate = useCallback(async (talkId, content) => {
+    const talk = findTalk(talkId);
+    if (!talk) return false;
+    updateTalk(talkId, { content, isEdited: true });
+    try {
+      const res = await talkService.updateTalk(talkId, { content });
+      updateTalk(talkId, { content: res.data.content, isEdited: true, hashtags: res.data.hashtags });
+      return true;
+    } catch (error) {
+      updateTalk(talkId, { content: talk.content, isEdited: talk.isEdited });
+      toast.error(error.message || 'Could not update the talk.');
+      return false;
+    }
+  }, [updateTalk]);
+
+  return { handleReaction, handleBookmark, handleDelete, handleUpdate };
 };

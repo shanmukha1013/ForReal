@@ -1,261 +1,355 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { usePageTitle } from '@/hooks';
-import { MessageCircle, Send, User } from 'lucide-react';
-import { AnimatedButton, CredibilityBadge, Avatar } from '@/components/ui';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, MessageCircle, Send } from 'lucide-react';
+import toast from 'react-hot-toast';
 import apiClient from '@/services/api';
 import { socketService } from '@/services/socket';
 import useAuthStore from '@/store/useAuthStore';
-import { toast } from 'react-hot-toast';
-import { useSearchParams } from 'react-router-dom';
+import { useSocket, useSocketEvent, usePageTitle } from '@/hooks';
+import { Avatar, Button, ErrorState, Skeleton, Spinner } from '@/components/ui';
+import { displayName, sameId, timeAgo } from '@/lib/format';
 
-export const Messages = () => {
-  usePageTitle('Messages | ForReal');
-  
-  const { user } = useAuthStore();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const targetUserId = searchParams.get('user');
+const otherParticipant = (conversation, userId) =>
+  conversation?.participants?.find((p) => !sameId(p._id, userId)) || conversation?.participants?.[0];
 
-  const [conversations, setConversations] = useState([]);
-  const [activeConv, setActiveConv] = useState(null);
+const formatTime = (value) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+const ConversationList = ({ conversations, activeId, userId, onSelect, status, onRetry }) => {
+  if (status === 'loading') {
+    return (
+      <div className="space-y-3 p-4" aria-label="Loading conversations">
+        {[0, 1, 2].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
+      </div>
+    );
+  }
+  if (status === 'error') return <div className="p-4"><ErrorState title="Couldn’t load conversations." onRetry={onRetry} /></div>;
+  if (!conversations.length) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+        <MessageCircle size={28} strokeWidth={2} aria-hidden="true" />
+        <p className="mt-3 text-sm font-bold">No conversations yet.</p>
+        <p className="mt-1 text-xs text-ink/70">Open someone’s profile and press Message to take an argument private.</p>
+      </div>
+    );
+  }
+  return (
+    <ul className="divide-y-2 divide-ink/10">
+      {conversations.map((c) => {
+        const other = otherParticipant(c, userId);
+        const active = c._id === activeId;
+        return (
+          <li key={c._id}>
+            <button
+              type="button"
+              onClick={() => onSelect(c._id)}
+              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${active ? 'bg-ink text-ivory' : 'hover:bg-ink/[0.05]'}`}
+              aria-current={active ? 'true' : undefined}
+            >
+              <Avatar src={other?.profile?.avatar} username={other?.username} size="md" />
+              <span className="min-w-0 flex-1">
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className={`truncate text-sm ${c.unread ? 'font-extrabold' : 'font-bold'}`}>{displayName(other)}</span>
+                  {c.lastMessage && (
+                    <span className={`shrink-0 text-[11px] font-semibold ${active ? 'text-ivory/70' : 'text-ink/70'}`}>
+                      {timeAgo(c.lastMessage.createdAt, { short: true })}
+                    </span>
+                  )}
+                </span>
+                <span className="flex items-center justify-between gap-2">
+                  <span className={`truncate text-xs ${active ? 'text-ivory/75' : c.unread ? 'font-bold' : 'text-ink/70'}`}>
+                    {c.lastMessage ? `${sameId(c.lastMessage.sender, userId) ? 'You: ' : ''}${c.lastMessage.content}` : 'Say hello'}
+                  </span>
+                  {c.unread > 0 && !active && (
+                    <span className="tabular inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-ember px-1 text-[10px] font-extrabold">
+                      {c.unread}
+                    </span>
+                  )}
+                </span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
+const ChatPane = ({ conversation, userId, onBack, onSent }) => {
+  const other = otherParticipant(conversation, userId);
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  
-  const messagesEndRef = useRef(null);
+  const [status, setStatus] = useState('loading');
+  const [draft, setDraft] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef(null);
+  const typingTimer = useRef(null);
+  const remoteTypingTimer = useRef(null);
+  const socket = useSocket();
+
+  const load = useCallback(async () => {
+    setStatus('loading');
+    try {
+      const res = await apiClient.get(`/messages/${conversation._id}`);
+      setMessages(res.data.messages);
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  }, [conversation._id]);
 
   useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const res = await apiClient.get('/messages/conversations');
-        setConversations(res.data || []);
-      } catch (err) {
-        toast.error('Failed to load conversations');
-      }
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    if (!socket) return undefined;
+    const join = () => socket.emit('join_conversation', conversation._id);
+    join();
+    socket.on('connect', join);
+    return () => {
+      socket.off('connect', join);
+      socket.emit('leave_conversation', conversation._id);
     };
-    fetchConversations();
+  }, [socket, conversation._id]);
+
+  useEffect(() => () => {
+    clearTimeout(typingTimer.current);
+    clearTimeout(remoteTypingTimer.current);
   }, []);
 
-  // Handle starting a new conversation from query param
-  useEffect(() => {
-    const startConversation = async () => {
-      if (targetUserId) {
-        try {
-          const res = await apiClient.post('/messages/conversations', { userId: targetUserId });
-          const newConv = res.data;
-          
-          setConversations(prev => {
-            const exists = prev.find(c => c._id === newConv._id);
-            if (!exists) return [newConv, ...prev];
-            return prev;
-          });
-          setActiveConv(newConv);
-          
-          // Clear query param so we don't trigger this again on re-renders
-          searchParams.delete('user');
-          setSearchParams(searchParams);
-        } catch (err) {
-          toast.error('Failed to start conversation');
-        }
-      }
-    };
-    startConversation();
-  }, [targetUserId, searchParams, setSearchParams]);
+  // Keep the newest message in view.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, isTyping]);
 
-  useEffect(() => {
-    if (!activeConv) return;
-    
-    const fetchMessages = async () => {
-      try {
-        const res = await apiClient.get(`/messages/${activeConv._id}`);
-        setMessages(res.data.messages || []);
-      } catch (err) {
-        toast.error('Failed to load messages');
-      }
-    };
-    
-    fetchMessages();
-
-    const socket = socketService.getSocket();
-    if (socket) {
-      socket.emit('join_conversation', activeConv._id);
-      
-      socket.on('new_message', (msg) => {
-        if (msg.conversation === activeConv._id) {
-          setMessages(prev => [...prev, msg]);
-        }
-      });
-      
-      return () => {
-        socket.emit('leave_conversation', activeConv._id);
-        socket.off('new_message');
-      };
+  useSocketEvent('new_message', (message) => {
+    if (String(message.conversation) !== String(conversation._id)) return;
+    setMessages((prev) => (prev.some((m) => m._id === message._id) ? prev : [...prev, message]));
+    if (!sameId(message.sender?._id, userId)) {
+      setIsTyping(false);
+      // Opening the thread marks it read on the server.
+      apiClient.get(`/messages/${conversation._id}`, { params: { limit: 1 } }).catch(() => {});
     }
-  }, [activeConv]);
+  });
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useSocketEvent('typing', ({ conversationId, userId: typist }) => {
+    if (conversationId !== conversation._id || sameId(typist, userId)) return;
+    setIsTyping(true);
+    clearTimeout(remoteTypingTimer.current);
+    remoteTypingTimer.current = setTimeout(() => setIsTyping(false), 4000);
+  });
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || isSending) return;
+  useSocketEvent('stop_typing', ({ conversationId }) => {
+    if (conversationId === conversation._id) setIsTyping(false);
+  });
 
-    setIsSending(true);
+  const emitTyping = () => {
+    const socket = socketService.getSocket();
+    if (!socket) return;
+    if (!typingTimer.current) socket.emit('typing', { conversationId: conversation._id });
+    clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => {
+      socket.emit('stop_typing', { conversationId: conversation._id });
+      typingTimer.current = null;
+    }, 2000);
+  };
+
+  const send = async (e) => {
+    e?.preventDefault();
+    const content = draft.trim();
+    if (!content || !other) return;
+    const tempId = `temp-${Date.now()}`;
+    setMessages((prev) => [...prev, { _id: tempId, content, sender: { _id: userId }, createdAt: new Date().toISOString(), pending: true }]);
+    setDraft('');
+    clearTimeout(typingTimer.current);
+    typingTimer.current = null;
+    socketService.getSocket()?.emit('stop_typing', { conversationId: conversation._id });
+
     try {
-      const recipientId = activeConv.participants.find(p => p._id !== user._id)?._id;
-      if (!recipientId) throw new Error('Recipient not found');
-
-      const res = await apiClient.post('/messages', {
-        recipientId,
-        content: newMessage
+      const res = await apiClient.post('/messages', { recipientId: other._id, content });
+      setMessages((prev) => {
+        const withoutTemp = prev.filter((m) => m._id !== tempId);
+        return withoutTemp.some((m) => m._id === res.data._id) ? withoutTemp : [...withoutTemp, res.data];
       });
-      
-      // We don't push the message directly because the socket event 'new_message' will fire
-      // But if we want instant optimistic UI, we could push it here and deduplicate
-      // Let's just wait for socket for simplicity, or push it since the server might echo it back to us too.
-      // Wait, server emits to `conv_${conversation._id}`, which includes the sender.
-      // It's safer to clear the input and let the socket append it.
-      setNewMessage('');
-    } catch (err) {
-      toast.error('Failed to send message');
-    } finally {
-      setIsSending(false);
+      onSent(conversation._id, res.data);
+    } catch (error) {
+      setMessages((prev) => prev.filter((m) => m._id !== tempId));
+      setDraft(content);
+      toast.error(error.message);
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-80px)] flex flex-col pb-4">
-      <div className="flex justify-between items-center mb-6 shrink-0 px-2">
-        <h1 className="text-3xl font-black text-white tracking-tight">Messages</h1>
-      </div>
+    <div className="flex h-full min-h-0 flex-col">
+      <header className="flex items-center gap-3 border-b-2 border-ink px-4 py-3">
+        <button type="button" onClick={onBack} className="-ml-1 inline-flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-ink hover:text-ivory md:hidden" aria-label="Back to conversations">
+          <ArrowLeft size={18} strokeWidth={2.75} />
+        </button>
+        <Link to={`/profile/${other?.username}`} className="flex min-w-0 items-center gap-3 hover:underline">
+          <Avatar src={other?.profile?.avatar} username={other?.username} size="md" />
+          <span className="min-w-0">
+            <span className="block truncate font-extrabold">{displayName(other)}</span>
+            <span className="block text-xs font-semibold text-ink/70">{isTyping ? 'typing…' : `@${other?.username}`}</span>
+          </span>
+        </Link>
+      </header>
 
-      <div className="flex-1 bg-card-dark rounded-xl border border-border-subtle flex overflow-hidden shadow-subtle min-h-0">
-        {/* Sidebar */}
-        <div className="w-1/3 border-r border-border-subtle flex flex-col bg-surface overflow-hidden">
-          <div className="p-4 border-b border-border-subtle font-bold text-white text-sm bg-bg-dark shrink-0">
-            Conversations
-          </div>
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
-            {conversations.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-text-muted text-sm p-4 text-center">
-                No active conversations yet.
+      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto bg-ink/[0.03] p-4" aria-live="polite">
+        {status === 'loading' && <div className="flex justify-center py-6"><Spinner /></div>}
+        {status === 'error' && <ErrorState title="Messages didn’t load." onRetry={load} />}
+        {status === 'ready' && messages.length === 0 && (
+          <p className="py-10 text-center text-sm font-semibold text-ink/70">No messages yet. Make your opening statement.</p>
+        )}
+        {messages.map((m) => {
+          const mine = sameId(m.sender?._id, userId);
+          return (
+            <div key={m._id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`max-w-[80%] rounded-[6px] border-2 border-ink px-3.5 py-2 text-sm ${
+                  mine ? 'on-ink bg-ink text-ivory' : 'bg-ivory text-ink'
+                } ${m.pending ? 'opacity-60' : ''}`}
+              >
+                <p className="whitespace-pre-wrap break-words leading-relaxed">{m.content}</p>
+                <time dateTime={m.createdAt} className={`mt-0.5 block text-right text-[10px] font-semibold ${mine ? 'text-ivory/65' : 'text-ink/70'}`}>
+                  {m.pending ? 'Sending…' : formatTime(m.createdAt)}
+                </time>
               </div>
-            ) : (
-              conversations.map(conv => {
-                const otherUser = conv.participants.find(p => p._id !== user?._id);
-                const isUnread = (conv.unreadCounts && conv.unreadCounts[user?._id] > 0);
-                
-                return (
-                  <div 
-                    key={conv._id}
-                    onClick={() => setActiveConv(conv)}
-                    className={`p-4 border-b border-border-subtle/50 cursor-pointer transition-colors flex items-center gap-3 ${activeConv?._id === conv._id ? 'bg-primary/10 border-l-2 border-l-primary' : 'hover:bg-white/5 border-l-2 border-l-transparent'}`}
-                  >
-                    <div className="relative shrink-0">
-                      <Avatar 
-                        src={otherUser?.profile?.avatar} 
-                        username={otherUser?.username || '?'} 
-                        size="md" 
-                      />
-                      {otherUser?.isOnline && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-surface"></div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-1">
-                        <span className={`font-bold truncate text-sm ${isUnread ? 'text-white' : 'text-white/90'}`}>{otherUser?.username}</span>
-                        {conv.lastMessage && (
-                          <span className="text-[10px] text-text-muted shrink-0 ml-2">
-                            {new Date(conv.lastMessage.createdAt).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                      <p className={`text-xs truncate ${isUnread ? 'text-white font-medium' : 'text-text-muted'}`}>
-                        {conv.lastMessage ? conv.lastMessage.content : 'Started a conversation'}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-bg-dark overflow-hidden">
-          {!activeConv ? (
-            <div className="flex-1 flex items-center justify-center flex-col gap-4 text-text-muted p-8">
-              <MessageCircle size={48} className="opacity-20" />
-              <p className="text-center text-sm">Select a conversation or start a new one to begin debating privately.</p>
             </div>
-          ) : (
-            <>
-              {/* Chat Header */}
-              <div className="p-4 border-b border-border-subtle bg-surface flex items-center gap-3 shrink-0 shadow-sm z-10">
-                <Avatar 
-                  src={activeConv.participants.find(p => p._id !== user?._id)?.profile?.avatar} 
-                  username={activeConv.participants.find(p => p._id !== user?._id)?.username || '?'} 
-                  size="md" 
-                />
-                <div>
-                  <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                    {activeConv.participants.find(p => p._id !== user?._id)?.username || 'Unknown'}
-                    <CredibilityBadge score={activeConv.participants.find(p => p._id !== user?._id)?.credibilityScore || 50} size="sm" />
-                  </h3>
-                  <span className="text-xs text-text-muted">
-                    {activeConv.participants.find(p => p._id !== user?._id)?.isOnline ? 'Online' : 'Offline'}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-                {messages.length === 0 ? (
-                  <div className="flex-1 flex items-center justify-center text-text-muted text-sm">
-                    No messages yet. Send the first logical argument.
-                  </div>
-                ) : (
-                  messages.map((msg, idx) => {
-                    const isMe = msg.sender?._id === user?._id;
-                    return (
-                      <div key={msg._id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] rounded-2xl px-4 py-3 text-sm ${isMe ? 'bg-primary text-bg-dark rounded-tr-sm shadow-glow' : 'bg-surface text-white rounded-tl-sm border border-border-subtle'}`}>
-                          <p className="leading-relaxed">{msg.content}</p>
-                          <span className={`text-[10px] mt-1 block ${isMe ? 'text-bg-dark/70 text-right' : 'text-text-muted'}`}>
-                            {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-              
-              {/* Input Area */}
-              <div className="p-4 bg-surface border-t border-border-subtle shrink-0">
-                <form onSubmit={handleSendMessage} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Formulate your response..."
-                    className="flex-1 bg-bg-dark border border-border-muted rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
-                  />
-                  <AnimatedButton 
-                    type="submit" 
-                    variant="primary" 
-                    className="px-6 rounded-xl shrink-0" 
-                    disabled={isSending || !newMessage.trim()}
-                  >
-                    {isSending ? '...' : <Send size={18} />}
-                  </AnimatedButton>
-                </form>
-              </div>
-            </>
-          )}
-        </div>
+          );
+        })}
       </div>
+
+      <form onSubmit={send} className="flex items-end gap-2 border-t-2 border-ink p-3">
+        <label htmlFor="message-input" className="sr-only">Message</label>
+        <textarea
+          id="message-input"
+          value={draft}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            emitTyping();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) send(e);
+          }}
+          rows={1}
+          maxLength={2000}
+          placeholder="Write a message…"
+          className="field max-h-32 min-h-11 resize-none py-2.5"
+        />
+        <Button type="submit" size="icon" disabled={!draft.trim()} aria-label="Send message">
+          <Send size={17} />
+        </Button>
+      </form>
     </div>
   );
 };
+
+export default function Messages() {
+  usePageTitle('Messages');
+  const userId = useAuthStore((s) => s.user?._id);
+  const [params, setParams] = useSearchParams();
+  const activeId = params.get('c');
+  const startWith = params.get('user');
+
+  const [conversations, setConversations] = useState([]);
+  const [status, setStatus] = useState('loading');
+
+  const loadConversations = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/messages/conversations');
+      setConversations(res.data);
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  // /messages?user=<id> (from a profile) opens or creates that conversation.
+  useEffect(() => {
+    if (!startWith) return;
+    let cancelled = false;
+    apiClient.post('/messages/conversations', { userId: startWith })
+      .then((res) => {
+        if (cancelled) return;
+        setConversations((prev) => (prev.some((c) => c._id === res.data._id) ? prev : [res.data, ...prev]));
+        setParams({ c: res.data._id }, { replace: true });
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        toast.error(error.message);
+        setParams({}, { replace: true });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [startWith, setParams]);
+
+  const select = (id) => {
+    setParams({ c: id });
+    setConversations((prev) => prev.map((c) => (c._id === id ? { ...c, unread: 0 } : c)));
+  };
+
+  const bumpConversation = useCallback((conversationId, message, incrementUnread) => {
+    setConversations((prev) => {
+      const existing = prev.find((c) => c._id === String(conversationId));
+      if (!existing) return prev;
+      const updated = {
+        ...existing,
+        lastMessage: { content: message.content, sender: message.sender?._id || message.sender, createdAt: message.createdAt },
+        unread: incrementUnread ? (existing.unread || 0) + 1 : existing.unread,
+      };
+      return [updated, ...prev.filter((c) => c._id !== updated._id)];
+    });
+  }, []);
+
+  useSocketEvent('new_message', (message) => {
+    const known = conversations.some((c) => c._id === String(message.conversation));
+    if (!known) {
+      loadConversations();
+      return;
+    }
+    const isActive = String(message.conversation) === activeId;
+    bumpConversation(message.conversation, message, !isActive && !sameId(message.sender?._id, userId));
+  });
+
+  const active = conversations.find((c) => c._id === activeId);
+
+  return (
+    <div>
+      <h1 className="font-display mb-4 text-5xl">Messages</h1>
+      <div className="card grid h-[calc(100dvh-14.5rem)] min-h-[420px] overflow-hidden md:h-[calc(100dvh-11rem)] md:grid-cols-[280px_1fr]">
+        <aside className={`min-h-0 overflow-y-auto border-ink md:block md:border-r-2 ${active ? 'hidden' : 'block'}`} aria-label="Conversations">
+          <ConversationList
+            conversations={conversations}
+            activeId={activeId}
+            userId={userId}
+            onSelect={select}
+            status={status}
+            onRetry={loadConversations}
+          />
+        </aside>
+        <section className={`min-h-0 ${active ? 'block' : 'hidden md:block'}`}>
+          {active ? (
+            <ChatPane
+              key={active._id}
+              conversation={active}
+              userId={userId}
+              onBack={() => setParams({})}
+              onSent={(id, message) => bumpConversation(id, message, false)}
+            />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+              <MessageCircle size={34} strokeWidth={2} aria-hidden="true" />
+              <p className="font-display mt-3 text-3xl">Take it private.</p>
+              <p className="mt-1 max-w-xs text-sm text-ink/70">Pick a conversation, or message someone from their profile.</p>
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}

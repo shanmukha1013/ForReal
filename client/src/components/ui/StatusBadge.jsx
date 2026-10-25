@@ -1,21 +1,25 @@
 import React from 'react';
 
-export const StatusBadge = ({ status }) => {
-  const config = {
-    draft: { label: 'DRAFT', color: 'bg-border-subtle text-text-muted' },
-    live: { label: 'LIVE', color: 'bg-primary/20 text-primary-bright border border-primary/30 shadow-[0_0_12px_rgba(0,200,255,0.2)]' },
-    ending_soon: { label: 'ENDING SOON', color: 'bg-warning/20 text-warning border border-warning/30 animate-pulse' },
-    voting: { label: 'VOTING', color: 'bg-primary/10 text-primary border border-primary/20' },
-    ai_analysis: { label: 'AI ANALYSIS', color: 'bg-purple-500/20 text-purple-400 border border-purple-500/30' },
-    finished: { label: 'FINISHED', color: 'bg-success/20 text-success border border-success/30' },
-    archived: { label: 'ARCHIVED', color: 'bg-card-elevated text-text-muted border border-border-muted' }
-  };
+const CONFIG = {
+  live: { label: 'Live', className: 'bg-ember text-ink border-ink', pulse: true },
+  ending_soon: { label: 'Ending soon', className: 'bg-ink text-ivory border-ink', pulse: true },
+  finished: { label: 'Closed', className: 'bg-transparent text-ink border-ink border-dashed' },
+  archived: { label: 'Archived', className: 'bg-transparent text-ink border-ink border-dashed' },
+  draft: { label: 'Draft', className: 'bg-transparent text-ink border-ink border-dashed' },
+};
 
-  const current = config[status] || config.draft;
-
+export const StatusBadge = ({ status, className = '' }) => {
+  // Legacy statuses from the old AI pipeline are presented as closed.
+  const current = CONFIG[status] || CONFIG.finished;
   return (
-    <div className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${current.color}`}>
+    <span className={`eyebrow inline-flex items-center gap-1.5 rounded-[3px] border-2 px-2 py-0.5 ${current.className} ${className}`}>
+      {current.pulse && (
+        <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-current motion-safe:animate-[live-ping_1.6s_ease-out_infinite]" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-current" />
+        </span>
+      )}
       {current.label}
-    </div>
+    </span>
   );
 };

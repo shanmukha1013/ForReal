@@ -1,18 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components';
+import { Button, Wordmark } from '@/components/ui';
+import { usePageTitle } from '@/hooks';
 
-export const NotFound = () => {
+export default function NotFound() {
+  usePageTitle('Not found');
   return (
-    <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center p-4">
-      <h1 className="text-9xl font-black text-border-subtle">404</h1>
-      <h2 className="text-2xl font-bold text-white mt-4 tracking-tight">Page not found</h2>
-      <p className="text-text-muted mt-2 mb-8 text-center max-w-md">
-        The page you are looking for doesn't exist or has been moved.
+    <main className="flex min-h-dvh flex-col items-center justify-center px-5 text-center">
+      <Wordmark surface="ember" className="mb-10 text-4xl" />
+      <p className="font-display text-[clamp(7rem,30vw,16rem)] leading-none text-ivory">404</p>
+      <h1 className="font-display mt-2 text-4xl">Claim not found.</h1>
+      <p className="mt-3 max-w-md text-base font-semibold">
+        This page doesn’t exist — and we don’t make things up. Head back to the floor.
       </p>
-      <Link to="/">
-        <Button>Go Back Home</Button>
-      </Link>
-    </div>
+      <div className="mt-8 flex gap-3">
+        <Button to="/">Go home</Button>
+        <Button to="/debates" variant="outline">Browse debates</Button>
+      </div>
+    </main>
   );
-};
+}

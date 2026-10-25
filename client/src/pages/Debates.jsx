@@ -1,107 +1,131 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Plus } from 'lucide-react';
-import { AnimatedButton, SkeletonCard } from '@/components/ui';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Plus, Scale } from 'lucide-react';
+import { debateService } from '@/services/debateService';
 import { DebateCard } from '@/features/debates/DebateCard';
 import { CreateDebateModal } from '@/features/debates/CreateDebateModal';
-import useDebateStore from '@/store/useDebateStore';
+import { Button, EmptyState, ErrorState, PageHeader, SkeletonList, Tabs } from '@/components/ui';
 import { usePageTitle } from '@/hooks';
+import { CATEGORIES } from '@/lib/constants';
 
-export const Debates = () => {
-  usePageTitle('Debates — ForReal');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { debates, fetchDebates, isLoading } = useDebateStore();
-  const [filter, setFilter] = useState('trending');
-  // Local copy for optimistic delete
-  const [localDebates, setLocalDebates] = useState([]);
+const SORTS = [
+  { value: 'trending', label: 'Trending' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'ending_soon', label: 'Ending soon' },
+  { value: 'finished', label: 'Closed' },
+];
 
-  useEffect(() => {
-    fetchDebates(1, { sort: filter });
-  }, [filter]);
+export default function Debates() {
+  usePageTitle('Debates');
+  const [params, setParams] = useSearchParams();
+  const sort = SORTS.some((s) => s.value === params.get('sort')) ? params.get('sort') : 'trending';
+  const category = CATEGORIES.includes(params.get('category')) ? params.get('category') : '';
+  const createOpen = params.get('new') === '1';
 
-  useEffect(() => {
-    setLocalDebates(debates);
-  }, [debates]);
+  const [debates, setDebates] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [status, setStatus] = useState('loading'); // loading | ready | error | more
+  const [error, setError] = useState(null);
+  const requestRef = useRef(0);
 
-  const handleDebateDeleted = useCallback((deletedId) => {
-    setLocalDebates(prev => prev.filter(d => d._id !== deletedId));
-  }, []);
-
-  const handleDebateCreated = useCallback((newDebate) => {
-    if (newDebate) {
-      setLocalDebates(prev => [newDebate, ...prev]);
+  const load = useCallback(async (nextPage = 1) => {
+    const requestId = ++requestRef.current;
+    setStatus(nextPage === 1 ? 'loading' : 'more');
+    setError(null);
+    try {
+      const query = {
+        page: nextPage,
+        limit: 10,
+        category: category || undefined,
+        ...(sort === 'finished' ? { status: 'finished', sort: 'newest' } : { sort, status: sort === 'newest' ? undefined : 'open' }),
+      };
+      const res = await debateService.list(query);
+      if (requestId !== requestRef.current) return;
+      setDebates((prev) => (nextPage === 1 ? res.data.debates : [...prev, ...res.data.debates.filter((d) => !prev.some((p) => p._id === d._id))]));
+      setPage(nextPage);
+      setPages(res.data.pages);
+      setStatus('ready');
+    } catch (err) {
+      if (requestId !== requestRef.current) return;
+      setError(err.message);
+      setStatus('error');
     }
-    setIsCreateModalOpen(false);
-  }, []);
+  }, [sort, category]);
 
-  const tabs = [
-    { key: 'trending', label: 'Trending' },
-    { key: 'newest', label: 'Newest' },
-    { key: 'ending_soon', label: 'Ending Soon' },
-  ];
+  useEffect(() => {
+    load(1);
+  }, [load]);
+
+  const updateParam = (key, value) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setParams(next, { replace: key !== 'new' });
+  };
 
   return (
-    <div className="max-w-3xl mx-auto pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tight">Active Debates</h1>
-          <p className="text-sm text-text-muted mt-1">Pick a side. Make your case. Let logic decide.</p>
-        </div>
-        <AnimatedButton variant="primary" onClick={() => setIsCreateModalOpen(true)}>
-          <Plus size={16} /> Start a Debate
-        </AnimatedButton>
-      </div>
-
-      <div className="flex gap-2 mb-6 border-b border-border-subtle/50 pb-px">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            className={`pb-3 px-1 mr-4 text-sm font-bold tracking-wide transition-colors border-b-2 ${
-              filter === tab.key
-                ? 'text-white border-primary'
-                : 'text-text-muted border-transparent hover:text-white'
-            }`}
-          >
-            {tab.label.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-4">
-        {isLoading && localDebates.length === 0 ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : localDebates.length > 0 ? (
-          localDebates.map(debate => (
-            <DebateCard
-              key={debate._id}
-              debate={debate}
-              onDeleted={handleDebateDeleted}
-            />
-          ))
-        ) : (
-          <div className="text-center py-24 border border-dashed border-border-subtle rounded-2xl bg-card-dark flex flex-col items-center justify-center">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-              <Plus size={24} className="text-text-muted" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">The floor is open.</h3>
-            <p className="text-text-muted text-sm max-w-sm mx-auto mb-6 leading-relaxed">
-              No active debates right now. Be the first to spark an intelligent discussion.
-            </p>
-            <AnimatedButton variant="primary" onClick={() => setIsCreateModalOpen(true)}>
-              Start a Debate
-            </AnimatedButton>
-          </div>
+    <div>
+      <PageHeader
+        eyebrow="The arena"
+        title="Debates"
+        description="Pick a question. Take a side. Make the case that changes minds."
+        actions={(
+          <Button variant="ivory" onClick={() => updateParam('new', '1')}>
+            <Plus size={18} strokeWidth={3} /> Open a debate
+          </Button>
         )}
+      />
+
+      <div className="mb-5 flex flex-col gap-3">
+        <Tabs label="Sort debates" tabs={SORTS} value={sort} onChange={(value) => updateParam('sort', value === 'trending' ? '' : value)} />
+        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" role="group" aria-label="Filter by category">
+          {['', ...CATEGORIES].map((c) => {
+            const active = category === c;
+            return (
+              <button
+                key={c || 'all'}
+                type="button"
+                onClick={() => updateParam('category', c)}
+                aria-pressed={active}
+                className={`h-8 shrink-0 rounded-full border-2 border-ink px-3 text-xs font-bold transition-colors ${active ? 'bg-ink text-ivory' : 'bg-ivory hover:bg-ink hover:text-ivory'}`}
+              >
+                {c || 'All topics'}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <CreateDebateModal
-        isOpen={isCreateModalOpen}
-        onClose={handleDebateCreated}
-      />
+      {status === 'loading' ? (
+        <SkeletonList count={3} />
+      ) : status === 'error' && debates.length === 0 ? (
+        <ErrorState title="Debates didn’t load." message={error} onRetry={() => load(1)} />
+      ) : debates.length === 0 ? (
+        <EmptyState
+          icon={Scale}
+          title={sort === 'finished' ? 'Nothing closed yet.' : 'The floor is open.'}
+          action={<Button variant="accent" onClick={() => updateParam('new', '1')}><Plus size={18} strokeWidth={3} /> Open the first debate</Button>}
+        >
+          {category ? `No ${category.toLowerCase()} debates here yet.` : 'No debates match this view yet. Start one worth having.'}
+        </EmptyState>
+      ) : (
+        <div className="space-y-5">
+          {debates.map((debate, i) => (
+            <DebateCard key={debate._id} debate={debate} rank={sort === 'trending' && !category && i < 3 ? i + 1 : undefined} />
+          ))}
+          {page < pages && (
+            <div className="flex justify-center pt-2">
+              <Button variant="ivory" onClick={() => load(page + 1)} isLoading={status === 'more'}>Load more debates</Button>
+            </div>
+          )}
+          {status === 'error' && debates.length > 0 && (
+            <p className="text-center text-sm font-bold">{error} <button type="button" className="underline" onClick={() => load(page + 1)}>Retry</button></p>
+          )}
+        </div>
+      )}
+
+      <CreateDebateModal isOpen={createOpen} onClose={() => updateParam('new', '')} />
     </div>
   );
-};
+}

@@ -5,6 +5,7 @@ const { upload } = require('../middleware/uploadMiddleware');
 const {
   createTalk,
   getTalks,
+  getTalk,
   updateTalk,
   deleteTalk,
   toggleReaction,
@@ -22,6 +23,7 @@ router.route('/')
   .get(getTalks);
 
 router.route('/:id')
+  .get(getTalk)
   .put(updateTalk)
   .delete(deleteTalk);
 

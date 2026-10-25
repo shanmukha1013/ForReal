@@ -1,212 +1,162 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { X, Plus, Trash2, ShieldCheck, Zap } from 'lucide-react';
-import { Button, Input } from '@/components';
-import { AnimatedButton } from '@/components/ui';
-import useDebateStore from '@/store/useDebateStore';
-import { toast } from 'react-hot-toast';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { Plus, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { debateService } from '@/services/debateService';
+import { Button, Input, Modal, Select, Textarea } from '@/components/ui';
+import { CATEGORIES, DURATIONS } from '@/lib/constants';
+import { sideLetter, sideTone } from '@/lib/sides';
+
+const defaults = {
+  title: '',
+  description: '',
+  category: 'Technology',
+  durationMinutes: 1440,
+  evidenceRequired: false,
+  options: [{ label: '' }, { label: '' }],
+};
 
 export const CreateDebateModal = ({ isOpen, onClose }) => {
-  const { register, control, handleSubmit, formState: { errors }, reset } = useForm({
-    defaultValues: {
-      title: '',
-      description: '',
-      category: 'Technology',
-      durationMinutes: 1440,
-      options: [
-        { label: '', color: '#00C8FF' },
-        { label: '', color: '#8AE9FF' }
-      ]
-    }
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "options"
-  });
-
-  const { fetchDebates } = useDebateStore();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register, control, handleSubmit, reset, watch, formState: { errors } } = useForm({ defaultValues: defaults });
+  const { fields, append, remove } = useFieldArray({ control, name: 'options' });
+  const title = watch('title') || '';
+  const description = watch('description') || '';
+
+  const close = () => {
+    if (isSubmitting) return;
+    onClose();
+  };
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      const apiClient = (await import('@/services/api')).default;
-      await apiClient.post('/debates', data);
-      toast.success('Debate created successfully!');
-      fetchDebates();
-      reset();
+      const res = await debateService.create({
+        ...data,
+        title: data.title.trim(),
+        description: data.description.trim(),
+        durationMinutes: Number(data.durationMinutes),
+        options: data.options.map((o) => ({ label: o.label.trim() })),
+      });
+      toast.success('The floor is open.');
+      reset(defaults);
       onClose();
+      navigate(`/debates/${res.data._id}`);
     } catch (error) {
-      toast.error(error.message || 'Failed to create debate');
+      toast.error(error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-[#020202]/80 backdrop-blur-sm"
+    <Modal
+      isOpen={isOpen}
+      onClose={close}
+      title="Open a debate"
+      description="Frame a clear question. Define the sides. Set the clock."
+      size="lg"
+      footer={(
+        <>
+          <Button variant="ghost" onClick={close} disabled={isSubmitting}>Cancel</Button>
+          <Button variant="accent" type="submit" form="create-debate" isLoading={isSubmitting}>Open the floor</Button>
+        </>
+      )}
+    >
+      <form id="create-debate" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+        <Input
+          label="The motion"
+          placeholder="e.g. Social media should hide public like counts."
+          counter={`${title.length}/200`}
+          maxLength={200}
+          error={errors.title?.message}
+          {...register('title', {
+            required: 'State the question being debated.',
+            validate: (v) => v.trim().length >= 8 || 'Make the motion at least 8 characters.',
+          })}
+        />
+        <Textarea
+          label="Context"
+          placeholder="Why does this matter? Define terms, scope and what a good argument looks like."
+          counter={`${description.length}/2000`}
+          maxLength={2000}
+          rows={4}
+          error={errors.description?.message}
+          {...register('description', {
+            required: 'Give people some context.',
+            validate: (v) => v.trim().length > 0 || 'Give people some context.',
+          })}
         />
 
-        {/* Modal */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl bg-surface border border-border-subtle shadow-premium rounded-2xl overflow-hidden my-8"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border-subtle/50">
-            <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Zap size={20} className="text-primary" />
-                Initialize Debate
-              </h2>
-              <p className="text-sm text-text-muted mt-1">Configure logic parameters and debate structure.</p>
-            </div>
-            <button 
-              onClick={onClose}
-              className="p-2 text-text-muted hover:text-white hover:bg-white/5 rounded-full transition-colors"
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Select label="Category" {...register('category')}>
+            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </Select>
+          <Select label="Duration" {...register('durationMinutes', { valueAsNumber: true })}>
+            {DURATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+          </Select>
+        </div>
+
+        <fieldset className="rounded-[4px] border-2 border-ink p-4">
+          <legend className="px-1 text-sm font-bold">Sides ({fields.length}/4)</legend>
+          <div className="flex flex-col gap-3">
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex items-start gap-2">
+                <span
+                  className={`mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border-2 border-ink font-display text-xl ${sideTone(index).chip}`}
+                  aria-hidden="true"
+                >
+                  {sideLetter(index)}
+                </span>
+                <Input
+                  aria-label={`Side ${sideLetter(index)}`}
+                  placeholder={index === 0 ? 'e.g. Hide them' : index === 1 ? 'e.g. Keep them' : 'Another position'}
+                  maxLength={80}
+                  wrapperClassName="flex-1"
+                  error={errors.options?.[index]?.label?.message}
+                  {...register(`options.${index}.label`, {
+                    validate: (v, all) => {
+                      const value = v.trim();
+                      if (!value) return 'Name this side.';
+                      const dupes = all.options.filter((o) => o.label.trim().toLowerCase() === value.toLowerCase());
+                      return dupes.length === 1 || 'Each side must be different.';
+                    },
+                  })}
+                />
+                {index >= 2 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="mt-1 inline-flex h-12 w-10 shrink-0 items-center justify-center rounded-[4px] border-2 border-transparent hover:border-ink"
+                    aria-label={`Remove side ${sideLetter(index)}`}
+                  >
+                    <X size={18} strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {fields.length < 4 && (
+            <button
+              type="button"
+              onClick={() => append({ label: '' })}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-extrabold underline decoration-ember decoration-2 underline-offset-4"
             >
-              <X size={20} />
+              <Plus size={16} strokeWidth={3} /> Add a side
             </button>
-          </div>
+          )}
+        </fieldset>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto max-h-[70vh]">
-            <div className="space-y-6">
-              
-              <Input
-                label="Proposition / Topic"
-                placeholder="e.g. Artificial General Intelligence will be achieved before 2030."
-                error={errors.title?.message}
-                {...register('title', { required: 'Topic is required', maxLength: 200 })}
-              />
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-text-muted">Context & Rules</label>
-                <textarea
-                  className="w-full bg-bg-dark border border-border-muted rounded-xl p-3 text-white placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all resize-y min-h-[100px] text-sm"
-                  placeholder="Provide background context and define the parameters of this debate..."
-                  {...register('description', { required: 'Context is required' })}
-                ></textarea>
-                {errors.description && <span className="text-xs text-error mt-1">{errors.description.message}</span>}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-muted">Category</label>
-                  <select 
-                    className="w-full bg-bg-dark border border-border-muted rounded-xl p-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm appearance-none"
-                    {...register('category')}
-                  >
-                    <option value="Technology">Technology</option>
-                    <option value="Science">Science</option>
-                    <option value="Philosophy">Philosophy</option>
-                    <option value="Politics">Politics</option>
-                    <option value="Culture">Culture</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-muted">Duration</label>
-                  <select 
-                    className="w-full bg-bg-dark border border-border-muted rounded-xl p-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm appearance-none"
-                    {...register('durationMinutes', { valueAsNumber: true })}
-                  >
-                    <option value={1440}>24 Hours</option>
-                    <option value={2880}>48 Hours</option>
-                    <option value={10080}>1 Week</option>
-                    <option value={60}>1 Hour (Blitz)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="border-t border-border-subtle/50 pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm font-medium text-white flex items-center gap-2">
-                    Debate Options
-                  </label>
-                  {fields.length < 5 && (
-                    <button 
-                      type="button" 
-                      onClick={() => append({ label: '', color: '#38D9FF' })}
-                      className="text-xs flex items-center gap-1 text-primary hover:text-primary-bright transition-colors"
-                    >
-                      <Plus size={14} /> Add Option
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          className="w-full bg-bg-dark border border-border-muted rounded-xl p-3 text-white placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
-                          placeholder={`Option ${index + 1}`}
-                          {...register(`options.${index}.label`, { required: 'Required' })}
-                        />
-                        {errors?.options?.[index]?.label && (
-                          <span className="text-xs text-error mt-1">{errors.options[index].label.message}</span>
-                        )}
-                      </div>
-                      <div className="shrink-0 h-12 w-12 rounded-xl border border-border-muted overflow-hidden">
-                        <input
-                          type="color"
-                          className="w-16 h-16 -ml-2 -mt-2 cursor-pointer"
-                          {...register(`options.${index}.color`)}
-                        />
-                      </div>
-                      {index >= 2 && (
-                        <button
-                          type="button"
-                          onClick={() => remove(index)}
-                          className="shrink-0 p-3 mt-0.5 text-text-muted hover:text-error hover:bg-error/10 rounded-xl transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* AI Moderation Note */}
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
-                <ShieldCheck className="text-primary mt-0.5 shrink-0" size={18} />
-                <div className="text-xs text-text-muted leading-relaxed">
-                  <span className="text-primary-bright font-medium block mb-1">AI Logic Engine Active</span>
-                  Arguments will be evaluated for logical consistency, fallacies, and factual accuracy. The credibility score of participants will affect their influence in this debate.
-                </div>
-              </div>
-
-            </div>
-          </form>
-
-          {/* Footer */}
-          <div className="p-6 border-t border-border-subtle/50 flex justify-end gap-3 bg-surface">
-            <AnimatedButton variant="ghost" onClick={onClose}>
-              Cancel
-            </AnimatedButton>
-            <AnimatedButton variant="primary" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
-              {isSubmitting ? 'Initializing...' : 'Launch Debate'}
-            </AnimatedButton>
-          </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+        <label className="flex cursor-pointer items-start gap-3 rounded-[4px] border-2 border-ink bg-ember/15 p-4">
+          <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0" {...register('evidenceRequired')} />
+          <span>
+            <span className="block text-sm font-extrabold">Require evidence</span>
+            <span className="block text-sm text-ink/75">Every top-level argument must include a source link.</span>
+          </span>
+        </label>
+      </form>
+    </Modal>
   );
 };

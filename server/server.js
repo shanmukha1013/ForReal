@@ -1,120 +1,61 @@
-const express = require('express');
 const http = require('http');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
-const rateLimit = require('express-rate-limit');
 
-// 1. Validate environment variables before anything else
+// 1. Load and validate environment variables before anything else.
 require('./config/env')();
 
 const config = require('./config/config');
-const { connectDB } = require('./config/db');
-const { initSocket } = require('./sockets');
-const { errorHandler, notFound } = require('./middleware/errorMiddleware');
-const authRoutes = require('./routes/authRoutes');
-const talkRoutes = require('./routes/talkRoutes');
-const debateRoutes = require('./routes/debateRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
-const messageRoutes = require('./routes/messageRoutes');
-const userRoutes = require('./routes/userRoutes');
-const searchRoutes = require('./routes/searchRoutes');
 const logger = require('./utils/logger');
+const { connectDB, disconnectDB } = require('./config/db');
+const { initSocket } = require('./sockets');
+const { createApp } = require('./app');
+const { syncAllDebates } = require('./services/debateLifecycle');
 
-// Connect to database
-connectDB();
-
-const app = express();
+const app = createApp();
 const server = http.createServer(app);
-
-// Initialize Socket.io foundation
 initSocket(server);
 
-// Security and Performance Middleware
-app.use(helmet());
-app.use(compression());
-// Robust CORS configuration to handle Render/Vercel URL formats
-const clientUrlStr = config.app.clientUrl || '';
-const cleanUrl = clientUrlStr.replace(/^https?:\/\//, '').replace(/\/$/, '');
-const allowedOrigins = [
-  `https://${cleanUrl}`,
-  `http://${cleanUrl}`,
-  'http://localhost:5173'
-];
+let lifecycleTimer;
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    
-    // Check exact match
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // Allow vercel preview deployments if the base domain matches
-    if (origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true
-}));
+const start = async () => {
+  await connectDB();
 
-// Rate Limiting
-const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.max,
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api', limiter);
+  server.listen(config.app.port, () => {
+    logger.info(`Server running in ${config.app.env} mode on port ${config.app.port}`);
+  });
 
-// Request Parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+  // Close expired debates and flag ones ending soon, even when nobody is
+  // browsing, so creators get their "debate closed" notification on time.
+  lifecycleTimer = setInterval(() => syncAllDebates({ force: true }), 60 * 1000);
+  lifecycleTimer.unref();
+  syncAllDebates({ force: true });
+};
 
-// Data Sanitization
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+const shutdown = (signal) => {
+  logger.info(`${signal} received: closing server`);
+  clearInterval(lifecycleTimer);
+  server.close(async () => {
+    await disconnectDB();
+    process.exit(0);
+  });
+  // Force exit if connections do not drain in time.
+  setTimeout(() => process.exit(1), 10000).unref();
+};
 
-// Prevent NoSQL injection
-// app.use(mongoSanitize());
-// Prevent XSS attacks
-// app.use(xss());
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-// Logging
-if (config.app.env === 'development') {
-  app.use(morgan('dev', {
-    stream: { write: (message) => logger.info(message.trim()) }
-  }));
-}
-
-// Serve static uploads
-const path = require('path');
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/talks', talkRoutes);
-app.use('/api/debates', debateRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/search', searchRoutes);
-
-// Error Handling
-app.use(notFound);
-app.use(errorHandler);
-
-server.listen(config.app.port, () => {
-  logger.info(`Server running in ${config.app.env} mode on port ${config.app.port}`);
+process.on('unhandledRejection', (err) => {
+  logger.error(`Unhandled Rejection: ${err?.stack || err}`);
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  logger.error(`Unhandled Rejection: ${err.message}`);
-  server.close(() => process.exit(1));
+process.on('uncaughtException', (err) => {
+  logger.error(`Uncaught Exception: ${err?.stack || err}`);
+  // State may be corrupt after an uncaught exception: exit and let the
+  // platform restart the process.
+  shutdown('uncaughtException');
+});
+
+start().catch((error) => {
+  logger.error(`Failed to start server: ${error.message}`);
+  process.exit(1);
 });

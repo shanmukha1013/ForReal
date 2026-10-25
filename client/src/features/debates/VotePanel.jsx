@@ -1,119 +1,108 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ProgressRing } from '@/components/ui';
-import useDebateStore from '@/store/useDebateStore';
-import { toast } from 'react-hot-toast';
-import { CheckCircle2 } from 'lucide-react';
+import { Check, Lock } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { debateService } from '@/services/debateService';
+import { percent, plural, sameId } from '@/lib/format';
+import { sideLetter, sideTone } from '@/lib/sides';
 
-export const VotePanel = ({ debate }) => {
-  const { vote } = useDebateStore();
-  const [isVoting, setIsVoting] = useState(false);
-  const [votedOptionId, setVotedOptionId] = useState(null);
+export const VotePanel = ({ debate, onUpdate }) => {
+  const [pendingId, setPendingId] = useState(null);
+  const total = debate.stats?.totalVotes || 0;
+  const open = debate.status === 'live' || debate.status === 'ending_soon';
+  const winnerId = debate.finalVerdict?.winningOptionId;
 
-  const handleVote = async (optionId) => {
-    if (isVoting) return;
-    setIsVoting(true);
-    // Optimistic
-    const prev = votedOptionId;
-    setVotedOptionId(optionId);
+  const vote = async (optionId) => {
+    if (!open || pendingId || sameId(debate.userVote, optionId)) return;
+    const previous = { options: debate.options, stats: debate.stats, userVote: debate.userVote };
+
+    // Optimistic: move the vote locally, reconcile with the server response.
+    const options = debate.options.map((opt) => {
+      if (sameId(opt._id, optionId)) return { ...opt, votes: opt.votes + 1 };
+      if (sameId(opt._id, debate.userVote)) return { ...opt, votes: Math.max(0, opt.votes - 1) };
+      return opt;
+    });
+    const stats = { ...debate.stats, totalVotes: debate.userVote ? total : total + 1 };
+    onUpdate({ options, stats, userVote: optionId });
+    setPendingId(optionId);
+
     try {
-      await vote(debate._id, optionId);
-      toast.success('Your vote is on the record.');
+      const res = await debateService.vote(debate._id, optionId);
+      onUpdate({ options: res.data.options, stats: res.data.stats, userVote: res.data.userVote, status: res.data.status });
+      if (!previous.userVote) toast.success('Your vote is on the record.');
     } catch (error) {
-      setVotedOptionId(prev);
-      toast.error(error.message || 'Could not cast vote. Try again.');
+      onUpdate(previous);
+      toast.error(error.message);
     } finally {
-      setIsVoting(false);
+      setPendingId(null);
     }
   };
 
-  const totalVotes = debate.stats?.totalVotes || 0;
-  const canVote = debate.status === 'live' || debate.status === 'ending_soon';
-
   return (
-    <div className="bg-card-dark rounded-xl border border-border-subtle p-6 mb-6">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="text-lg font-bold text-white">Choose Your Side</h3>
-        <span className="text-xs text-text-muted font-medium">
-          {totalVotes} vote{totalVotes !== 1 ? 's' : ''} cast
-        </span>
+    <section className="card p-5 sm:p-6" aria-labelledby="vote-heading">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="vote-heading" className="font-display text-3xl">{open ? 'Take a side' : 'Final vote'}</h2>
+        <span className="tabular text-sm font-bold text-ink/70">{plural(total, 'vote')}</span>
       </div>
 
-      {!canVote && (
-        <p className="text-sm text-text-muted mb-4 italic">
-          This debate has concluded. Results are final.
+      {!open && (
+        <p className="mb-4 flex items-center gap-2 text-sm font-semibold">
+          <Lock size={15} strokeWidth={2.5} aria-hidden="true" /> Voting is closed. The record is final.
         </p>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {debate.options.map(option => {
-          const isSelected = votedOptionId === option._id;
-          const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
-
+      <div className={`grid gap-3 ${debate.options.length > 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-2'}`} role="radiogroup" aria-labelledby="vote-heading">
+        {debate.options.map((opt, i) => {
+          const tone = sideTone(i);
+          const share = percent(opt.votes, total);
+          const selected = sameId(debate.userVote, opt._id);
+          const isWinner = !open && sameId(winnerId, opt._id);
           return (
-            <motion.button
-              key={option._id}
-              whileHover={canVote ? { scale: 1.01, y: -1 } : {}}
-              whileTap={canVote ? { scale: 0.99 } : {}}
-              onClick={() => canVote && handleVote(option._id)}
-              disabled={!canVote || isVoting}
-              className={`relative cursor-pointer overflow-hidden rounded-xl border p-5 transition-all text-left w-full ${
-                isSelected
-                  ? 'border-primary bg-primary/10 shadow-[0_0_20px_rgba(0,200,255,0.2)]'
-                  : canVote
-                    ? 'border-border-muted bg-bg-dark hover:border-primary/50 hover:bg-primary/5'
-                    : 'border-border-subtle bg-bg-dark opacity-80 cursor-default'
-              }`}
+            <button
+              key={opt._id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              disabled={!open || Boolean(pendingId)}
+              onClick={() => vote(opt._id)}
+              className={`group relative overflow-hidden rounded-[4px] border-2 border-ink p-4 text-left transition-[box-shadow,transform] duration-150 ${
+                selected ? 'shadow-hard' : open ? 'hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-hard' : ''
+              } ${selected ? 'bg-ink text-ivory' : 'bg-ivory'} disabled:cursor-default`}
             >
-              {isSelected && (
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
-              )}
-
-              <div className="flex justify-between items-center relative z-10">
-                <div className="flex-1 min-w-0 pr-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    {isSelected && (
-                      <CheckCircle2 size={15} className="text-primary shrink-0" />
-                    )}
-                    <h4
-                      className={`font-bold text-base truncate ${isSelected ? 'text-primary' : 'text-white'}`}
-                      style={!isSelected && option.color ? { color: option.color } : {}}
-                    >
-                      {option.label}
-                    </h4>
-                  </div>
-                  <div className="mt-2">
-                    <div className="h-1.5 bg-border-subtle rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{ backgroundColor: option.color || '#00C8FF' }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${percentage}%` }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
-                      />
-                    </div>
-                    <p className="text-xs text-text-muted mt-1 font-medium">
-                      {option.votes} votes · {percentage}%
-                    </p>
-                  </div>
-                </div>
-                <ProgressRing
-                  progress={percentage}
-                  size={44}
-                  strokeWidth={3}
-                  color={isSelected ? 'text-primary' : 'text-border-muted'}
-                />
-              </div>
-            </motion.button>
+              {/* Share-of-vote fill */}
+              <span
+                className={`absolute inset-y-0 left-0 ${selected ? 'bg-ember/25' : tone.hatched ? `${tone.swatch} opacity-20` : `${tone.swatch} opacity-20`} transition-[width] duration-700 ease-[var(--ease-out-expo)]`}
+                style={{ width: `${share}%` }}
+                aria-hidden="true"
+              />
+              <span className="relative flex items-start justify-between gap-3">
+                <span className="flex min-w-0 items-start gap-3">
+                  <span
+                    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border-2 font-display text-lg ${
+                      selected ? 'border-ivory bg-ember text-ink' : `border-ink ${tone.chip}`
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {selected ? <Check size={18} strokeWidth={3.5} /> : sideLetter(i)}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-base font-extrabold leading-tight">{opt.label}</span>
+                    <span className={`tabular mt-1 block text-xs font-bold ${selected ? 'text-ivory/80' : 'text-ink/70'}`}>
+                      {plural(opt.votes, 'vote')}
+                      {selected && ' · your side'}
+                      {isWinner && ' · carried the room'}
+                    </span>
+                  </span>
+                </span>
+                <span className="font-display tabular text-3xl">{share}%</span>
+              </span>
+            </button>
           );
         })}
       </div>
 
-      {votedOptionId && (
-        <p className="text-xs text-text-muted text-center mt-4">
-          You can change your vote at any time while the debate is live.
-        </p>
+      {open && debate.userVote && (
+        <p className="mt-3 text-xs font-semibold text-ink/70">Changed your mind? Switch sides any time before the clock runs out.</p>
       )}
-    </div>
+    </section>
   );
 };

@@ -1,109 +1,105 @@
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 const config = require('../config/config');
+const { corsOriginCallback } = require('../utils/origins');
+const Conversation = require('../models/Conversation');
 
 let io;
 
-const initSocket = (server) => {
-  const clientUrlStr = config.app.clientUrl || '';
-  const cleanUrl = clientUrlStr.replace(/^https?:\/\//, '').replace(/\/$/, '');
-  const allowedOrigins = [
-    `https://${cleanUrl}`,
-    `http://${cleanUrl}`,
-    'http://localhost:5173'
-  ];
+const isId = (value) => typeof value === 'string' && /^[a-f0-9]{24}$/i.test(value);
+const userRoom = (userId) => `user_${userId}`;
 
+const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        if (origin.endsWith('.vercel.app')) return callback(null, true);
-        callback(new Error('Not allowed by CORS'));
-      },
+      origin: corsOriginCallback,
       methods: ['GET', 'POST'],
       credentials: true,
     },
+    maxHttpBufferSize: 1e5, // 100 KB: sockets only carry small control events
   });
-
-  const jwt = require('jsonwebtoken');
 
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
-    if (!token) {
-      return next(new Error('Authentication error: Token missing'));
-    }
+    if (!token) return next(new Error('Authentication error: Token missing'));
 
     try {
-      const secret = process.env.JWT_SECRET || 'supersecretjwtkey_replace_me_in_production';
-      const decoded = jwt.verify(token, secret);
-      socket.user = decoded; // Store userId in socket.user.userId
-      next();
-    } catch (err) {
+      const decoded = jwt.verify(token, config.jwt.secret);
+      socket.userId = decoded.userId;
+      return next();
+    } catch {
       return next(new Error('Authentication error: Invalid token'));
     }
   });
 
   io.on('connection', (socket) => {
-    logger.info(`Socket connected: ${socket.id}`);
+    // Each socket joins only its own private room, derived from the verified
+    // token. Clients can no longer subscribe to another user's events.
+    socket.join(userRoom(socket.userId));
 
-    // User authentication/joining their personal room
-    socket.on('join', (userId) => {
-      socket.join(userId);
-      logger.info(`User ${userId} joined personal room`);
-    });
-
-    // Debate specific rooms
     socket.on('join_debate', (debateId) => {
-      socket.join(`debate_${debateId}`);
+      if (isId(debateId)) socket.join(`debate_${debateId}`);
     });
 
     socket.on('leave_debate', (debateId) => {
-      socket.leave(`debate_${debateId}`);
+      if (isId(debateId)) socket.leave(`debate_${debateId}`);
     });
 
-    socket.on('debate_typing', ({ debateId, username }) => {
-      socket.to(`debate_${debateId}`).emit('debate_typing', { username });
+    socket.on('debate_typing', ({ debateId, username } = {}) => {
+      if (isId(debateId) && socket.rooms.has(`debate_${debateId}`)) {
+        socket.to(`debate_${debateId}`).emit('debate_typing', { username: String(username || '').slice(0, 30) });
+      }
     });
 
-    socket.on('debate_stop_typing', ({ debateId, username }) => {
-      socket.to(`debate_${debateId}`).emit('debate_stop_typing', { username });
+    socket.on('debate_stop_typing', ({ debateId, username } = {}) => {
+      if (isId(debateId) && socket.rooms.has(`debate_${debateId}`)) {
+        socket.to(`debate_${debateId}`).emit('debate_stop_typing', { username: String(username || '').slice(0, 30) });
+      }
     });
 
-    // Typing indicators
-    socket.on('typing', ({ conversationId, userId }) => {
-      socket.to(`conv_${conversationId}`).emit('typing', { conversationId, userId });
-    });
-    
-    socket.on('stop_typing', ({ conversationId, userId }) => {
-      socket.to(`conv_${conversationId}`).emit('stop_typing', { conversationId, userId });
-    });
-
-    // Join conversation room
-    socket.on('join_conversation', (conversationId) => {
-      socket.join(`conv_${conversationId}`);
+    socket.on('join_conversation', async (conversationId) => {
+      if (!isId(conversationId)) return;
+      try {
+        const isMember = await Conversation.exists({ _id: conversationId, participants: socket.userId });
+        if (isMember) socket.join(`conv_${conversationId}`);
+      } catch (error) {
+        logger.warn(`join_conversation failed: ${error.message}`);
+      }
     });
 
     socket.on('leave_conversation', (conversationId) => {
-      socket.leave(`conv_${conversationId}`);
+      if (isId(conversationId)) socket.leave(`conv_${conversationId}`);
     });
 
-    socket.on('disconnect', () => {
-      logger.info(`Socket disconnected: ${socket.id}`);
+    socket.on('typing', ({ conversationId } = {}) => {
+      if (isId(conversationId) && socket.rooms.has(`conv_${conversationId}`)) {
+        socket.to(`conv_${conversationId}`).emit('typing', { conversationId, userId: socket.userId });
+      }
+    });
+
+    socket.on('stop_typing', ({ conversationId } = {}) => {
+      if (isId(conversationId) && socket.rooms.has(`conv_${conversationId}`)) {
+        socket.to(`conv_${conversationId}`).emit('stop_typing', { conversationId, userId: socket.userId });
+      }
     });
   });
 
   return io;
 };
 
-const getIo = () => {
-  if (!io) {
-    throw new Error('Socket.io not initialized!');
-  }
-  return io;
+// Emitters are no-ops before initialisation (e.g. in API tests) so that
+// controllers never fail because real-time delivery is unavailable.
+const emitToUser = (userId, event, payload) => {
+  if (io && userId) io.to(userRoom(userId)).emit(event, payload);
+};
+
+const emitToRoom = (room, event, payload) => {
+  if (io) io.to(room).emit(event, payload);
 };
 
 module.exports = {
   initSocket,
-  getIo,
+  emitToUser,
+  emitToRoom,
 };

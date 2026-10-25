@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 
+const DEFAULT_TITLE = 'ForReal — Don’t just post it. Defend it.';
+
 export const usePageTitle = (title) => {
   useEffect(() => {
-    document.title = `ForReal — ${title}`;
-    
-    // Optional: cleanup to a default title, though usually we just overwrite on next page
+    document.title = title ? `${title} · ForReal` : DEFAULT_TITLE;
     return () => {
-      document.title = "ForReal | We Don't Talk Shit";
+      document.title = DEFAULT_TITLE;
     };
   }, [title]);
 };

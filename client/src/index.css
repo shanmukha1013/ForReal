@@ -1,167 +1,348 @@
 @import "tailwindcss";
 
+/*
+ * ForReal design system — the single source of truth for colour.
+ *
+ * The entire interface uses exactly three colours (plus opacity variants):
+ *   ember  — burnt orange  (~60%) brand surfaces, selection, emphasis
+ *   ivory  — warm ivory    (~30%) reading surfaces, cards, forms
+ *   ink    — soft black    (~10%) text, rules, dark accents
+ *
+ * Tailwind's default palette is removed below, so a stray `bg-blue-500` or
+ * `text-white` simply generates no CSS.
+ *
+ * Contrast rules (WCAG 2.2, measured):
+ *   ink on ivory 15.3:1 · ink on ember 4.56:1 · ember on ink 4.56:1
+ *   ivory on ember 3.36:1 → large display type only
+ *   muted text: ink/70 on ivory, ivory/65 on ink; never muted ink on ember
+ */
+
 @theme {
-  /* ── Brand Colors ─────────────────────────────────────────── */
-  --color-primary: #00C8FF;         /* Midnight Aura Blue */
-  --color-primary-hover: #38D9FF;
-  --color-primary-bright: #8AE9FF;
-  
-  --color-bg-dark: #020202;         /* Primary Background */
-  --color-bg-secondary: #07090B;    /* Secondary Background */
-  --color-card-dark: #0F1115;       /* Surface */
-  --color-card-elevated: #161B22;   /* Elevated Surface */
-  --color-border-subtle: rgba(255, 255, 255, 0.08);   /* Subtle Border */
-  --color-border-muted: rgba(255, 255, 255, 0.15);    /* Slightly visible border */
-  
-  --color-text-main: #FFFFFF;       /* Primary Text */
-  --color-text-secondary: #B8C1CC;  /* Secondary Text */
-  --color-text-muted: #7C8896;      /* Muted Text */
+  --color-*: initial;
+  --color-ember: #CA6230;
+  --color-ivory: #F5EBDD;
+  --color-ink: #171614;
 
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
+  --font-*: initial;
+  --font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
-  /* ── Typography ───────────────────────────────────────────── */
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --shadow-*: initial;
+  --shadow-hard: 4px 4px 0 0 var(--color-ink);
+  --shadow-hard-sm: 2px 2px 0 0 var(--color-ink);
+  --shadow-hard-lg: 7px 7px 0 0 var(--color-ink);
+  --shadow-soft: 0 18px 40px -18px color-mix(in srgb, var(--color-ink) 45%, transparent);
 
-  /* ── Spacing ──────────────────────────────────────────────── */
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-3: 0.75rem;
-  --spacing-4: 1rem;
-  --spacing-5: 1.25rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
-  --spacing-10: 2.5rem;
-  --spacing-12: 3rem;
-  --spacing-16: 4rem;
+  --radius-card: 0.375rem;
 
-  /* ── Border Radius ────────────────────────────────────────── */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-  --radius-full: 9999px;
+  --ease-snap: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* ── Shadows ──────────────────────────────────────────────── */
-  --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-glow: 0 0 20px rgba(0, 200, 255, 0.22);
-  --shadow-strong: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.25);
-  --shadow-premium: 0 4px 24px -1px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-
-  /* ── Transitions ──────────────────────────────────────────── */
-  --transition-property-common: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  --transition-timing-function-default: cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-timing-function-premium: cubic-bezier(0.25, 1, 0.5, 1);
-  --transition-duration-fast: 150ms;
-  --transition-duration-normal: 300ms;
-  --transition-duration-slow: 500ms;
-
-  /* ── Z-Index ──────────────────────────────────────────────── */
-  --z-index-dropdown: 100;
-  --z-index-sticky: 200;
-  --z-index-fixed: 300;
-  --z-index-modal: 400;
-  --z-index-popover: 500;
-  --z-index-toast: 600;
-
-  /* ── Container ────────────────────────────────────────────── */
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1280px;
-
-  /* ── Animations ───────────────────────────────────────────── */
-  --animate-slow-drift: slow-drift 20s ease-in-out infinite alternate;
-  --animate-fade-in-up: fade-in-up 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  --animate-fade-in: fade-in 0.2s ease-out forwards;
-  --animate-skeleton-pulse: skeleton-pulse 1.5s ease-in-out infinite;
+  --animate-rise: rise 0.45s var(--ease-out-expo) both;
+  --animate-fade: fade 0.25s ease-out both;
+  --animate-pop: pop 0.35s var(--ease-snap) both;
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+  --animate-blink: blink 1.2s steps(2, start) infinite;
 }
 
 @layer base {
-  body {
-    @apply bg-bg-dark text-text-main font-sans antialiased selection:bg-primary/30 selection:text-white;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
   }
-  
-  html, body {
-    height: 100%;
+
+  html,
+  body {
+    min-height: 100%;
     margin: 0;
   }
 
+  body {
+    background-color: var(--color-ember);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
   #root {
-    height: 100%;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
   }
 
-  /* Custom Scrollbar */
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-ivory);
+  }
+
+  /* No browser-blue anywhere: links inherit, focus uses the palette. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2.5px solid var(--color-ink);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  .on-ink :focus-visible,
+  .on-ink:focus-visible {
+    outline-color: var(--color-ember);
+  }
+
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+    accent-color: var(--color-ink);
+  }
+
+  ::placeholder {
+    color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+    opacity: 1;
+  }
+
+  /* Scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-ink) 35%, transparent) transparent;
+  }
+
   ::-webkit-scrollbar {
-    width: 5px;
+    width: 8px;
+    height: 8px;
   }
-  ::-webkit-scrollbar-track {
-    @apply bg-bg-dark;
-  }
+
   ::-webkit-scrollbar-thumb {
-    @apply bg-border-subtle rounded-full;
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+    border-radius: 999px;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-border-muted;
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
   }
-  
-  /* Hide scrollbar for filter rows without losing scroll functionality */
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+
+  /* Chrome autofill keeps the ivory field surface */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 40px var(--color-ivory) inset !important;
+    -webkit-text-fill-color: var(--color-ink) !important;
+    caret-color: var(--color-ink);
   }
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+}
+
+@layer components {
+  /* Condensed, heavy display type for headlines and the brand. */
+  .font-display {
+    font-family: var(--font-sans);
+    font-stretch: 68%;
+    font-weight: 850;
+    letter-spacing: -0.01em;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  .font-accent {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* Ivory reading surface with a crisp ink frame. */
+  .card {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-hard);
+  }
+
+  .card-interactive {
+    transition: transform 0.18s var(--ease-snap), box-shadow 0.18s var(--ease-snap);
+  }
+
+  @media (hover: hover) {
+    .card-interactive:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: var(--shadow-hard-lg);
+    }
+  }
+
+  .card-interactive:active {
+    transform: translate(1px, 1px);
+    box-shadow: var(--shadow-hard-sm);
+  }
+
+  .field {
+    width: 100%;
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-radius: 0.25rem;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .field:focus {
+    box-shadow: var(--shadow-hard-sm);
+  }
+
+  .field:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-ember), var(--shadow-hard-sm);
+  }
+
+  .field[aria-invalid='true'] {
+    border-style: dashed;
+    border-color: var(--color-ember);
+    box-shadow: inset 4px 0 0 var(--color-ember);
+  }
+
+  .hatched {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      currentColor 0 2px,
+      transparent 2px 7px
+    );
+  }
+
+  .grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.086 0 0 0 0 0.078 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .skeleton {
+    background: color-mix(in srgb, var(--color-ink) 10%, transparent);
+    border-radius: 0.25rem;
+    animation: var(--animate-shimmer);
   }
 }
 
 @layer utilities {
-  .bg-noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-    background-repeat: repeat;
+  .no-scrollbar {
+    scrollbar-width: none;
   }
 
-  .transition-property-common {
-    transition-property: var(--transition-property-common);
-    transition-timing-function: var(--transition-timing-function-default);
-    transition-duration: var(--transition-duration-normal);
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
 }
 
-/* ── Keyframes ───────────────────────────────────────────────── */
-@keyframes slow-drift {
-  0% { transform: scale(1) translate(0, 0); }
-  50% { transform: scale(1.05) translate(2%, 2%); }
-  100% { transform: scale(1) translate(-2%, -2%); }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fade-in-up {
-  0% { opacity: 0; transform: translateY(16px); }
-  100% { opacity: 1; transform: translateY(0); }
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes fade-in {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
-@keyframes skeleton-pulse {
+@keyframes shimmer {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.45; }
 }
 
-/* ── Chrome autofill fix ──────────────────────────────────────── */
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #141414 inset !important;
-    -webkit-text-fill-color: white !important;
-    transition: background-color 5000s ease-in-out 0s;
+@keyframes blink {
+  to { visibility: hidden; }
+}
+
+@keyframes jitter {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -2px); }
+  100% { transform: translate(1px, 2px); }
+}
+
+@keyframes progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-7px, 3px); }
+  40% { transform: translate(6px, -4px); }
+  60% { transform: translate(-5px, 2px); }
+  80% { transform: translate(4px, -2px); }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes loader-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+@keyframes live-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* Respect the operating-system reduced-motion preference everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

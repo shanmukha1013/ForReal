@@ -1,108 +1,67 @@
 import { useState, useCallback, useRef } from 'react';
 import { talkService } from '@/services/talkService';
 
-export const useFeed = () => {
+// Cursor-paginated talk feed. Filters (author, hashtag) are fixed per hook
+// instance; refresh() reloads from the top.
+export const useFeed = ({ author, hashtag, limit = 10 } = {}) => {
   const [talks, setTalks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [feedError, setFeedError] = useState(null);
+  const [error, setError] = useState(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  const nextCursor = useRef(null);
-  const isFetchingRef = useRef(false);
+  const cursorRef = useRef(null);
+  const inFlightRef = useRef(false);
   const hasMoreRef = useRef(true);
-  const retryTimeoutRef = useRef(null);
-  const retryCountRef = useRef(0);
+  const requestIdRef = useRef(0);
 
-  const fetchTalks = useCallback(async (isRefresh = false) => {
-    if (isFetchingRef.current) return;
-    if (!hasMoreRef.current && !isRefresh) return;
+  const fetchTalks = useCallback(async ({ refresh = false } = {}) => {
+    if (inFlightRef.current && !refresh) return;
+    if (!refresh && !hasMoreRef.current) return;
 
-    // Clear any pending retry
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-
-    isFetchingRef.current = true;
+    const requestId = ++requestIdRef.current;
+    inFlightRef.current = true;
+    setIsLoading(true);
+    setError(null);
+    if (refresh) cursorRef.current = null;
 
     try {
-      if (isRefresh) {
-        setIsRefreshing(true);
-        setFeedError(null);
-        nextCursor.current = null;
-        hasMoreRef.current = true;
-        retryCountRef.current = 0;
-      } else {
-        setIsLoading(true);
-        setFeedError(null);
-      }
-
-      const res = await talkService.getTalks({ cursor: nextCursor.current, limit: 10 });
-
-      if (res.success) {
-        const { talks: newTalks, nextCursor: newCursor, hasMore: more } = res.data;
-
-        setTalks(prev => isRefresh ? newTalks : [...prev, ...newTalks]);
-        nextCursor.current = newCursor;
-        hasMoreRef.current = more;
-        setHasMore(more);
-        setFeedError(null);
-        retryCountRef.current = 0;
-      }
-    } catch (error) {
-      console.error('Failed to fetch feed:', error);
-      setFeedError(error.message || 'Your feed is taking a moment. Retrying...');
-
-      // Exponential backoff retry — max 3 retries, cap at 15s
-      if (retryCountRef.current < 3) {
-        const delay = Math.min(3000 * Math.pow(2, retryCountRef.current), 15000);
-        retryCountRef.current += 1;
-        retryTimeoutRef.current = setTimeout(() => {
-          isFetchingRef.current = false;
-          fetchTalks(false);
-        }, delay);
-        // Don't fall through to isFetchingRef = false so we block new calls during backoff
-        if (isRefresh) setIsRefreshing(false);
-        setIsLoading(false);
-        return;
-      }
-    } finally {
-      isFetchingRef.current = false;
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
-
-  const addTalkToFeed = useCallback((newTalk) => {
-    if (newTalk.removeId) {
-      setTalks(prev => prev.filter(t => t._id !== newTalk.removeId));
-      return;
-    }
-
-    if (newTalk.replaceId) {
-      setTalks(prev => {
-        const exists = prev.some(t => t._id === newTalk._id);
-        if (exists) {
-          return prev.filter(t => t._id !== newTalk.replaceId);
-        }
-        return prev.map(t => t._id === newTalk.replaceId ? { ...newTalk } : t);
+      const res = await talkService.getTalks({ cursor: cursorRef.current, limit, author, hashtag });
+      if (requestId !== requestIdRef.current) return; // a newer request superseded this one
+      const { talks: page, nextCursor, hasMore: more } = res.data;
+      setTalks((prev) => {
+        if (refresh) return page;
+        const seen = new Set(prev.map((t) => t._id));
+        return [...prev, ...page.filter((t) => !seen.has(t._id))];
       });
-      return;
+      cursorRef.current = nextCursor;
+      hasMoreRef.current = more;
+      setHasMore(more);
+    } catch (err) {
+      if (requestId === requestIdRef.current) setError(err.message);
+    } finally {
+      if (requestId === requestIdRef.current) {
+        inFlightRef.current = false;
+        setIsLoading(false);
+        setHasLoaded(true);
+      }
     }
+  }, [author, hashtag, limit]);
 
-    setTalks(prev => {
-      if (prev.some(t => t._id === newTalk._id)) return prev;
-      return [newTalk, ...prev];
-    });
+  const prependTalk = useCallback((talk) => {
+    setTalks((prev) => (prev.some((t) => t._id === talk._id) ? prev : [talk, ...prev]));
   }, []);
 
-  const removeTalkFromFeed = useCallback((talkId) => {
-    setTalks(prev => prev.filter(t => t._id !== talkId));
+  const replaceTalk = useCallback((tempId, talk) => {
+    setTalks((prev) => prev.map((t) => (t._id === tempId ? talk : t)));
   }, []);
 
-  const updateTalkInFeed = useCallback((talkId, updatedData) => {
-    setTalks(prev => prev.map(t => t._id === talkId ? { ...t, ...updatedData } : t));
+  const removeTalk = useCallback((talkId) => {
+    setTalks((prev) => prev.filter((t) => t._id !== talkId));
+  }, []);
+
+  const updateTalk = useCallback((talkId, updates) => {
+    setTalks((prev) => prev.map((t) => (t._id === talkId ? { ...t, ...updates } : t)));
   }, []);
 
   return {
@@ -110,11 +69,12 @@ export const useFeed = () => {
     setTalks,
     isLoading,
     hasMore,
-    isRefreshing,
-    feedError,
+    hasLoaded,
+    error,
     fetchTalks,
-    addTalkToFeed,
-    removeTalkFromFeed,
-    updateTalkInFeed
+    prependTalk,
+    replaceTalk,
+    removeTalk,
+    updateTalk,
   };
 };

@@ -1,10 +1,13 @@
-// We assume env validation has already run before this is imported in server.js
-// but we can also just rely on the env.js being imported first.
+// Central configuration. Environment validation (config/env.js) runs before
+// this module is first required by server.js.
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 const config = {
   app: {
-    port: process.env.PORT || 5000,
+    port: Number(process.env.PORT) || 5000,
     env: process.env.NODE_ENV || 'development',
+    isProduction,
     clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   },
   db: {
@@ -12,12 +15,16 @@ const config = {
   },
   jwt: {
     secret: process.env.JWT_SECRET,
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    // Derive a distinct refresh secret when one is not configured explicitly,
+    // so access tokens can never be replayed as refresh tokens.
+    refreshSecret: process.env.JWT_REFRESH_SECRET || `${process.env.JWT_SECRET}::refresh`,
+    accessExpiresIn: '15m',
   },
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.RATE_LIMIT_MAX || 5000,
-  }
+    max: Number(process.env.RATE_LIMIT_MAX) || 1000,
+    authMax: Number(process.env.AUTH_RATE_LIMIT_MAX) || 25,
+  },
 };
 
 module.exports = config;

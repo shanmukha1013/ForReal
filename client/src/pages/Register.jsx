@@ -1,94 +1,91 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import useAuthStore from '@/store/useAuthStore';
-import { Button, Input, Card } from '@/components';
-import { toast } from 'react-hot-toast';
-
+import { Button, Input } from '@/components/ui';
 import { usePageTitle } from '@/hooks';
 
-export const Register = () => {
-  usePageTitle('Register');
-  const { register, handleSubmit, formState: { errors }, watch } = useForm();
-  const { register: registerUser, isLoading } = useAuthStore();
-  
+export default function Register() {
+  usePageTitle('Create account');
+  const registerUser = useAuthStore((s) => s.register);
+  const isSubmitting = useAuthStore((s) => s.isSubmitting);
+  const { register, handleSubmit, watch, setError, formState: { errors } } = useForm({
+    defaultValues: { username: '', email: '', password: '', confirmPassword: '' },
+  });
   const password = watch('password');
 
-  const onSubmit = async (data) => {
+  const onSubmit = async ({ username, email, password: pw }) => {
     try {
-      const res = await registerUser({
-        username: data.username,
-        email: data.email,
-        password: data.password
-      });
-      toast.success(res.message || 'Account created successfully!');
+      await registerUser({ username: username.trim().toLowerCase(), email: email.trim(), password: pw });
+      toast.success('Welcome to ForReal. Pick a debate and take a side.');
     } catch (error) {
-      toast.error(error.message || 'Registration failed');
+      if (/username/i.test(error.message)) setError('username', { message: error.message });
+      else if (/email/i.test(error.message)) setError('email', { message: error.message });
+      else toast.error(error.message);
     }
   };
 
   return (
-    <Card className="w-full">
-      <div className="mb-8 text-center">
-        <h2 className="text-[28px] font-black text-white tracking-tight leading-tight">Create account</h2>
-      </div>
+    <div className="card p-6 sm:p-8">
+      <p className="eyebrow mb-2">Join the floor</p>
+      <h1 className="font-display text-5xl">Create account</h1>
+      <p className="mt-2 text-sm text-ink/70">Your opinions, on the record — and ready to be defended.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 flex flex-col gap-5" noValidate>
         <Input
           label="Username"
-          type="text"
-          id="username"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          hint="3–20 characters: letters, numbers and underscores."
           error={errors.username?.message}
-          {...register('username', { 
-            required: 'Username is required',
-            minLength: { value: 3, message: 'Minimum 3 characters' }
+          {...register('username', {
+            required: 'Choose a username.',
+            pattern: { value: /^[a-zA-Z0-9_]{3,20}$/, message: 'Use 3–20 letters, numbers or underscores.' },
           })}
         />
-
         <Input
-          label="Email address"
+          label="Email"
           type="email"
-          id="email"
+          autoComplete="email"
           error={errors.email?.message}
-          {...register('email', { 
-            required: 'Email is required',
-            pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' }
+          {...register('email', {
+            required: 'Enter your email.',
+            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/, message: 'Enter a valid email address.' },
           })}
         />
-
         <Input
           label="Password"
           type="password"
-          id="password"
+          autoComplete="new-password"
+          hint="At least 8 characters."
           error={errors.password?.message}
-          {...register('password', { 
-            required: 'Password is required',
-            minLength: { value: 6, message: 'Minimum 6 characters' }
+          {...register('password', {
+            required: 'Choose a password.',
+            minLength: { value: 8, message: 'Use at least 8 characters.' },
+            maxLength: { value: 128, message: 'Use at most 128 characters.' },
           })}
         />
-
         <Input
-          label="Confirm Password"
+          label="Confirm password"
           type="password"
-          id="confirmPassword"
+          autoComplete="new-password"
           error={errors.confirmPassword?.message}
-          {...register('confirmPassword', { 
-            required: 'Please confirm your password',
-            validate: value => value === password || 'Passwords do not match'
+          {...register('confirmPassword', {
+            required: 'Confirm your password.',
+            validate: (value) => value === password || 'The passwords don’t match.',
           })}
         />
-
-        <Button type="submit" isLoading={isLoading} className="mt-4 w-full">
-          Sign Up
-        </Button>
+        <Button type="submit" size="lg" fullWidth isLoading={isSubmitting}>Create account</Button>
       </form>
 
-      <div className="mt-8 text-center text-sm text-text-muted">
+      <p className="mt-7 border-t-2 border-ink/15 pt-5 text-center text-sm">
         Already have an account?{' '}
-        <Link to="/login" className="text-primary hover:text-primary-hover font-medium transition-property-common">
+        <Link to="/login" className="font-extrabold underline decoration-ember decoration-2 underline-offset-4">
           Sign in
         </Link>
-      </div>
-    </Card>
+      </p>
+    </div>
   );
-};
+}

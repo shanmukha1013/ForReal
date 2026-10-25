@@ -1,120 +1,78 @@
 import React from 'react';
-import { Heart, ThumbsDown, CheckCircle, XCircle, MessageCircle, Bookmark, Link2 } from 'lucide-react';
+import { Check, X, Heart, ThumbsDown, MessageSquare, Bookmark, Share2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const REACTION_CONFIG = {
-  like:     { icon: Heart,       label: 'Like',     activeColor: 'text-primary-bright', activeBg: 'bg-primary/10' },
-  dislike:  { icon: ThumbsDown,  label: 'Dislike',  activeColor: 'text-primary',        activeBg: 'bg-primary/5' },
-  agree:    { icon: CheckCircle, label: 'Agree',    activeColor: 'text-white',          activeBg: 'bg-white/10' },
-  disagree: { icon: XCircle,     label: 'Disagree', activeColor: 'text-text-muted',     activeBg: 'bg-bg-dark' },
-};
+// Agree/Disagree lead because ForReal is about positions, not applause.
+const REACTIONS = [
+  { type: 'agree', icon: Check, label: 'Agree' },
+  { type: 'disagree', icon: X, label: 'Disagree' },
+  { type: 'like', icon: Heart, label: 'Like' },
+  { type: 'dislike', icon: ThumbsDown, label: 'Dislike' },
+];
 
-export const ReactionBar = React.memo(({ talk, onReaction, onBookmark, onCommentToggle }) => {
-  const userReaction = talk.userReaction || null;
-  const isBookmarked = talk.isBookmarked || false;
+const chip = 'inline-flex h-8 items-center gap-1.5 rounded-[4px] border-2 px-2 text-xs font-bold transition-colors';
 
-  const handleShare = async () => {
+export const ReactionBar = React.memo(({ talk, onReaction, onBookmark, onComment, commentsOpen }) => {
+  const share = async () => {
     const url = `${window.location.origin}/talks/${talk._id}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'ForReal Talk',
-          text: `Check out this Talk by @${talk.author?.username}`,
-          url,
-        });
-      } catch (err) {
-        // User cancelled share — not an error
-        if (err.name !== 'AbortError') {
-          navigator.clipboard.writeText(url).then(() => {
-            toast.success('Talk link copied.');
-          });
-        }
-      }
-    } else {
-      try {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'A talk on ForReal', url });
+      } else {
         await navigator.clipboard.writeText(url);
-        toast.success('Talk link copied.');
-      } catch {
-        toast.error('Could not copy link.');
+        toast.success('Link copied.');
       }
+    } catch (error) {
+      if (error?.name !== 'AbortError') toast.error('Could not share this talk.');
     }
   };
 
   return (
-    <div className="flex items-center justify-between border-t border-border-subtle pt-3 mt-2">
-      {/* Left: Reactions + Comments */}
-      <div className="flex items-center gap-1 sm:gap-2">
-        {Object.entries(REACTION_CONFIG).map(([type, config]) => {
-          const Icon = config.icon;
-          const isActive = userReaction === type;
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ink/15 pt-3">
+      <div className="flex flex-wrap items-center gap-1">
+        {REACTIONS.map(({ type, icon: Icon, label }) => {
+          const active = talk.userReaction === type;
           const count = talk.reactionsCount?.[type] || 0;
-          
           return (
             <button
               key={type}
+              type="button"
               onClick={() => onReaction(talk._id, type)}
-              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-full text-sm font-medium transition-all duration-150 group ${
-                isActive
-                  ? `${config.activeColor} ${config.activeBg}`
-                  : 'text-text-muted hover:text-white hover:bg-white/5'
-              }`}
-              aria-label={`${config.label}: ${count}`}
-              aria-pressed={isActive}
-              title={config.label}
+              className={`${chip} ${active ? 'border-ink bg-ink text-ivory' : 'border-transparent hover:border-ink'}`}
+              aria-pressed={active}
+              aria-label={`${label}${count ? ` (${count})` : ''}`}
+              title={label}
             >
-              <Icon 
-                size={16} 
-                className={`transition-transform group-active:scale-110 ${isActive ? 'fill-current' : ''}`}
-                strokeWidth={isActive ? 2.5 : 2}
-              />
-              {count > 0 && (
-                <span className="text-xs tabular-nums">{count}</span>
-              )}
+              <Icon size={15} strokeWidth={2.5} className={active ? 'text-ember' : ''} aria-hidden="true" />
+              <span className={type === 'agree' || type === 'disagree' ? 'hidden sm:inline' : 'sr-only'}>{label}</span>
+              {count > 0 && <span className="tabular">{count}</span>}
             </button>
           );
         })}
-        
-        {/* Comment button */}
-        <button 
-          onClick={() => onCommentToggle && onCommentToggle()}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-sm font-medium text-text-muted hover:text-primary hover:bg-primary/10 transition-all duration-150 group"
-          aria-label={`Comments: ${talk.commentsCount || 0}`}
-          title="Comment"
+        <button
+          type="button"
+          onClick={onComment}
+          className={`${chip} ${commentsOpen ? 'border-ink' : 'border-transparent hover:border-ink'}`}
+          aria-expanded={commentsOpen}
+          aria-label={`Comments (${talk.commentsCount || 0})`}
         >
-          <MessageCircle size={16} strokeWidth={2} className="group-active:scale-110 transition-transform" />
-          {talk.commentsCount > 0 && (
-            <span className="text-xs tabular-nums">{talk.commentsCount}</span>
-          )}
+          <MessageSquare size={15} strokeWidth={2.5} aria-hidden="true" />
+          {talk.commentsCount > 0 && <span className="tabular">{talk.commentsCount}</span>}
         </button>
       </div>
 
-      {/* Right: Bookmark + Share */}
       <div className="flex items-center gap-1">
-        <button 
+        <button
+          type="button"
           onClick={() => onBookmark(talk._id)}
-          className={`p-2 rounded-full transition-all duration-150 group ${
-            isBookmarked
-              ? 'text-primary bg-primary/10'
-              : 'text-text-muted hover:text-primary hover:bg-primary/10'
-          }`}
-          aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
-          aria-pressed={isBookmarked}
-          title={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
+          className={`${chip} ${talk.isBookmarked ? 'border-ink bg-ink text-ivory' : 'border-transparent hover:border-ink'}`}
+          aria-pressed={Boolean(talk.isBookmarked)}
+          aria-label={talk.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
         >
-          <Bookmark 
-            size={16} 
-            strokeWidth={isBookmarked ? 2.5 : 2}
-            className={`transition-transform group-active:scale-110 ${isBookmarked ? 'fill-current' : ''}`}
-          />
+          <Bookmark size={15} strokeWidth={2.5} className={talk.isBookmarked ? 'fill-ember text-ember' : ''} aria-hidden="true" />
         </button>
-        
-        <button 
-          onClick={handleShare}
-          className="p-2 text-text-muted hover:text-primary hover:bg-primary/10 rounded-full transition-all duration-150 group"
-          aria-label="Share Talk"
-          title="Share"
-        >
-          <Link2 size={16} strokeWidth={2} className="group-active:scale-110 transition-transform" />
+        <button type="button" onClick={share} className={`${chip} border-transparent hover:border-ink`} aria-label="Share talk">
+          <Share2 size={15} strokeWidth={2.5} aria-hidden="true" />
         </button>
       </div>
     </div>

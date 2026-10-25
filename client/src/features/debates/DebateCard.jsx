@@ -1,115 +1,68 @@
-import React, { useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, Trash2 } from 'lucide-react';
-import {
-  StatusBadge,
-  CredibilityBadge,
-  CountdownTimer,
-  VoteBar,
-  Avatar
-} from '@/components/ui';
-import useAuthStore from '@/store/useAuthStore';
-import useDebateStore from '@/store/useDebateStore';
-import apiClient from '@/services/api';
-import { toast } from 'react-hot-toast';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { MessageSquare, Users } from 'lucide-react';
+import { Avatar, CountdownTimer, StatusBadge, VoteBar } from '@/components/ui';
+import { compact, percent, displayName } from '@/lib/format';
+import { sideTone } from '@/lib/sides';
 
-export const DebateCard = ({ debate, onDeleted }) => {
-  const { user } = useAuthStore();
-  const navigate = useNavigate();
-  const isCreator = user?._id && debate?.creator?._id &&
-    user._id.toString() === debate.creator._id.toString();
-
-  const handleDelete = useCallback(async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!window.confirm('Permanently delete this debate and all arguments?')) return;
-    try {
-      await apiClient.delete(`/debates/${debate._id}`);
-      toast.success('Debate deleted.');
-      if (onDeleted) onDeleted(debate._id);
-    } catch (err) {
-      toast.error(err.message || 'Could not delete debate.');
-    }
-  }, [debate._id, onDeleted]);
+export const DebateCard = React.memo(({ debate, rank }) => {
+  const total = debate.stats?.totalVotes || 0;
+  const open = debate.status === 'live' || debate.status === 'ending_soon';
+  const options = debate.options || [];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-card-dark rounded-xl border border-border-subtle p-5 hover:border-primary/40 transition-colors shadow-subtle group relative overflow-hidden"
-    >
-      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+    <article className="card card-interactive relative p-5 sm:p-6">
+      {/* The whole card is a link; inner links sit above it. */}
+      <Link to={`/debates/${debate._id}`} className="absolute inset-0 z-0 rounded-[inherit]" aria-label={debate.title} />
 
-      <div className="flex justify-between items-start mb-4 relative z-10">
-        <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
+      <div className="pointer-events-none relative z-10">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <StatusBadge status={debate.status} />
-          <Link to={`/debates/${debate._id}`}>
-            <h3 className="text-lg font-bold text-white group-hover:text-primary-bright transition-colors line-clamp-2 leading-snug">
-              {debate.title}
-            </h3>
+          <span className="eyebrow">{debate.category}</span>
+          {rank && <span className="font-display ml-auto text-2xl text-ember">#{rank}</span>}
+          {!rank && open && <CountdownTimer targetDate={debate.lifecycle?.endsAt} className="ml-auto" />}
+        </div>
+
+        <h3 className="font-display text-[1.9rem] leading-[0.95] text-balance sm:text-[2.2rem]">{debate.title}</h3>
+        {debate.description && (
+          <p className="mt-2 line-clamp-2 text-sm text-ink/75">{debate.description}</p>
+        )}
+
+        <div className="mt-5">
+          <VoteBar options={options} totalVotes={total} />
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            {options.map((opt, i) => (
+              <span key={opt._id} className="inline-flex min-w-0 items-center gap-1.5 text-xs font-bold">
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-[2px] border border-ink ${sideTone(i).swatch}`} aria-hidden="true" />
+                <span className="truncate">{opt.label}</span>
+                <span className="tabular text-ink/70">{percent(opt.votes, total)}%</span>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between gap-3 border-t-2 border-ink/15 pt-4">
+          <Link
+            to={`/profile/${debate.creator?.username}`}
+            className="pointer-events-auto relative z-20 flex min-w-0 items-center gap-2 hover:underline"
+          >
+            <Avatar src={debate.creator?.profile?.avatar} username={debate.creator?.username} size="sm" />
+            <span className="truncate text-xs font-bold">{displayName(debate.creator)}</span>
           </Link>
-        </div>
-        <div className="shrink-0 flex flex-col items-end gap-2">
-          {debate.status === 'live' || debate.status === 'ending_soon' ? (
-            <CountdownTimer targetDate={debate.lifecycle?.endsAt} />
-          ) : (
-            <span className="text-xs text-text-muted font-medium">Concluded</span>
-          )}
-          {isCreator && (
-            <button
-              onClick={handleDelete}
-              className="p-1.5 text-text-muted hover:text-error hover:bg-error/10 rounded-lg transition-colors"
-              aria-label="Delete debate"
-              title="Delete this debate"
-            >
-              <Trash2 size={14} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="mb-4 relative z-10">
-        <p className="text-sm text-text-muted line-clamp-2 leading-relaxed">
-          {debate.description}
-        </p>
-      </div>
-
-      <div className="space-y-3 mb-6 relative z-10">
-        <VoteBar options={debate.options} totalVotes={debate.stats.totalVotes} />
-        <div className="flex justify-between text-xs text-text-muted">
-          {debate.options.map((opt) => {
-            const pct = debate.stats.totalVotes > 0
-              ? Math.round((opt.votes / debate.stats.totalVotes) * 100)
-              : 0;
-            return (
-              <div key={opt._id} className="flex flex-col items-center max-w-[45%] text-center">
-                <span className="font-bold text-white mb-0.5 truncate w-full">{opt.label}</span>
-                <span style={{ color: opt.color || '#00C8FF' }}>{pct}%</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-border-subtle pt-4 relative z-10">
-        <div className="flex items-center gap-2">
-          <Avatar src={debate.creator?.profile?.avatar} username={debate.creator?.username} size="sm" />
-          <span className="text-xs text-text-muted font-medium">{debate.creator?.username}</span>
-          <CredibilityBadge score={debate.creator?.credibilityScore || 50} size="sm" />
-        </div>
-
-        <div className="flex items-center gap-4 text-xs text-text-muted">
-          <div className="flex items-center gap-1.5">
-            <Users size={13} />
-            <span>{debate.stats?.totalVotes || 0}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <MessageSquare size={13} />
-            <span>{debate.stats?.totalComments || 0}</span>
+          <div className="flex shrink-0 items-center gap-4 text-xs font-bold">
+            <span className="inline-flex items-center gap-1" title="Participants">
+              <Users size={14} strokeWidth={2.5} aria-hidden="true" /> {compact(debate.stats?.participantCount || 0)}
+              <span className="sr-only">participants</span>
+            </span>
+            <span className="inline-flex items-center gap-1" title="Arguments">
+              <MessageSquare size={14} strokeWidth={2.5} aria-hidden="true" /> {compact(debate.stats?.totalComments || 0)}
+              <span className="sr-only">arguments</span>
+            </span>
           </div>
         </div>
       </div>
-    </motion.div>
+    </article>
   );
-};
+});
+
+DebateCard.displayName = 'DebateCard';

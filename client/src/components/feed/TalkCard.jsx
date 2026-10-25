@@ -1,48 +1,47 @@
-import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import React, { useCallback, useState } from 'react';
+import useAuthStore from '@/store/useAuthStore';
+import { sameId } from '@/lib/format';
 import { TalkHeader } from './TalkHeader';
 import { TalkContent } from './TalkContent';
 import { TalkMedia } from './TalkMedia';
 import { ReactionBar } from './ReactionBar';
 import { CommentSection } from './CommentSection';
 
-export const TalkCard = React.memo(({ talk, onReaction, onBookmark, onDelete, onUpdate }) => {
+export const TalkCard = React.memo(({ talk, onReaction, onBookmark, onDelete, onUpdate, onPatch, defaultCommentsOpen = false }) => {
+  const userId = useAuthStore((s) => s.user?._id);
   const [isEditing, setIsEditing] = useState(false);
-  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(defaultCommentsOpen);
+  const isOwner = sameId(userId, talk.author?._id);
 
-  const handleCommentToggle = useCallback(() => {
-    setCommentsOpen(prev => !prev);
-  }, []);
-
-  const handleEditOpen = useCallback(() => {
-    setIsEditing(true);
-  }, []);
+  const toggleComments = useCallback(() => setCommentsOpen((open) => !open), []);
+  const handleCountChange = useCallback(
+    (delta) => onPatch?.(talk._id, { commentsCount: Math.max(0, (talk.commentsCount || 0) + delta) }),
+    [onPatch, talk._id, talk.commentsCount]
+  );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: talk.isOptimistic ? 0.7 : 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className={`bg-card-dark rounded-xl border border-border-subtle p-4 sm:p-5 hover:border-border-subtle/80 transition-colors shadow-sm mb-4 ${
-        talk.isOptimistic ? 'pointer-events-none' : ''
-      }`}
+    <article
+      className={`card p-4 sm:p-5 animate-rise [content-visibility:auto] [contain-intrinsic-size:auto_220px] ${talk.isOptimistic ? 'pointer-events-none opacity-70' : ''}`}
+      aria-busy={talk.isOptimistic || undefined}
     >
-      <TalkHeader talk={talk} onDelete={onDelete} onEdit={handleEditOpen} />
-      <TalkContent talk={talk} onUpdate={onUpdate} isEditing={isEditing} setIsEditing={setIsEditing} />
+      <TalkHeader talk={talk} isOwner={isOwner} onEdit={() => setIsEditing(true)} onDelete={onDelete} />
+      <TalkContent
+        key={isEditing ? 'editing' : 'view'}
+        talk={talk}
+        isEditing={isEditing}
+        onCancel={() => setIsEditing(false)}
+        onSave={(content) => onUpdate(talk._id, content)}
+      />
       <TalkMedia media={talk.media} />
-      <ReactionBar 
-        talk={talk} 
-        onReaction={onReaction} 
+      <ReactionBar
+        talk={talk}
+        onReaction={onReaction}
         onBookmark={onBookmark}
-        onCommentToggle={handleCommentToggle}
+        onComment={toggleComments}
+        commentsOpen={commentsOpen}
       />
-      <CommentSection 
-        talk={talk} 
-        isOpen={commentsOpen}
-        onToggle={handleCommentToggle}
-      />
-    </motion.div>
+      {commentsOpen && !talk.isOptimistic && <CommentSection talk={talk} onCountChange={handleCountChange} />}
+    </article>
   );
 });
 

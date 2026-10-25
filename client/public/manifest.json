@@ -1,17 +1,17 @@
 {
   "name": "ForReal",
   "short_name": "ForReal",
-  "description": "We don't talk shit.",
+  "description": "Don't just post it. Defend it. A debate platform for meaningful conversation.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
+  "background_color": "#CA6230",
+  "theme_color": "#CA6230",
   "icons": [
     {
       "src": "/favicon.svg",
       "type": "image/svg+xml",
       "sizes": "any",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

@@ -1,266 +1,214 @@
-import React, { useState, useEffect } from 'react';
-import { usePageTitle } from '@/hooks';
-import { User, Shield, Upload, Camera } from 'lucide-react';
-import useAuthStore from '@/store/useAuthStore';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { Camera, LogOut, Play } from 'lucide-react';
+import toast from 'react-hot-toast';
 import apiClient from '@/services/api';
-import { toast } from 'react-hot-toast';
-import { Button, Input } from '@/components';
-import { Avatar } from '@/components/ui';
+import useAuthStore from '@/store/useAuthStore';
+import { Avatar, Button, Input, PageHeader, Textarea } from '@/components/ui';
+import { usePageTitle } from '@/hooks';
 
-const SETTINGS_SECTIONS = [
-  {
-    id: 'account',
-    icon: User,
-    label: 'Account',
-    description: 'Update your profile photo and bio',
-    active: true,
-  },
-  {
-    id: 'security',
-    icon: Shield,
-    label: 'Security',
-    description: 'Update your password',
-    active: true,
-  },
-];
+const Section = ({ title, description, children }) => (
+  <section className="card p-5 sm:p-6">
+    <h2 className="font-display text-3xl">{title}</h2>
+    {description && <p className="mt-1 text-sm text-ink/70">{description}</p>}
+    <div className="mt-5">{children}</div>
+  </section>
+);
 
-export const Settings = () => {
-  usePageTitle('Settings — ForReal');
-  const [activeSection, setActiveSection] = useState('account');
-  const { user, updateUser, checkAuth } = useAuthStore();
-
-  const [username, setUsername] = useState('');
-  const [bio, setBio] = useState('');
-  const [avatarPreview, setAvatarPreview] = useState(null);
+const ProfileSection = () => {
+  const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
   const [avatarFile, setAvatarFile] = useState(null);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const fileRef = useRef(null);
+  const { register, handleSubmit, watch, reset, setError, formState: { errors, isSubmitting, isDirty } } = useForm({
+    defaultValues: {
+      displayName: user?.profile?.displayName || '',
+      username: user?.username || '',
+      bio: user?.profile?.bio || '',
+    },
+  });
+  const bio = watch('bio') || '';
 
-  useEffect(() => {
-    if (user?.profile) {
-      setUsername(user.username || '');
-      setBio(user.profile.bio || '');
-      // Only reset preview from server if we don't have a local file selected
-      if (!avatarFile) {
-        setAvatarPreview(user.profile.avatar || null);
-      }
-    }
-  }, [user]);
+  useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
+  const pickAvatar = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB.');
-      return;
-    }
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) return toast.error('Use a JPG, PNG, WEBP or GIF image.');
+    if (file.size > 5 * 1024 * 1024) return toast.error('Images must be under 5MB.');
     setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    setPreview(URL.createObjectURL(file));
+    return undefined;
   };
 
-  const handleSaveAccount = async () => {
-    setIsSaving(true);
+  const onSubmit = async (values) => {
     try {
-      let newAvatarUrl = user?.profile?.avatar || null;
-
-      // 1. Upload avatar first if a new file was selected
+      let avatar = user?.profile?.avatar || '';
       if (avatarFile) {
-        const formData = new FormData();
-        formData.append('avatar', avatarFile);
-        const avatarRes = await apiClient.post('/users/profile-picture', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        // avatarRes = { success, data: { avatarUrl } }
-        newAvatarUrl = avatarRes.data?.avatarUrl || newAvatarUrl;
+        const form = new FormData();
+        form.append('avatar', avatarFile);
+        const res = await apiClient.post('/users/profile-picture', form);
+        avatar = res.data.avatarUrl;
       }
-
-      // 2. Save bio and username
-      const updateRes = await apiClient.put('/users/profile', { bio, username });
-
-      // 3. Immediately patch the store so all components re-render with new avatar and username
-      updateUser({
-        username: updateRes.data?.data?.username || username,
-        profile: {
-          ...(user?.profile || {}),
-          avatar: newAvatarUrl,
-          bio,
-        },
+      const res = await apiClient.put('/users/profile', {
+        displayName: values.displayName.trim(),
+        username: values.username.trim().toLowerCase(),
+        bio: values.bio.trim(),
       });
-
-      // 4. Also do a full refresh in background to sync other fields
-      checkAuth().catch(() => {});
-
+      updateUser({ ...res.data, profile: { ...res.data.profile, avatar } });
+      reset({ displayName: res.data.profile.displayName, username: res.data.username, bio: res.data.profile.bio });
       setAvatarFile(null);
-      toast.success('Profile saved successfully.');
-    } catch (err) {
-      console.error('Save error:', err);
-      toast.error(err.message || 'Could not save profile. Try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleSaveSecurity = async () => {
-    if (!password) return toast.error('Enter a new password.');
-    if (password.length < 6) return toast.error('Password must be at least 6 characters.');
-    if (password !== confirmPassword) return toast.error('Passwords do not match.');
-    setIsSaving(true);
-    try {
-      await apiClient.put('/users/profile', { password });
-      toast.success('Password updated.');
-      setPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      toast.error(err.message || 'Could not update password. Try again.');
-    } finally {
-      setIsSaving(false);
+      toast.success('Profile saved.');
+    } catch (error) {
+      if (/username/i.test(error.message)) setError('username', { message: error.message });
+      else toast.error(error.message);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-20">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-black text-white tracking-tight">Settings</h1>
-        <p className="text-text-muted text-sm mt-1">Manage your ForReal account.</p>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
-        <div className="md:w-60 shrink-0">
-          <div className="bg-card-dark border border-border-subtle rounded-xl overflow-hidden">
-            {SETTINGS_SECTIONS.map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => setActiveSection(id)}
-                className={`w-full flex items-center gap-3 px-5 py-4 text-sm font-bold transition-colors border-b border-border-subtle/50 last:border-b-0 ${
-                  activeSection === id
-                    ? 'text-white bg-white/5 border-l-2 border-l-primary'
-                    : 'text-text-muted hover:text-white hover:bg-white/[0.03]'
-                }`}
-              >
-                <Icon size={18} className={activeSection === id ? 'text-primary' : 'text-text-muted'} />
-                {label}
-              </button>
-            ))}
+    <Section title="Profile" description="How you appear next to every argument you make.">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+        <div className="flex items-center gap-5">
+          <div className="relative">
+            <Avatar src={preview || user?.profile?.avatar} username={user?.username} size="xl" />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="absolute -bottom-1 -right-1 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-ink bg-ember hover:bg-ivory"
+              aria-label="Change profile photo"
+            >
+              <Camera size={16} strokeWidth={2.5} />
+            </button>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={pickAvatar} />
+          </div>
+          <div className="text-sm">
+            <p className="font-bold">Profile photo</p>
+            <p className="text-ink/70">JPG, PNG, WEBP or GIF, up to 5MB.</p>
+            {avatarFile && <p className="mt-1 font-bold underline decoration-ember decoration-2">New photo selected — save to apply.</p>}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 bg-card-dark border border-border-subtle rounded-xl overflow-hidden">
-          {activeSection === 'account' && (
-            <div className="animate-in fade-in duration-200">
-              <div className="px-6 py-5 border-b border-border-subtle flex items-center gap-3 bg-surface">
-                <User size={20} className="text-primary" />
-                <div>
-                  <h2 className="font-bold text-white text-lg">Account</h2>
-                  <p className="text-text-muted text-xs mt-0.5">Update your profile photo and bio</p>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-6">
-                {/* Avatar section */}
-                <div className="flex items-center gap-6">
-                  <div className="relative group shrink-0">
-                    <Avatar
-                      src={avatarPreview}
-                      username={user?.username}
-                      size="xl"
-                    />
-                    <label className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full">
-                      <Camera size={20} className="text-white mb-1" />
-                      <span className="text-[9px] text-white font-bold uppercase tracking-wider">Change</span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={handleAvatarChange}
-                      />
-                    </label>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-bold mb-1">Profile Photo</h3>
-                    <p className="text-text-muted text-xs leading-relaxed max-w-xs">
-                      JPG, PNG or WebP. Max 5MB. Hover the photo to change it.
-                    </p>
-                    {avatarFile && (
-                      <p className="text-primary text-xs font-semibold mt-2">
-                        New photo selected — save to apply.
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Username */}
-                <div>
-                  <label className="block text-white font-bold text-sm mb-2">Username</label>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Your username"
-                    className="w-full bg-bg-dark border border-border-muted rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
-                  />
-                </div>
-
-                {/* Bio */}
-                <div>
-                  <label className="block text-white font-bold text-sm mb-2">Bio</label>
-                  <textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Tell the world what you stand for…"
-                    maxLength={200}
-                    className="w-full bg-bg-dark border border-border-muted rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all min-h-[100px] resize-y"
-                  />
-                  <p className="text-text-muted text-xs mt-1 text-right">{bio.length}/200</p>
-                </div>
-
-                <div className="pt-4 border-t border-border-subtle flex justify-end">
-                  <Button onClick={handleSaveAccount} isLoading={isSaving} className="px-8">
-                    Save Changes
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeSection === 'security' && (
-            <div className="animate-in fade-in duration-200">
-              <div className="px-6 py-5 border-b border-border-subtle flex items-center gap-3 bg-surface">
-                <Shield size={20} className="text-primary" />
-                <div>
-                  <h2 className="font-bold text-white text-lg">Security</h2>
-                  <p className="text-text-muted text-xs mt-0.5">Keep your account protected</p>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <Input
-                  label="New Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters"
-                />
-                <Input
-                  label="Confirm New Password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat your new password"
-                />
-                <div className="pt-4 border-t border-border-subtle flex justify-end">
-                  <Button onClick={handleSaveSecurity} isLoading={isSaving} className="px-8" variant="outline">
-                    Update Password
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            label="Display name"
+            maxLength={50}
+            placeholder="How people see you"
+            error={errors.displayName?.message}
+            {...register('displayName', { maxLength: { value: 50, message: 'Keep it under 50 characters.' } })}
+          />
+          <Input
+            label="Username"
+            autoCapitalize="none"
+            spellCheck={false}
+            error={errors.username?.message}
+            {...register('username', {
+              required: 'Username is required.',
+              pattern: { value: /^[a-zA-Z0-9_]{3,20}$/, message: 'Use 3–20 letters, numbers or underscores.' },
+            })}
+          />
         </div>
-      </div>
-    </div>
+        <Textarea
+          label="Bio"
+          maxLength={280}
+          rows={3}
+          counter={`${bio.length}/280`}
+          placeholder="What do you stand for? What will you argue about?"
+          {...register('bio')}
+        />
+        <div className="flex justify-end">
+          <Button type="submit" isLoading={isSubmitting} disabled={!isDirty && !avatarFile}>Save profile</Button>
+        </div>
+      </form>
+    </Section>
   );
 };
+
+const SecuritySection = () => {
+  const { register, handleSubmit, watch, reset, setError, formState: { errors, isSubmitting } } = useForm({
+    defaultValues: { currentPassword: '', password: '', confirm: '' },
+  });
+  const password = watch('password');
+
+  const onSubmit = async ({ currentPassword, password: next }) => {
+    try {
+      await apiClient.put('/users/profile', { currentPassword, password: next });
+      reset();
+      toast.success('Password updated.');
+    } catch (error) {
+      if (/current password/i.test(error.message)) setError('currentPassword', { message: error.message });
+      else toast.error(error.message);
+    }
+  };
+
+  return (
+    <Section title="Security" description="Changing your password requires your current one.">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+        <Input
+          label="Current password"
+          type="password"
+          autoComplete="current-password"
+          error={errors.currentPassword?.message}
+          {...register('currentPassword', { required: 'Enter your current password.' })}
+        />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            label="New password"
+            type="password"
+            autoComplete="new-password"
+            hint="At least 8 characters."
+            error={errors.password?.message}
+            {...register('password', { required: 'Choose a new password.', minLength: { value: 8, message: 'Use at least 8 characters.' } })}
+          />
+          <Input
+            label="Confirm new password"
+            type="password"
+            autoComplete="new-password"
+            error={errors.confirm?.message}
+            {...register('confirm', { validate: (v) => v === password || 'The passwords don’t match.' })}
+          />
+        </div>
+        <div className="flex justify-end">
+          <Button type="submit" variant="outline" isLoading={isSubmitting}>Update password</Button>
+        </div>
+      </form>
+    </Section>
+  );
+};
+
+export default function Settings() {
+  usePageTitle('Settings');
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <PageHeader eyebrow="Account" title="Settings" description="Your profile, your security, your session." />
+      <ProfileSection />
+      <SecuritySection />
+      <Section title="Experience">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm">Watch the ForReal introduction again.</p>
+          <Button to="/welcome?replay=1" variant="outline" size="sm"><Play size={15} className="fill-current" /> Replay intro</Button>
+        </div>
+      </Section>
+      <Section title="Session">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm">Sign out of ForReal on this device.</p>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={async () => {
+              await logout();
+              navigate('/login', { replace: true });
+            }}
+          >
+            <LogOut size={15} strokeWidth={2.5} /> Sign out
+          </Button>
+        </div>
+      </Section>
+    </div>
+  );
+}

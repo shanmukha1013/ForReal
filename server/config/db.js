@@ -1,28 +1,36 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/forreal', {
-      serverSelectionTimeoutMS: 5000,
-    });
+const RETRY_DELAYS_MS = [2000, 5000, 10000, 20000];
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (err) {
-    console.error(`Error connecting to MongoDB: ${err.message}`);
-    // Retry logic could be implemented here, but for now we exit
-    process.exit(1);
+const connectDB = async (uri = process.env.MONGODB_URI) => {
+  // Retry transient failures (cold networks, Atlas elections) before giving up.
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const conn = await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 10000,
+        maxPoolSize: 20,
+      });
+      logger.info(`MongoDB connected: ${conn.connection.host}`);
+      break;
+    } catch (err) {
+      const isAuthError = /auth/i.test(err.message);
+      if (isAuthError || attempt >= RETRY_DELAYS_MS.length) {
+        logger.error(`MongoDB connection failed: ${err.message}`);
+        throw err;
+      }
+      logger.warn(`MongoDB connection attempt ${attempt + 1} failed (${err.message}); retrying...`);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
+    }
   }
 
-  mongoose.connection.on('disconnected', () => {
-    console.log('MongoDB disconnected');
-  });
-
-  // Graceful shutdown
-  process.on('SIGINT', async () => {
-    await mongoose.connection.close();
-    console.log('MongoDB connection closed due to app termination');
-    process.exit(0);
-  });
+  mongoose.connection.on('disconnected', () => logger.warn('MongoDB disconnected'));
+  mongoose.connection.on('reconnected', () => logger.info('MongoDB reconnected'));
 };
 
-module.exports = { connectDB };
+const disconnectDB = async () => {
+  await mongoose.connection.close();
+  logger.info('MongoDB connection closed');
+};
+
+module.exports = { connectDB, disconnectDB };

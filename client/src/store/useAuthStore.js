@@ -1,87 +1,93 @@
 import { create } from 'zustand';
-import apiClient, { setAccessToken } from '@/services/api';
+import apiClient, { refreshAccessToken, setAccessToken } from '@/services/api';
 import { socketService } from '@/services/socket';
+
+// status: 'checking' while the session is restored on load, then
+// 'authenticated' or 'guest'. Form submissions use isSubmitting so the login
+// form never unmounts mid-request.
+let checkPromise = null;
 
 const useAuthStore = create((set, get) => ({
   user: null,
-  isAuthenticated: false,
-  isLoading: true,
-  error: null,
+  status: 'checking',
+  isSubmitting: false,
 
   login: async (credentials) => {
-    set({ isLoading: true, error: null });
+    set({ isSubmitting: true });
     try {
       const response = await apiClient.post('/auth/login', credentials);
-      // response = { success, message, data: { _id, username, email, role, profile, accessToken } }
-      const token = response.data.accessToken;
-      setAccessToken(token);
-      socketService.connect(token);
-      set({ user: response.data, isAuthenticated: true, isLoading: false });
+      const { accessToken, ...user } = response.data;
+      setAccessToken(accessToken);
+      socketService.connect();
+      set({ user, status: 'authenticated', isSubmitting: false });
       return response;
     } catch (error) {
-      set({ error: error.message, isAuthenticated: false, isLoading: false });
+      set({ isSubmitting: false });
       throw error;
     }
   },
 
   register: async (userData) => {
-    set({ isLoading: true, error: null });
+    set({ isSubmitting: true });
     try {
       const response = await apiClient.post('/auth/register', userData);
-      const token = response.data.accessToken;
-      setAccessToken(token);
-      socketService.connect(token);
-      set({ user: response.data, isAuthenticated: true, isLoading: false });
+      const { accessToken, ...user } = response.data;
+      setAccessToken(accessToken);
+      socketService.connect();
+      set({ user, status: 'authenticated', isSubmitting: false });
       return response;
     } catch (error) {
-      set({ error: error.message, isAuthenticated: false, isLoading: false });
+      set({ isSubmitting: false });
       throw error;
     }
   },
 
   logout: async () => {
-    set({ isLoading: true });
     try {
       await apiClient.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setAccessToken(null);
-      socketService.disconnect();
-      set({ user: null, isAuthenticated: false, isLoading: false });
-    }
-  },
-
-  checkAuth: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const refreshResponse = await apiClient.post('/auth/refresh');
-      const token = refreshResponse.data.accessToken;
-      setAccessToken(token);
-      socketService.connect(token);
-
-      const response = await apiClient.get('/auth/me');
-      // response.data = { _id, username, email, role, profile, credibilityScore, badges }
-      set({ user: response.data, isAuthenticated: true, isLoading: false });
     } catch {
-      setAccessToken(null);
-      socketService.disconnect();
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      // Clearing local state below is what matters for the user.
     }
+    get().clearSession();
   },
 
-  // Directly update user fields in the store — used after profile edits to avoid a full checkAuth round-trip
+  // Local-only sign-out used when the server has already rejected the session.
+  clearSession: () => {
+    setAccessToken(null);
+    socketService.disconnect();
+    set({ user: null, status: 'guest', isSubmitting: false });
+  },
+
+  checkAuth: () => {
+    // Deduplicated so StrictMode's double effect cannot race two refreshes.
+    if (!checkPromise) {
+      checkPromise = (async () => {
+        try {
+          await refreshAccessToken();
+          const response = await apiClient.get('/auth/me');
+          socketService.connect();
+          set({ user: response.data, status: 'authenticated' });
+        } catch {
+          setAccessToken(null);
+          socketService.disconnect();
+          set({ user: null, status: 'guest' });
+        } finally {
+          checkPromise = null;
+        }
+      })();
+    }
+    return checkPromise;
+  },
+
+  // Patch the signed-in user after profile edits without a network round-trip.
   updateUser: (updates) => {
-    const currentUser = get().user;
-    if (!currentUser) return;
+    const current = get().user;
+    if (!current) return;
     set({
       user: {
-        ...currentUser,
+        ...current,
         ...updates,
-        profile: {
-          ...(currentUser.profile || {}),
-          ...(updates.profile || {}),
-        },
+        profile: { ...(current.profile || {}), ...(updates.profile || {}) },
       },
     });
   },

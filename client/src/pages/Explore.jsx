@@ -1,435 +1,251 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { usePageTitle } from '@/hooks';
-import {
-  Search, TrendingUp, Flame, Users, MessageSquare,
-  Scale, Hash, Loader2, ArrowRight, ChevronRight,
-  Cpu, Landmark, Lightbulb, FlaskConical, TrendingUp as ChartUp, 
-  Scale as ScaleIcon, Trophy, Globe
-} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ArrowRight, Search, X } from 'lucide-react';
 import apiClient from '@/services/api';
-import { Link } from 'react-router-dom';
-import { StatusBadge, Avatar } from '@/components/ui';
-import { motion, AnimatePresence } from 'framer-motion';
+import { debateService } from '@/services/debateService';
+import { DebateCard } from '@/features/debates/DebateCard';
+import { Avatar, EmptyState, ErrorState, PageHeader, Skeleton, SkeletonList, StatusBadge } from '@/components/ui';
+import { RichText } from '@/components/feed/TalkContent';
+import { usePageTitle } from '@/hooks';
+import { CATEGORIES } from '@/lib/constants';
+import { displayName, plural, timeAgo } from '@/lib/format';
 
-/* ─── Category pills ──────────────────────────────────── */
-const CATEGORIES = [
-  { label: 'Technology', icon: Cpu },
-  { label: 'Politics', icon: Landmark },
-  { label: 'Philosophy', icon: Lightbulb },
-  { label: 'Science', icon: FlaskConical },
-  { label: 'Economics', icon: ChartUp },
-  { label: 'Ethics', icon: ScaleIcon },
-  { label: 'Sports', icon: Trophy },
-  { label: 'Climate', icon: Globe },
-];
-
-/* ─── Debate card ─────────────────────────────────────── */
-const DebateResult = ({ debate, index }) => {
-  const totalVotes = debate.stats?.totalVotes || 0;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-    >
-      <Link
-        to={`/debates/${debate._id}`}
-        className="group flex flex-col sm:flex-row sm:items-center gap-4 bg-card-dark border border-border-subtle hover:border-primary/40 rounded-xl p-5 transition-all duration-200 hover:shadow-[0_0_24px_rgba(0,200,255,0.08)]"
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <StatusBadge status={debate.status} />
-            {debate.category && (
-              <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted px-2 py-0.5 bg-white/[0.04] rounded-full border border-border-subtle">
-                {debate.category}
-              </span>
-            )}
-          </div>
-          <h3 className="text-white font-bold text-base leading-snug group-hover:text-primary transition-colors line-clamp-2 mb-1">
-            {debate.title}
-          </h3>
-          <p className="text-text-muted text-xs line-clamp-1">{debate.description}</p>
-        </div>
-        <div className="shrink-0 flex sm:flex-col items-center sm:items-end gap-3 text-xs text-text-muted">
-          <span className="flex items-center gap-1">
-            <Users size={12} />
-            {debate.stats?.participantCount || totalVotes}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageSquare size={12} />
-            {debate.stats?.totalComments || 0}
-          </span>
-          <ChevronRight size={14} className="hidden sm:block text-text-muted group-hover:text-primary transition-colors" />
-        </div>
-      </Link>
-    </motion.div>
-  );
-};
-
-/* ─── User card ───────────────────────────────────────── */
-const UserResult = ({ user, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.04 }}
-  >
-    <Link
-      to={`/profile/${user.username}`}
-      className="group flex items-center gap-4 bg-card-dark border border-border-subtle hover:border-primary/40 rounded-xl p-4 transition-all duration-200"
-    >
-      <Avatar src={user.profile?.avatar} username={user.username} size="md" />
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-white text-sm group-hover:text-primary transition-colors truncate">
-          {user.username}
-        </p>
-        {user.profile?.bio ? (
-          <p className="text-text-muted text-xs truncate mt-0.5">{user.profile.bio}</p>
-        ) : (
-          <p className="text-text-muted text-xs mt-0.5">{user.followers?.length || 0} followers</p>
-        )}
-      </div>
-      <ChevronRight size={14} className="text-text-muted group-hover:text-primary transition-colors shrink-0" />
-    </Link>
-  </motion.div>
+const Section = ({ title, count, children }) => (
+  <section className="space-y-3">
+    <h2 className="eyebrow flex items-center gap-2">
+      {title} <span className="rounded-full border-2 border-ink bg-ivory px-1.5 tabular">{count}</span>
+    </h2>
+    {children}
+  </section>
 );
 
-/* ─── Trending debate card ────────────────────────────── */
-const TrendingCard = ({ debate, rank }) => {
-  const totalVotes = debate.stats?.totalVotes || 0;
-  const options = debate.options || [];
-  const leadingOption = options.reduce((a, b) => (a.votes > b.votes ? a : b), options[0] || {});
-  const leadPct = totalVotes > 0 ? Math.round(((leadingOption?.votes || 0) / totalVotes) * 100) : 0;
+const SearchResults = ({ query }) => {
+  const [state, setState] = useState({ status: 'loading', data: null, error: null });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setState((s) => ({ ...s, status: 'loading' }));
+    // Debounce typing; abort superseded requests.
+    const timer = setTimeout(async () => {
+      try {
+        const res = await apiClient.get('/search', { params: { q: query }, signal: controller.signal });
+        setState({ status: 'ready', data: res.data, error: null });
+      } catch (error) {
+        if (!controller.signal.aborted) setState({ status: 'error', data: null, error: error.message });
+      }
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  if (state.status === 'loading' && !state.data) return <SkeletonList count={2} />;
+  if (state.status === 'error') return <ErrorState title="Search failed." message={state.error} />;
+
+  const { users = [], debates = [], talks = [] } = state.data || {};
+  if (!users.length && !debates.length && !talks.length) {
+    return (
+      <EmptyState icon={Search} title="No results.">
+        Nothing matches “{query}”. Try a broader word, or open a debate about it.
+      </EmptyState>
+    );
+  }
 
   return (
-    <Link
-      to={`/debates/${debate._id}`}
-      className="group bg-card-dark border border-border-subtle hover:border-primary/30 rounded-2xl p-5 flex flex-col gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,200,255,0.1)] relative overflow-hidden"
-    >
-      {/* Rank watermark */}
-      <span className="absolute top-3 right-4 text-5xl font-black text-white/[0.04] select-none leading-none">
-        #{rank}
-      </span>
-
-      <div className="flex items-start justify-between gap-2 relative z-10">
-        <StatusBadge status={debate.status} />
-        {debate.category && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-primary/70 shrink-0">
-            {debate.category}
-          </span>
-        )}
-      </div>
-
-      <h3 className="text-white font-bold text-lg leading-snug group-hover:text-primary transition-colors line-clamp-2 relative z-10">
-        {debate.title}
-      </h3>
-
-      {/* Vote preview */}
-      {options.length > 0 && (
-        <div className="relative z-10">
-          <div className="flex justify-between text-[10px] font-bold text-text-muted mb-1.5 uppercase tracking-wider">
-            <span className="truncate max-w-[45%]">{options[0]?.label}</span>
-            {options[1] && <span className="truncate max-w-[45%] text-right">{options[1]?.label}</span>}
-          </div>
-          <div className="h-1.5 bg-border-subtle rounded-full overflow-hidden flex">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: totalVotes > 0 ? `${Math.round((options[0]?.votes / totalVotes) * 100)}%` : '50%',
-                backgroundColor: options[0]?.color || '#00C8FF',
-              }}
-            />
-            <div className="flex-1 h-full" style={{ backgroundColor: options[1]?.color || '#FF3B30', opacity: 0.6 }} />
-          </div>
-          <p className="text-text-muted text-[10px] mt-1.5 font-medium">
-            {totalVotes} votes · {leadPct}% leading
-          </p>
-        </div>
+    <div className={`space-y-8 transition-opacity ${state.status === 'loading' ? 'opacity-60' : ''}`}>
+      {debates.length > 0 && (
+        <Section title="Debates" count={debates.length}>
+          <div className="space-y-4">{debates.map((d) => <DebateCard key={d._id} debate={d} />)}</div>
+        </Section>
       )}
-
-      <div className="flex items-center justify-between pt-2 border-t border-border-subtle/50 relative z-10">
-        <div className="flex items-center gap-2">
-          <Avatar src={debate.creator?.profile?.avatar} username={debate.creator?.username} size="sm" />
-          <span className="text-xs text-text-muted font-medium">{debate.creator?.username}</span>
-        </div>
-        <span className="flex items-center gap-1 text-xs text-text-muted">
-          <MessageSquare size={11} />
-          {debate.stats?.totalComments || 0}
-        </span>
-      </div>
-    </Link>
+      {users.length > 0 && (
+        <Section title="People" count={users.length}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {users.map((u) => (
+              <Link key={u._id} to={`/profile/${u.username}`} className="card card-interactive flex items-center gap-3 p-4">
+                <Avatar src={u.profile?.avatar} username={u.username} size="md" />
+                <span className="min-w-0">
+                  <span className="block truncate font-extrabold">{displayName(u)}</span>
+                  <span className="block truncate text-xs text-ink/70">@{u.username} · {plural(u.followerCount, 'follower')}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </Section>
+      )}
+      {talks.length > 0 && (
+        <Section title="Talks" count={talks.length}>
+          <div className="space-y-3">
+            {talks.map((t) => (
+              <Link key={t._id} to={`/talks/${t._id}`} className="card card-interactive block p-4">
+                <span className="mb-1 flex items-center gap-2 text-xs font-bold">
+                  <Avatar src={t.author?.profile?.avatar} username={t.author?.username} size="xs" />
+                  @{t.author?.username} · {timeAgo(t.createdAt)}
+                </span>
+                <span className="line-clamp-3 text-sm">{t.content}</span>
+              </Link>
+            ))}
+          </div>
+        </Section>
+      )}
+    </div>
   );
 };
 
-/* ─── Main page ───────────────────────────────────────── */
-export const Explore = () => {
-  usePageTitle('Explore — ForReal');
+const Discover = () => {
+  const [state, setState] = useState({ status: 'loading', trending: [], closed: [] });
 
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState({ users: [], debates: [] });
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState(null);
-
-  const [trendingDebates, setTrendingDebates] = useState([]);
-  const [newestDebates, setNewestDebates] = useState([]);
-  const [isLoadingTrending, setIsLoadingTrending] = useState(true);
-
-  const inputRef = useRef(null);
-
-  // Fetch trending on mount — no fake users
   useEffect(() => {
-    const fetchExploreData = async () => {
-      setIsLoadingTrending(true);
-      try {
-        const [trending, newest] = await Promise.all([
-          apiClient.get('/debates?sort=trending&limit=6'),
-          apiClient.get('/debates?sort=newest&limit=3'),
-        ]);
-        setTrendingDebates(trending.data?.debates || []);
-        setNewestDebates(newest.data?.debates || []);
-      } catch (err) {
-        console.error('Explore data failed:', err);
-      } finally {
-        setIsLoadingTrending(false);
-      }
+    let cancelled = false;
+    Promise.all([
+      debateService.list({ sort: 'trending', status: 'open', limit: 4 }),
+      debateService.list({ status: 'finished', sort: 'newest', limit: 3 }),
+    ])
+      .then(([trending, closed]) => {
+        if (!cancelled) setState({ status: 'ready', trending: trending.data.debates, closed: closed.data.debates });
+      })
+      .catch((error) => {
+        if (!cancelled) setState({ status: 'error', error: error.message, trending: [], closed: [] });
+      });
+    return () => {
+      cancelled = true;
     };
-    fetchExploreData();
   }, []);
 
-  // Debounced search
+  return (
+    <div className="space-y-10">
+      <section>
+        <h2 className="eyebrow mb-3">Browse by topic</h2>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c}
+              to={`/debates?category=${encodeURIComponent(c)}`}
+              className="card card-interactive flex h-16 items-center justify-center px-2 text-center text-sm font-extrabold"
+            >
+              {c}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="eyebrow">Live and trending</h2>
+          <Link to="/debates" className="inline-flex items-center gap-1 text-xs font-extrabold underline underline-offset-4">
+            All debates <ArrowRight size={13} strokeWidth={3} />
+          </Link>
+        </div>
+        {state.status === 'loading' ? (
+          <div className="space-y-4"><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>
+        ) : state.status === 'error' ? (
+          <ErrorState title="Couldn’t load debates." message={state.error} />
+        ) : state.trending.length ? (
+          <div className="space-y-4">{state.trending.map((d, i) => <DebateCard key={d._id} debate={d} rank={i + 1} />)}</div>
+        ) : (
+          <EmptyState title="Nothing live right now.">Open a debate and it will show up here.</EmptyState>
+        )}
+      </section>
+
+      {state.closed.length > 0 && (
+        <section>
+          <h2 className="eyebrow mb-3">Recently decided</h2>
+          <div className="space-y-2">
+            {state.closed.map((d) => (
+              <Link key={d._id} to={`/debates/${d._id}`} className="card card-interactive flex items-center justify-between gap-3 p-4">
+                <span className="min-w-0">
+                  <span className="block truncate font-extrabold">{d.title}</span>
+                  <span className="block truncate text-xs text-ink/70">{d.finalVerdict?.communityVerdict || d.category}</span>
+                </span>
+                <StatusBadge status={d.status} />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="card p-5">
+        <h2 className="eyebrow mb-2">Search tips</h2>
+        <RichText
+          className="text-sm"
+          text={'Search debates by topic or wording, people by name, and talks by phrase. Hashtags work too — try #attention.'}
+        />
+      </section>
+    </div>
+  );
+};
+
+export default function Explore() {
+  usePageTitle('Explore');
+  const [params, setParams] = useSearchParams();
+  const urlQuery = params.get('q') || '';
+  const [input, setInput] = useState(urlQuery);
+  const inputRef = useRef(null);
+  const pushedQuery = useRef(urlQuery);
+  const urlTimer = useRef(null);
+  const query = input.trim();
+
+  // The input is the source of truth while typing; the URL is updated after a
+  // short pause. Router navigations commit asynchronously, so writing the URL
+  // on every keystroke let stale values overwrite newer typing. The input is
+  // only re-synced when the URL changes from outside (e.g. a hashtag link).
   useEffect(() => {
-    if (!query.trim()) {
-      setResults({ users: [], debates: [] });
-      setIsSearching(false);
-      setSearchError(null);
-      return;
+    if (urlQuery !== pushedQuery.current) {
+      pushedQuery.current = urlQuery;
+      setInput(urlQuery);
     }
+  }, [urlQuery]);
 
-    setIsSearching(true);
-    setSearchError(null);
+  useEffect(() => () => clearTimeout(urlTimer.current), []);
 
-    const timer = setTimeout(async () => {
-      try {
-        const res = await apiClient.get(`/search?q=${encodeURIComponent(query.trim())}&page=1`);
-        setResults(res.data || { users: [], debates: [] });
-      } catch (err) {
-        setSearchError('Search failed. Try again.');
-      } finally {
-        setIsSearching(false);
-      }
-    }, 350);
-
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  const hasResults = results.users.length > 0 || results.debates.length > 0;
-  const noResults = !isSearching && query.trim() && !hasResults && !searchError;
+  const update = (value, { immediate = false } = {}) => {
+    setInput(value);
+    clearTimeout(urlTimer.current);
+    const write = () => {
+      pushedQuery.current = value.trim() ? value : '';
+      setParams((current) => {
+        const next = new URLSearchParams(current);
+        if (value.trim()) next.set('q', value);
+        else next.delete('q');
+        return next;
+      }, { replace: true });
+    };
+    if (immediate) write();
+    else urlTimer.current = setTimeout(write, 400);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24">
+    <div>
+      <PageHeader eyebrow="Discover" title="Explore" description="Find the questions being argued right now — and the people arguing them." />
 
-      {/* ── Header ─────────────────────────────────────── */}
-      <div className="mb-8 pt-2">
-        <h1 className="text-4xl font-black text-white tracking-tight leading-tight mb-2">
-          Explore
-        </h1>
-        <p className="text-text-muted text-sm">
-          Discover active debates, search topics, and find what's being argued right now.
-        </p>
-      </div>
-
-      {/* ── Search bar ─────────────────────────────────── */}
       <div className="relative mb-8">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-          {isSearching ? (
-            <Loader2 size={18} className="animate-spin text-primary" />
-          ) : (
-            <Search size={18} />
-          )}
-        </div>
+        <Search size={20} strokeWidth={2.5} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
+        <label htmlFor="explore-search" className="sr-only">Search ForReal</label>
         <input
+          id="explore-search"
           ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search debates, topics, or users…"
-          className="w-full bg-card-dark border border-border-subtle rounded-xl pl-11 pr-4 py-3.5 text-white placeholder-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium"
+          type="search"
+          value={input}
+          onChange={(e) => update(e.target.value)}
+          placeholder="Search debates, people, talks or #hashtags"
+          className="field h-14 pl-12 pr-12 text-base font-semibold shadow-hard"
+          autoComplete="off"
         />
-        {query && (
+        {input && (
           <button
-            onClick={() => setQuery('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-white text-xs font-bold transition-colors"
+            type="button"
+            onClick={() => { update('', { immediate: true }); inputRef.current?.focus(); }}
+            className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[4px] hover:bg-ink hover:text-ivory"
+            aria-label="Clear search"
           >
-            Clear
+            <X size={18} strokeWidth={2.5} />
           </button>
         )}
       </div>
 
-      {/* ── Category chips ─────────────────────────────── */}
-      {!query && (
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-10 scrollbar-hide">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <button
-                key={cat.label}
-                onClick={() => { setQuery(cat.label); inputRef.current?.focus(); }}
-                className="shrink-0 flex items-center gap-2 px-4 py-2 bg-card-dark border border-border-subtle hover:border-primary/50 hover:bg-primary/5 rounded-full text-sm font-semibold text-text-muted hover:text-white transition-all duration-200 whitespace-nowrap"
-              >
-                <Icon size={16} />
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <AnimatePresence mode="wait">
-        {/* ── Search results ─────────────────────────────── */}
-        {query.trim() ? (
-          <motion.div
-            key="results"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-8"
-          >
-            {/* Error */}
-            {searchError && (
-              <div className="text-center py-12 text-text-muted">
-                <p className="text-sm">{searchError}</p>
-              </div>
-            )}
-
-            {/* No results */}
-            {noResults && (
-              <div className="text-center py-20 border border-dashed border-border-subtle rounded-2xl bg-card-dark">
-                <Search size={32} className="mx-auto text-text-muted mb-3 opacity-40" />
-                <h3 className="text-lg font-bold text-white mb-1">No results found</h3>
-                <p className="text-text-muted text-sm max-w-xs mx-auto">
-                  Try a different keyword or browse categories below.
-                </p>
-              </div>
-            )}
-
-            {/* Debates */}
-            {results.debates.length > 0 && (
-              <section>
-                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Scale size={14} className="text-primary" />
-                  Debates
-                  <span className="text-primary ml-1">{results.debates.length}</span>
-                </h2>
-                <div className="space-y-3">
-                  {results.debates.map((d, i) => (
-                    <DebateResult key={d._id} debate={d} index={i} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Users */}
-            {results.users.length > 0 && (
-              <section>
-                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Users size={14} className="text-primary" />
-                  People
-                  <span className="text-primary ml-1">{results.users.length}</span>
-                </h2>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {results.users.map((u, i) => (
-                    <UserResult key={u._id} user={u} index={i} />
-                  ))}
-                </div>
-              </section>
-            )}
-          </motion.div>
-        ) : (
-          /* ── Discovery view (no query) ─────────────────── */
-          <motion.div
-            key="discover"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-12"
-          >
-            {/* Trending */}
-            <section>
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                  <Flame size={16} className="text-orange-400" />
-                  Trending Now
-                </h2>
-                <Link
-                  to="/debates"
-                  className="text-xs text-text-muted hover:text-primary font-bold flex items-center gap-1 transition-colors"
-                >
-                  All debates <ArrowRight size={12} />
-                </Link>
-              </div>
-
-              {isLoadingTrending ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="bg-card-dark border border-border-subtle rounded-2xl p-5 animate-pulse h-48" />
-                  ))}
-                </div>
-              ) : trendingDebates.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {trendingDebates.map((debate, i) => (
-                    <TrendingCard key={debate._id} debate={debate} rank={i + 1} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 border border-dashed border-border-subtle rounded-2xl bg-card-dark">
-                  <Scale size={28} className="mx-auto text-text-muted mb-3 opacity-40" />
-                  <p className="text-text-muted text-sm">No debates yet.</p>
-                  <Link to="/debates" className="mt-3 inline-block text-primary text-sm font-bold hover:underline">
-                    Start the first debate →
-                  </Link>
-                </div>
-              )}
-            </section>
-
-            {/* Recently opened */}
-            {newestDebates.length > 0 && (
-              <section>
-                <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 mb-5">
-                  <TrendingUp size={16} className="text-primary" />
-                  Just Opened
-                </h2>
-                <div className="space-y-3">
-                  {newestDebates.map((d, i) => (
-                    <DebateResult key={d._id} debate={d} index={i} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Topics grid */}
-            <section>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 mb-5">
-                <Hash size={16} className="text-primary" />
-                Browse by Topic
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {CATEGORIES.map((cat) => {
-                  const Icon = cat.icon;
-                  return (
-                    <button
-                      key={cat.label}
-                      onClick={() => { setQuery(cat.label); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                      className="flex flex-col items-center justify-center gap-2 bg-card-dark border border-border-subtle hover:border-primary/40 hover:bg-primary/5 rounded-xl py-5 transition-all duration-200 group"
-                    >
-                      <Icon size={24} className="text-text-muted group-hover:text-primary transition-colors" />
-                      <span className="text-xs font-bold text-text-muted group-hover:text-white transition-colors">{cat.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {query.length >= 1 && query !== '#' ? <SearchResults query={query} /> : <Discover />}
+      <span className="sr-only" aria-live="polite">{query ? `Showing results for ${query}` : ''}</span>
     </div>
   );
-};
+}

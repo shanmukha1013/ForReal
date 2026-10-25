@@ -2,16 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>ForReal — Don't just post it. Defend it.</title>
+    <meta name="description" content="ForReal is a debate platform for meaningful conversation: open a question, take a side, cite your evidence and let the best argument win." />
+    <meta name="theme-color" content="#CA6230" />
+    <meta property="og:title" content="ForReal — Don't just post it. Defend it." />
+    <meta property="og:description" content="A debate platform for people who mean what they say. Less noise. More truth." />
+    <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#0A0A0A" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <title>ForReal | We Don't Talk Shit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Serif:ital@1&display=swap"
+    />
+    <style>
+      /* First paint matches the app shell, so there is no white flash. */
+      html, body { background: #CA6230; margin: 0; }
+    </style>
   </head>
   <body>
+    <noscript>
+      <div style="padding:2rem;font-family:system-ui;color:#171614;background:#F5EBDD">
+        ForReal needs JavaScript enabled to run.
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

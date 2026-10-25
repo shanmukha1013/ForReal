@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.101.2",
     "axios": "^1.18.1",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.24.0",
@@ -29,6 +28,6 @@
     "@vitejs/plugin-react": "^6.0.3",
     "oxlint": "^1.71.0",
     "tailwindcss": "^4.3.2",
-    "vite": "^8.1.1"
+    "vite": "~8.1.6"
   }
 }
